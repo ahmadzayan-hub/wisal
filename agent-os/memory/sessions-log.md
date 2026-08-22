@@ -43,6 +43,18 @@
 
 | التاريخ | الميلستون | commit |
 | --- | --- | --- |
+| 2026-08-18 | Fix CI: cut APK size from libsignal's multi-ABI native libs, harden R8 + dist pipeline | `2fa21b1` |
+| 2026-08-18 | Fix CI: enable core library desugaring for libsignal-android's AAR metadata requirement | `4a30dfd` |
+| 2026-08-13 | Add Spanish (es) locale pack, style-learning transparency screen, ADR-002 E2EE | `1b0474d` |
+| 2026-08-09 | ci: publish wisal.apk/aab to apk-dist branch as extra distribution channel | `d6b8a08` |
+| 2026-08-09 | docs: add project CHANGELOG covering all releases [skip ci] | `79bd8eb` |
+| 2026-08-03 | Add real-screen Compose UI tests: Welcome + History compose without crash (Robolectric) | `31299fb` |
+| 2026-08-03 | Add Compose UI test layer (Robolectric): smoke test for composition + interaction | `a5e049d` |
+| 2026-08-03 | Add automated test layer: Robolectric data-layer tests guarding JSON/R8 serialization | `005b159` |
+| 2026-08-03 | docs: third-party expert assessment of smart-features release (gaps + advice) [skip ci] | `0027515` |
+| 2026-08-03 | Add smart features: quick tone switch, reconnect intent, global-occasion radar, WhatsApp Business customer-reply mode | `2413743` |
+| 2026-08-03 | Add smart feature: 'حسّن رسالتي' (Polish My Draft) — rewrites your own outgoing message into 2 warmer in-persona versions, learns your style, manual send only | `990bf5f` |
+| 2026-08-03 | Fix R8 release build: -dontwarn Tink/errorprone compile-only annotations | `8b0c65c` |
 | 2026-08-03 | Performance: lazy broadcast list (LazyColumn) + single-read next-action (#93) | `d8071f5` |
 | 2026-08-02 | Privacy transparency + accessibility labels + CI signing status (#90) | `b36d99b` |
 | 2026-07-23 | feat(checkout): actually deliver the completed order to the business (WhatsApp) | `176ec43` |
@@ -56,18 +68,6 @@
 | 2026-07-14 | Android broadcast UX: copy-all/export, preview-first, favorite templates (#73) | `815b69a` |
 | 2026-07-14 | Review fixes: phone-normalize bug + testable util + desktop parity + bulk cap (#72) | `a4bc92c` |
 | 2026-07-14 | Android: AI-personalized message per member + watercolor tap effect (#71) | `3f13af6` |
-| 2026-07-14 | Android: group broadcast — country code, CSV import, saved groups, unknown-number send (#70) | `701329e` |
-| 2026-07-14 | Desktop: group broadcast (import + persona) + 3D/watercolor redesign (#69) | `cd6cc1e` |
-| 2026-07-14 | Agent-OS: interactive Skills/Tools, live Memory sync, deploy guide (#67) | `d79ad16` |
-| 2026-07-14 | Agentic OS: workspace structure (agent-os/) + Wisal desktop OS shell (#65) | `d8f1ff4` |
-| 2026-07-14 | Desktop custom icon + Windows download buttons on landing (#64) | `86f8d0c` |
-| 2026-07-13 | feat(media): fill every gallery tile & preview with real imagery (#63) | `156d37b` |
-| 2026-07-12 | Add Wisal desktop app for Windows (Electron) + CI installer build (#62) | `d27e71a` |
-| 2026-07-12 | CI: prune stale release assets so the download link stays clean (#57) | `411e1e7` |
-| 2026-07-11 | docs: fix broken README links + verify no cross-project conflict (#56) | `2b187b1` |
-| 2026-07-08 | Add privacy policy page for Play Store (wisal-web/privacy) (#53) | `33d8a30` |
-| 2026-07-07 | Prep Play Store release: com.wisal.app id, AAB build, wisal.apk naming (#52) | `305677a` |
-| 2026-07-07 | v2: personalized WhatsApp broadcast to contacts (one tap per person) (#51) | `754456c` |
 
 > بيتولّد أوتوماتيك بواسطة `agent-os/memory/sync.js` — متعدّلش القسم ده بإيدك.
 
