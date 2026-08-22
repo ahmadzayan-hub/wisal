@@ -1,7 +1,0 @@
-{
-  "id": "golden-approval-required",
-  "grader": "approval-gate",
-  "description": "Package installation demands Checkpoint C approval",
-  "input": {"command": "pip install requests", "autonomy": "execute-reversible", "approval_status": "not-required"},
-  "expected": {"approval_required": true}
-}

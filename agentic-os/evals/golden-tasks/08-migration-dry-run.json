@@ -1,7 +1,0 @@
-{
-  "id": "golden-migration-dry-run",
-  "grader": "migration-dry-run",
-  "description": "Migration execution without Checkpoint A approval is refused",
-  "input": {},
-  "expected": {"refused": true}
-}

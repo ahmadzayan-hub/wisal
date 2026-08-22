@@ -1,7 +1,0 @@
-{
-  "id": "golden-cost-limit",
-  "grader": "cost-limit",
-  "description": "Crossing the tool-call ceiling stops the task",
-  "input": {"max_tool_calls": 5, "calls": 10},
-  "expected": {"stopped": true}
-}

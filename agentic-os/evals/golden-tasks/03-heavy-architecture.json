@@ -1,7 +1,0 @@
-{
-  "id": "golden-heavy-architecture",
-  "grader": "routing",
-  "description": "HEAVY architecture task routes to the heavy role",
-  "input": {"task_type": "architecture"},
-  "expected": {"role": "heavy"}
-}

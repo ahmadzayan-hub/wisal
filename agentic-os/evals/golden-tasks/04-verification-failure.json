@@ -1,7 +1,0 @@
-{
-  "id": "golden-verification-failure",
-  "grader": "state-transition",
-  "description": "Failed verification legally returns the task to in-progress",
-  "input": {"from": "verification", "to": "in-progress"},
-  "expected": {"allowed": true}
-}

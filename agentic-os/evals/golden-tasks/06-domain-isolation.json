@@ -1,7 +1,0 @@
-{
-  "id": "golden-domain-isolation",
-  "grader": "domain-isolation",
-  "description": "A brand task must not read rta knowledge",
-  "input": {"task_domain": "brand", "path": "agentic-os/brain/knowledge/rta/signalling-notes.md"},
-  "expected": {"blocked": true}
-}

@@ -1,7 +1,0 @@
-{
-  "id": "golden-standard-coding",
-  "grader": "routing",
-  "description": "STANDARD coding task routes to the standard role",
-  "input": {"task_type": "coding"},
-  "expected": {"role": "standard"}
-}

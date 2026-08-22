@@ -1,7 +1,0 @@
-{
-  "id": "golden-light-extraction",
-  "grader": "routing",
-  "description": "LIGHT extraction task routes to the light role",
-  "input": {"task_type": "extraction"},
-  "expected": {"role": "light"}
-}

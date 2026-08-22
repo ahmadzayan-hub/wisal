@@ -1,9 +1,0 @@
-# Logging configuration. Audit log is JSONL, append-only, gitignored.
-audit-log: memory/audit.jsonl
-level: info
-timestamps: utc
-display-timezone: Asia/Dubai
-never-log:
-  - secrets
-  - raw-credentials
-  - full-chain-of-thought
