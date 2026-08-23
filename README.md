@@ -1,5 +1,16 @@
 # Wisal · وصال
 
+## Product Authority
+
+| | |
+|---|---|
+| **Primary User** | A busy partner / family person |
+| **Job To Be Done** | Never neglect the people who matter |
+| **System of Record** | Relationship circle, cadences, important dates (local & private) |
+| **System of Intelligence** | Message suggestions, contextual reminders |
+| **Explicit Non-Goals** | WhatsApp competitor · auto-sending by default · screen-time maximisation |
+
+
 > Family-messaging assistant — one product, several surfaces.
 
 Wisal (رسايل القلب) helps a busy partner stay warm and present: scheduled
