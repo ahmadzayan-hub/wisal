@@ -6,9 +6,13 @@ name: Direct relay checks
 on:
   workflow_dispatch:
   push:
-    branches:
-      - claude/telegram-ai-assistant-bot-8vqsfg
-      - main
+    branches: [main]
+    paths:
+      - "wisal-direct-relay/**"
+      - ".github/workflows/direct-relay.yml"
+  # Pull requests were not gated at all: every PR to this repository landed
+  # unverified, whatever it touched.
+  pull_request:
     paths:
       - "wisal-direct-relay/**"
       - ".github/workflows/direct-relay.yml"

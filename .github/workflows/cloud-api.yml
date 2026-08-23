@@ -5,9 +5,13 @@ name: Cloud API checks
 on:
   workflow_dispatch:
   push:
-    branches:
-      - claude/telegram-ai-assistant-bot-8vqsfg
-      - main
+    branches: [main]
+    paths:
+      - "wisal-cloud-api/**"
+      - ".github/workflows/cloud-api.yml"
+  # Pull requests were not gated at all: every PR to this repository landed
+  # unverified, whatever it touched.
+  pull_request:
     paths:
       - "wisal-cloud-api/**"
       - ".github/workflows/cloud-api.yml"
