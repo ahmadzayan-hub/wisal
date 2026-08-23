@@ -5,9 +5,13 @@ name: Build Windows App
 on:
   workflow_dispatch:
   push:
-    branches:
-      - claude/telegram-ai-assistant-bot-8vqsfg
-      - main
+    branches: [main]
+    paths:
+      - "wisal-desktop/**"
+      - ".github/workflows/desktop.yml"
+  # Pull requests were not gated at all: every PR to this repository landed
+  # unverified, whatever it touched.
+  pull_request:
     paths:
       - "wisal-desktop/**"
       - ".github/workflows/desktop.yml"

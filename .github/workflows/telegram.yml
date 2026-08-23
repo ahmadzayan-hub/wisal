@@ -1,0 +1,42 @@
+name: Telegram assistant checks
+
+# فحص telegram-wife-assistant: 29 اختبارًا — أكبر مجموعة اختبارات في المستودع،
+# ولم يكن يشغّلها شيء. Checks the largest test suite in this repository, which
+# had no workflow at all until now.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "telegram-wife-assistant/**"
+      - ".github/workflows/telegram.yml"
+  pull_request:
+    paths:
+      - "telegram-wife-assistant/**"
+      - ".github/workflows/telegram.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: telegram-wife-assistant
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # The suite requires telegraf at import time, so dependencies are not
+      # optional here: without them every test in bot.test.js fails to load.
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Tests
+        run: npm test
