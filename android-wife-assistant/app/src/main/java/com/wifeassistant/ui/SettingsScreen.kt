@@ -1,6 +1,9 @@
 package com.wifeassistant.ui
 
 import android.widget.Toast
+import com.wifeassistant.BuildConfig
+import com.wifeassistant.data.AppDiagnostics
+import com.wifeassistant.data.OwnSigningIdentity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -91,6 +94,17 @@ fun SettingsScreen(onBack: () -> Unit, onThemeChanged: () -> Unit = {}, onOpenSt
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            Section(t("عن وصال", "About Wisal"))
+            val certificate = remember { OwnSigningIdentity.sha256(context) }
+            Text("${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", style = MaterialTheme.typography.titleMedium)
+            Text(BuildConfig.APPLICATION_ID, style = MaterialTheme.typography.bodySmall)
+            Text(t("هذه أرقام النسخة الحالية، وليست وعداً بتوافق أي ملف تحديث.", "These identify this build, not proof that another APK is upgrade-compatible."), style = MaterialTheme.typography.bodySmall)
+            OutlinedButton(onClick = {
+                Share.text(context, AppDiagnostics.render(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE,
+                    BuildConfig.APPLICATION_ID, android.os.Build.VERSION.SDK_INT, certificate))
+            }) { Text(t("مشاركة بيانات الإصدار الآمنة", "Share safe build diagnostics")) }
+            Text(t("رقم الإصدار والحزمة ونسخة أندرويد وبصمة شهادة التطبيق فقط. بدون مفاتيح أو أشخاص أو رسائل.", "Only version, package, Android API level and app-certificate fingerprint. No keys, contacts or messages."), style = MaterialTheme.typography.bodySmall)
+            HorizontalDivider()
             Section(t("اللغة والمظهر", "Language & Appearance"))
             Text(t("لغة التطبيق", "App language"), style = MaterialTheme.typography.bodyMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

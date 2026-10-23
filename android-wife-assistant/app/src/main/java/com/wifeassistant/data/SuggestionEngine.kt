@@ -32,6 +32,11 @@ class SuggestionEngine(
             )
             GenerationResult(parseTwo(raw, themes), themes, slot)
         } catch (e: Exception) {
+            fallback(e, intent, slot)
+        }
+    }
+
+    private fun fallback(e: Exception, intent: Intents.Intent?, slot: String): GenerationResult {
             if (e is CancellationException && e !is TimeoutCancellationException) throw e
             // مفيش نت أو مفيش مفتاح: نرجّع بنك الرسائل الجاهز عشان التطبيق ما يقفش.
             val items = FallbackBank.two(settings.currentRecipient(), intent)
@@ -45,11 +50,53 @@ class SuggestionEngine(
                 "model" -> t("راجع النموذج المختار في الإعدادات؛ قد يكون متوقفاً.", "Check the model in Settings; it may be retired.")
                 "rate_limit" -> t("وصلت لحد استخدام Groq. حاول لاحقاً.", "Groq's usage limit was reached. Try later.")
                 "too_long" -> t("السياق طويل جداً. اختصره وحاول مجدداً.", "The context is too long. Shorten it and retry.")
+                "review_failed", "invalid_review", "review_budget" -> t("المراجعة لم تؤكد سلامة المعنى.", "Review could not confirm the source meaning.")
                 "invalid_response" -> t("لم يرجع Groq نصاً صالحاً.", "Groq returned no usable text.")
                 else -> t("تعذّر الاتصال بـ Groq الآن.", "Groq is unavailable right now.")
             }
             val note = reason + " " + t("هذه قوالب محلية، وليست نتيجة ذكاء اصطناعي. راجع اللغة والتفاصيل.", "These are local templates, not AI output. Review their language and details.")
-            GenerationResult(items, items.map { it.theme }, slot, offline = true, note = note)
+            return GenerationResult(items, items.map { it.theme }, slot, offline = true, note = note)
+    }
+
+    /** Explicit opt-in review flow. Uses only the typed context and selected communication controls. */
+    suspend fun generateReviewed(
+        slot: String,
+        occasion: Occasion? = null,
+        intentId: String? = null,
+        context: String = "",
+        onStage: (DraftStage) -> Unit = {},
+    ): GenerationResult {
+        val intent = Intents.byId(intentId)
+        if (!settings.groqEnabled) return fallback(GenerationException("disabled"), intent, slot)
+        val person = settings.currentRecipient()
+        val brief = DraftBrief(
+            recipientName = person?.name.orEmpty(), relationship = person?.relation ?: "other",
+            intent = intentId ?: if (occasion != null) "occasion" else "check_in",
+            source = listOfNotNull(context.takeIf { it.isNotBlank() }, occasion?.label).joinToString("\n"),
+            language = Lang.resolve(person?.language, person?.name), tone = person?.tone.orEmpty(),
+        )
+        return try {
+            val workflow = DraftWorkflow(DraftCompletion { messages, temperature -> groq.complete(messages, temperature) })
+            when (val result = workflow.run(brief, onStage)) {
+                is DraftOutcome.NeedsDetails -> {
+                    val note = when (result.code) {
+                        "remove_secret" -> t("احذف كلمات المرور أو مفاتيح API من السياق قبل المتابعة.", "Remove passwords or API keys from the context before continuing.")
+                        "choose_language" -> t("اختر العربية أو الإنجليزية لهذه المسودة.", "Choose Arabic or English for this draft.")
+                        "choose_person" -> t("اختر الشخص أولاً.", "Choose the recipient first.")
+                        "too_long" -> t("اختصر السياق إلى ٤٠٠٠ حرف أو أقل.", "Shorten the context to 4,000 characters or fewer.")
+                        else -> t("وضّح ما حدث وما تريد قوله، بدون معلومات حساسة غير لازمة.", "Describe what happened and what you want to say, without unnecessary sensitive details.")
+                    }
+                    GenerationResult(emptyList(), emptyList(), slot, reviewNote = note)
+                }
+                is DraftOutcome.Preview -> {
+                    val label = intent?.label ?: occasion?.label ?: "message"
+                    GenerationResult(result.drafts.map { Suggestion(it, label) }, listOf(label, label), slot,
+                        reviewNote = t("اكتملت الكتابة والمراجعة الآلية", "Writing and automated review completed") +
+                            " (${result.modelCalls}/4). " + t("ليست ضماناً للصحة. راجع المعنى قبل المشاركة.", "Not a correctness guarantee. Check the meaning before sharing."))
+                }
+            }
+        } catch (e: Exception) {
+            fallback(e, intent, slot).copy(reviewNote = t("لم تكتمل مراجعة الوكلاء. الظاهر قوالب محلية فقط.", "Agent review did not complete. Only local templates are shown."))
         }
     }
 

@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
 import com.wifeassistant.data.t
+import com.wifeassistant.data.DraftStage
 
 data class HomeState(
     val loading: Boolean = false,
@@ -32,6 +33,8 @@ data class HomeState(
     val themesShown: List<String> = emptyList(),
     val occasionLabel: String? = null,
     val offline: Boolean = false,
+    val reviewNote: String? = null,
+    val reviewStage: DraftStage? = null,
 )
 
 // حالة الأشخاص - عشان الواجهة تتفاعل فوراً مع اختيار أي شخص وتظبط كل الخيارات عليه.
@@ -172,18 +175,21 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
             occasionLabel = p.occasionLabel,
             offline = p.offline,
             info = p.note,
+            reviewNote = p.reviewNote,
         )
     }
 
     // آخر نيّة/سياق اتستخدموا - عشان "🔄 جديد" يعيد بنفس القصد.
     private var lastIntent: String? = null
     private var lastContext: String = ""
+    private var lastReviewed: Boolean = false
 
     fun generate(
         slot: String = "manual",
         occasion: Occasion? = null,
         intentId: String? = null,
         context: String = "",
+        reviewed: Boolean = false,
     ) {
         generationJob?.cancel()
         val recipientId = settings.currentRecipient()?.id.orEmpty()
@@ -191,18 +197,22 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         val effectiveSlot = if (occ != null) "occasion" else slot
         lastIntent = intentId
         lastContext = context
-        _state.value = _state.value.copy(loading = true, error = null, info = null)
+        lastReviewed = reviewed
+        _state.value = _state.value.copy(loading = true, error = null, info = null, reviewNote = null, reviewStage = null)
         generationJob = viewModelScope.launch {
             try {
-                val res = engine.generate(effectiveSlot, occ, intentId, context)
+                val res = if (reviewed) engine.generateReviewed(effectiveSlot, occ, intentId, context) { stage ->
+                    if (settings.currentRecipient()?.id.orEmpty() == recipientId) _state.value = _state.value.copy(reviewStage = stage)
+                } else engine.generate(effectiveSlot, occ, intentId, context)
                 if (settings.currentRecipient()?.id.orEmpty() != recipientId) return@launch
-                store.setPending(PendingRound(res.slot, res.themesShown, res.items, occ?.label, recipientId, res.offline, res.note))
+                store.setPending(PendingRound(res.slot, res.themesShown, res.items, occ?.label, recipientId, res.offline, res.note, res.reviewNote))
                 _state.value = HomeState(
                     items = res.items,
                     slot = res.slot,
                     themesShown = res.themesShown,
                     occasionLabel = occ?.label,
                     offline = res.offline,
+                    reviewNote = res.reviewNote,
                     info = res.note, // لو رجعنا للجاهز، نوضّح السبب للمستخدم
                 )
             } catch (e: Exception) {
@@ -267,9 +277,10 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         if (_state.value.loading || index !in _state.value.items.indices) return
         val updated = _state.value.items.toMutableList()
         updated[index] = updated[index].copy(text = text)
-        _state.value = _state.value.copy(items = updated)
+        _state.value = _state.value.copy(items = updated,
+            reviewNote = _state.value.reviewNote?.let { t("تم تعديل النص؛ التغييرات غير مشمولة بالمراجعة الآلية.", "Text edited. Changes are not covered by automated review.") })
         val state = _state.value
-        store.setPending(PendingRound(state.slot, state.themesShown, updated, state.occasionLabel, rid(), state.offline, state.info))
+        store.setPending(PendingRound(state.slot, state.themesShown, updated, state.occasionLabel, rid(), state.offline, state.info, state.reviewNote))
     }
 
     fun confirmContact(index: Int) {
@@ -282,7 +293,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
 
     fun cancelGeneration() {
         generationJob?.cancel()
-        _state.value = _state.value.copy(loading = false)
+        _state.value = _state.value.copy(loading = false, reviewStage = null)
     }
 
     fun ignore() {
@@ -295,7 +306,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     fun regenerate() {
         val occ = _state.value.occasionLabel?.let { Occasion("manual", it) }
         store.addFeedback(Feedback(DateUtil.todayISO(), _state.value.slot, themes(), "regen", null, rid()))
-        generate(if (occ != null) "occasion" else _state.value.slot, occ, lastIntent, lastContext)
+        generate(if (occ != null) "occasion" else _state.value.slot, occ, lastIntent, lastContext, lastReviewed)
     }
 
     // تحرير تكراري لاقتراح واحد (أطول/أقصر/أرومانسي/أبسط).
@@ -304,7 +315,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         if (idx !in items.indices) return
         generationJob?.cancel()
         val recipientId = rid()
-        _state.value = _state.value.copy(loading = true, error = null, info = null)
+        _state.value = _state.value.copy(loading = true, error = null, info = null, reviewNote = null, reviewStage = null)
         generationJob = viewModelScope.launch {
             try {
                 val newText = engine.refine(items[idx].text, styleId)
@@ -314,7 +325,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
                 store.setPending(
                     PendingRound(_state.value.slot, _state.value.themesShown, updated, _state.value.occasionLabel, recipientId)
                 )
-                _state.value = _state.value.copy(items = updated, loading = false, offline = false, info = "عدّلت الاقتراح ✍️")
+                _state.value = _state.value.copy(items = updated, loading = false, offline = false, reviewNote = null, reviewStage = null, info = "عدّلت الاقتراح ✍️")
             } catch (e: Exception) {
                 if (e is CancellationException && e !is kotlinx.coroutines.TimeoutCancellationException) throw e
                 _state.value = _state.value.copy(loading = false, error = "التعديل مش متاح دلوقتي (محتاج نت + مفتاح)")

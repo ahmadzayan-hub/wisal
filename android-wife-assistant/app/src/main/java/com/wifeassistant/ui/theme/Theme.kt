@@ -37,12 +37,12 @@ object WisalColors {
     val HumanCoral = Color(0xFFFF6E72)       // الأساسي (أزرار/تمييز)
     val SolarAmber = Color(0xFFF2C56B)       // ثانوي (عناوين أقسام/لمسات)
     val OceanTeal = Color(0xFF35B8A6)        // نجاح/متصل/تمييز ثالث
-    val Porcelain = Color(0xFFF8F5EF)        // خلفية الوضع الفاتح
+    val Porcelain = Color(0xFFF5F7F3)        // خلفية الوضع الفاتح
     val Mist = Color(0xFFAAB8C4)             // نص ثانوي/حدود
 
     // مشتقات أسطح (مش في التوكنز الأساسية لكن لازمة للتطبيق):
     val PorcelainCard = Color(0xFFFFFFFF)
-    val PorcelainRaised = Color(0xFFF0EBE1)
+    val PorcelainRaised = Color(0xFFEAF0EA)
     val MidnightSurface = Color(0xFF0D2133)
     val MidnightRaised = Color(0xFF13293D)
 }
@@ -82,14 +82,14 @@ fun GradientButton(
 
 // الوضع الفاتح (الافتراضي): Porcelain + Midnight نصوص + لمسات كورال/عنبر/تيل.
 private val LightColors = lightColorScheme(
-    primary = Color(0xFFB53142), // Deeper coral for readable text/controls on light surfaces.
+    primary = Color(0xFF175D53), // Deeper coral for readable text/controls on light surfaces.
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFFFE1E0),
-    onPrimaryContainer = Color(0xFF4A1213),
-    secondary = Color(0xFF765711), // عنبر أغمق للنصوص على الفاتح (تباين AA)
+    primaryContainer = Color(0xFFDCEFE8),
+    onPrimaryContainer = Color(0xFF143E36),
+    secondary = Color(0xFF50645E), // عنبر أغمق للنصوص على الفاتح (تباين AA)
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFF7E7C4),
-    onSecondaryContainer = Color(0xFF3C2E08),
+    secondaryContainer = Color(0xFFE7EEE8),
+    onSecondaryContainer = Color(0xFF253E35),
     tertiary = Color(0xFF1E8A7C),
     onTertiary = Color.White,
     background = WisalColors.Porcelain,
@@ -100,15 +100,16 @@ private val LightColors = lightColorScheme(
     onSurface = WisalColors.MidnightAtlantic,
     surfaceVariant = WisalColors.PorcelainRaised,
     onSurfaceVariant = Color(0xFF4E5B68),
-    outline = WisalColors.Mist,
+    outline = Color(0xFF85968F),
+    outlineVariant = Color(0xFFD9E2DD),
 )
 
 // الوضع الداكن (اختياري): Midnight Atlantic.
 private val DarkColors = darkColorScheme(
-    primary = WisalColors.HumanCoral,
-    onPrimary = Color(0xFF3D0A0B),
-    primaryContainer = Color(0xFF57292B),
-    onPrimaryContainer = Color(0xFFFFDAD9),
+    primary = Color(0xFFA9DCCD),
+    onPrimary = Color(0xFF113C33),
+    primaryContainer = Color(0xFF224F43),
+    onPrimaryContainer = Color(0xFFDCEFE8),
     secondary = WisalColors.SolarAmber,
     onSecondary = Color(0xFF3C2E08),
     secondaryContainer = Color(0xFF2A3A50),

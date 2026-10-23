@@ -14,11 +14,6 @@ import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-data class ChatMessage(val role: String, val content: String)
-
-/** Safe messages only: never expose the provider body, prompt or API key. */
-class GenerationException(val reason: String) : IOException(reason)
-
 class GroqClient(private val settings: Settings) {
     private val transport = GroqTransport()
 
