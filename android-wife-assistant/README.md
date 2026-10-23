@@ -1,77 +1,43 @@
-# رسايل القلب — مساعد التواصل العائلي 💗
+# Wisal for Android · وصال
 
-**تطبيق أندرويد أصلي** (Kotlin + Jetpack Compose) بيشتغل لوحده على موبايلك —
-**مفيش سيرفر**. هدفه **الترابط الأسري والتواصل العاطفي الإنساني**: بيقترح لك رسايل
-دافئة باللهجة المصرية لأي حد قريب منك — **شريك/شريكة، ابن، بنت، أم، أب، أخ، أخت** —
-بنبرة مناسبة لكل علاقة، بيتعلّم من اختياراتك لكل شخص لوحده، وبيديك زر **يفتح واتساب
-على الشخص والرسالة جاهزة** وانت تدوس Send.
+A personal communication assistant for family, friends, colleagues and customers. Kotlin + Jetpack Compose; Android 8.0/API 26 or newer, ARM64 devices. `applicationId` stays `com.wisal.app`, with existing preferences, JSON data and backups preserved.
 
-> 👨‍👩‍👧‍👦 من شاشة **"الأشخاص"** تضيف مين تحب تتواصل معاه، وتختار مين بتكتب له دلوقتي.
-> كل رسالة بتتفصّل على العلاقة والاسم والتفاصيل — عشان تقرّب القلوب فعلاً.
+## The simple flow
 
-> 🔒 نفس الحدود: التطبيق مساعد ليك انت. **مفيش إرسال تلقائي** — الـ Send الأخيرة
-> بإيدك دايماً. ده مشروع وآمن وما يعرّضش رقمك للحظر.
+1. Add a person and choose the relationship yourself. A fresh install does not invent a spouse.
+2. Pick an intent such as check-in, follow-up, request, thanks or apology.
+3. Choose Arabic or English and a tone. These are editable communication preferences, not personality diagnoses.
+4. Generate two drafts, edit their text, then explicitly copy or share.
+5. Save a preferred style if helpful. Only “I confirm I reached out” records a contact; choosing or copying a draft is not delivery evidence.
 
-## المميزات
-- اقتراحين في كل مرة (اختيار/تعديل/جديد/تجاهل) — نفس الدورة المغلقة.
-- **تعلّم بالسياق** محلي: بيحفظ آخر 30 اختيار كأمثلة أسلوب (few-shot)، وبيرجّح
-  المواضيع اللي بتختارها. كله في `filesDir` على جهازك.
-- **زر واتساب**: يفتح شات مراتك بالرسالة مكتوبة (Intent رسمي `wa.me`).
-- **إشعارات صباح/مساء** عبر WorkManager (بتوقيت Asia/Dubai) + فحص مناسبة اليوم.
-- **شاشة إحصائيات 📊** (نظير `/stats`): نسبة القبول، أعلى 3 مواضيع، عدد أمثلة
-  الأسلوب، والخانة الأكتر تجاهلاً + زر **تصفير التعلّم** (نظير `/reset`).
-- **تخصيص وإنسانية**: تحط اسمك واسم/دلع مراتك وحاجات عنها (بتحب إيه، نكت بينكم)،
-  فالرسالة تبقى ليها هي بالذات ومنّك انت — مع لمسة دُعابة اختيارية.
-- **اختيار الموديل** من الإعدادات (لاما 3.3 70B الأفضل للعربي، أو 3.1 أسرع).
-- **واجهة محسّنة**: ثيم دافئ (لايت/دارك)، كروت أنيقة، Snackbar، وحالة بداية ودّية.
-- **سجل الرسايل 📜**: بيرجّع لك اللي اخترته/بعته قبل كده عشان تعيد استخدامه.
-- **مشاركة عامة 🔗**: تبعت الاقتراح لأي تطبيق (مش واتساب بس).
-- **طول الرسالة**: تختار قصيرة أو متوسطة من الإعدادات.
-- عقل الـ AI: **Groq** (LLM مجاني حيّ) مباشرة من الموبايل — مفتاحك في الإعدادات.
+Additional tools and reminders live behind a secondary section. Existing history, groups, calendar, integrations and style transparency remain available.
 
-## تنزيل الـ APK جاهز (من غير Android Studio) 🚀
-فيه **GitHub Actions** بيبني الـ APK أوتوماتيك (`.github/workflows/android.yml`):
-- كل ما تتعدّل حاجة في `android-wife-assistant/` بيتبني لوحده، أو شغّله يدوياً من
-  تبويب **Actions → Build Android APK → Run workflow**.
-- بعد ما يخلّص، نزّل الـ APK من:
-  - **Actions → آخر تشغيل → Artifacts → `wife-assistant-apk`**، أو
-  - **صفحة Releases → `android-latest`** (رابط ثابت لأحدث نسخة).
-- ثبّت الـ APK على موبايلك (اسمح بتثبيت من "مصادر غير معروفة" أول مرة).
+## Local first, optional hosted AI
 
-> نسخة الـ CI هي **debug APK** — بتتثبّت مباشرة. لو عايز نسخة release موقّعة
-> للنشر، ضيف keystore وخطوة توقيع.
+Local templates work without a key or network and are visibly labeled. They do not understand arbitrary context and should be edited.
 
-## المتطلبات
-- **Android Studio** (أحدث نسخة) — عشان يبني الـ APK.
-- موبايل/محاكي بـ **Android 8.0 (API 26)** أو أحدث.
-- مفتاح **Groq** مجاني من [console.groq.com/keys](https://console.groq.com/keys).
+Groq requires an API key and an explicit enable control after checking your organization's free-plan eligibility, permissions and quotas. The current catalog lists `openai/gpt-oss-20b` and `openai/gpt-oss-120b` (reviewed 2026-10-23). Existing retired Llama selections are preserved until you choose a replacement. No paid or cross-provider fallback occurs.
 
-## التشغيل
-1. افتح فولدر `android-wife-assistant/` في **Android Studio** (File → Open).
-2. سيبه يعمل Gradle Sync (هينزّل المكتبات — محتاج نت أول مرة).
-3. اضغط **Run ▶** على موبايلك أو محاكي.
-4. أول ما يفتح: افتح **الإعدادات ⚙️** وحط:
-   - **مفتاح Groq**
-   - **رقم واتساب مراتك** بالصيغة الدولية بأرقام بس (مثال: `2010xxxxxxxx`)
-   - مواعيد الصباح/المساء (اختياري)
-5. ارجع للرئيسية → اضغط **اقتراح فوري** → اختار/عدّل → **📲 ابعت لمراتي**.
+Background generation is separately opt-in and consumes quota. Background scheduling retains the existing Dubai time zone. Contact reminders and final sending remain user-controlled.
 
-## الأمان والخصوصية
-- **مفيش أي سر في الكود.** المفتاح ورقم الواتساب بيتخزنوا على جهازك
-  (SharedPreferences) وقت التشغيل بس.
-- التعلّم كله محلي على الموبايل — مفيش سيرفر ولا مشاركة.
-- الاتصال الخارجي الوحيد: Groq (لتوليد الاقتراحات).
+## Privacy
 
-## البنية
-```
-app/src/main/java/com/wifeassistant/
-  data/     Models, AppConstants, DateUtil, Settings, Store,
-            GroqClient, SuggestionEngine, Occasions
-  ui/       HomeScreen, SettingsScreen, HomeViewModel, theme/
-  util/     WhatsApp (Intent), Notifications
-  work/     SuggestionWorker, Scheduler (WorkManager)
-  MainActivity.kt
+Generation can send recipient name, relationship, notes, context and style examples to Groq. Local persistence is not a promise of local inference. Avoid sensitive data. Groq keys are encrypted using Android Keystore-backed preferences and excluded from JSON backups. If secure storage is unavailable, new keys are not written as plaintext. Legacy plaintext keys migrate only after encrypted storage succeeds.
+
+No contact, calendar, microphone or emulator access was used to validate this change. User-supplied screenshots are not repository fixtures.
+
+## Build and test
+
+Use JDK 17, SDK platform 35 and build tools 35.0.0:
+
+```sh
+./gradlew testDebugUnitTest --no-daemon
 ```
 
-> ملاحظة: المنطق ده مطابق لبوت التيليجرام (`telegram-wife-assistant/`) — نفس
-> التوليد والترجيح والتعلّم والمناسبات، بس بواجهة أندرويد أصلية وزر واتساب.
+The suite includes model retirement, credential/quota errors, Retry-After, cancellation, response validation, data preservation and Compose flows. UI captures use fictional adults and the actual Compose views under Robolectric, not a physical phone.
+
+## Upgrading an existing installation
+
+Export a backup in Settings. Keep the same application ID, signing certificate and stored-data names. The release versionCode must exceed the installed versionCode, including versions produced before the repository move. Missing release signing creates no replacement key and cannot publish an installable upgrade.
+
+Read [safe release instructions](../docs/DEPLOY_WISAL.md) before building or installing. Do not uninstall the app to fix a signature mismatch.

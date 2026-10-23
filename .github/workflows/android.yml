@@ -9,6 +9,14 @@ on:
         description: "Publish with the existing, verified upgrade-compatible signing key"
         type: boolean
         default: false
+      release_version_code:
+        description: "Verified integer higher than the installed app's versionCode"
+        type: string
+        default: ""
+      signing_sha256:
+        description: "Expected SHA-256 fingerprint of the existing installed app certificate"
+        type: string
+        default: ""
   push:
     branches: [main]
     paths:
@@ -64,18 +72,29 @@ jobs:
       - name: Unit tests
         run: ./gradlew testDebugUnitTest --stacktrace --no-daemon
 
+      - name: Validate release prerequisites
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release }}
+        env:
+          RELEASE_CODE: ${{ inputs.release_version_code }}
+          EXPECTED_CERT: ${{ inputs.signing_sha256 }}
+        run: |
+          test -n "$KEYSTORE_BASE64" || { echo "Existing release key is required; no replacement key will be generated."; exit 1; }
+          [[ "$RELEASE_CODE" =~ ^[1-9][0-9]*$ ]] || { echo "Supply a verified higher versionCode."; exit 1; }
+          cert=$(printf '%s' "$EXPECTED_CERT" | tr -d ': ')
+          [[ "$cert" =~ ^[A-Fa-f0-9]{64}$ ]] || { echo "Supply the existing installed signing certificate SHA-256."; exit 1; }
+
       # حالة التوقيع في اللوج بوضوح — عشان تعرف إن كنت هتنشر على Play جاهز ولا لأ.
       - name: Signing status
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release && env.KEYSTORE_BASE64 != '' }}
         run: |
           if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "🔐 Release signing: ENABLED (using repository secrets) — جاهز لـ Play."
+            echo "Using the existing release key; certificate verification follows the build."
           else
             echo "Release signing unavailable: publication is disabled."
             echo "   للنشر على Play أضِف الأسرار: KEYSTORE_BASE64 / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD (docs/DEPLOY_WISAL.md)."
           fi
 
-      # 2) توقيع اختياري: لو ضفت الأسرار بيتوقّع release حقيقي، غير كده debug.
+      # Existing signing identity only; absent secrets block release publication.
       - name: Decode keystore (optional signing)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release && env.KEYSTORE_BASE64 != '' }}
         id: keystore
@@ -91,9 +110,9 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          # ترقيم إصدار تلقائي متزايد من رقم البناء عشان تحديثات التطبيق تتثبّت فوق بعضها.
-          VERSION_CODE: ${{ github.run_number }}
-          VERSION_NAME: "1.0.${{ github.run_number }}"
+          # Explicit versionCode must exceed the installed release, including pre-move builds.
+          VERSION_CODE: ${{ inputs.release_version_code }}
+          VERSION_NAME: "1.1.${{ inputs.release_version_code }}"
         run: ./gradlew assembleRelease --stacktrace --no-daemon
 
       # 4) بناء App Bundle (AAB) للرفع على Google Play.
@@ -104,8 +123,8 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          VERSION_CODE: ${{ github.run_number }}
-          VERSION_NAME: "1.0.${{ github.run_number }}"
+          VERSION_CODE: ${{ inputs.release_version_code }}
+          VERSION_NAME: "1.1.${{ inputs.release_version_code }}"
         run: ./gradlew bundleRelease --stacktrace --no-daemon
 
       - name: Prepare artifacts (wisal.apk / wisal.aab)
@@ -113,6 +132,17 @@ jobs:
         run: |
           cp app/build/outputs/apk/release/app-release.apk ../wisal.apk
           cp app/build/outputs/bundle/release/app-release.aab ../wisal.aab
+
+      - name: Verify upgrade signing identity
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release && env.KEYSTORE_BASE64 != '' }}
+        env:
+          EXPECTED_CERT: ${{ inputs.signing_sha256 }}
+        run: |
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs ../wisal.apk > "$RUNNER_TEMP/wisal-certificate.txt"
+          actual=$(awk -F': ' '/certificate SHA-256 digest/ {print $2; exit}' "$RUNNER_TEMP/wisal-certificate.txt" | tr '[:upper:]' '[:lower:]')
+          expected=$(printf '%s' "$EXPECTED_CERT" | tr -d ': ' | tr '[:upper:]' '[:lower:]')
+          test "$actual" = "$expected" || { echo "Signing identity mismatch. Publication stopped; do not uninstall the installed app."; exit 1; }
+          (cd .. && sha256sum wisal.apk wisal.aab > SHA256SUMS.txt)
 
       # قناة توزيع إضافية: فرع apk-dist فيه الـ APK/AAB مباشرة — بيتسحب بالـ git
       # (مفيد لما تنزيل الـ release من المتصفح يتعطّل، وبيتكتب فوقه كل بناء).
@@ -146,6 +176,7 @@ jobs:
           path: |
             wisal.apk
             wisal.aab
+            SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 5
 
@@ -164,6 +195,7 @@ jobs:
           files: |
             wisal.apk
             wisal.aab
+            SHA256SUMS.txt
           make_latest: true
 
       - name: Upload test reports and fictional UI captures

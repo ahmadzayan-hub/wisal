@@ -79,6 +79,7 @@ class ComposerFlowTest {
         val input = rule.onAllNodes(hasSetTextAction())[1]
         input.performScrollTo().performTextReplacement("Hello Alex, thanks for reviewing the draft.")
         rule.runOnIdle { assertEquals("Hello Alex, thanks for reviewing the draft.", vm.state.value.items[0].text) }
+        rule.onAllNodesWithText("Share")[0].performScrollTo()
         capture("draft-en")
         val store = Store(ApplicationProvider.getApplicationContext())
         assertNull(store.daysSinceContact("demo-alex"))

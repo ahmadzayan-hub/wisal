@@ -1,5 +1,6 @@
 'use strict';
 // Kept byte-identical in the standalone Telegram surface; tested in test/groq-policy.test.js.
+const { setTimeout: wait } = require('node:timers/promises');
 const catalog = Object.freeze({
   reviewed: '2026-10-23', source: 'https://console.groq.com/docs/models',
   limits: 'https://console.groq.com/docs/rate-limits',
@@ -16,7 +17,7 @@ function publicMessage(error) {
     invalid_response: 'لم يرجع Groq نصاً صالحاً.', service: 'خدمة Groq غير متاحة مؤقتاً.',
     cancelled: 'تم إلغاء الطلب.', network: 'تعذّر الاتصال بالشبكة.' })[error.code] || 'تعذّر إكمال طلب Groq.';
 }
-async function complete(options, fetchImpl = globalThis.fetch, sleep = ms => new Promise(resolve => setTimeout(resolve, ms))) {
+async function complete(options, fetchImpl = globalThis.fetch, sleep = (ms, signal) => wait(ms, undefined, { signal })) {
   const { enabled, apiKey, model, messages, signal } = options;
   if (!enabled) throw new GroqError('disabled');
   if (!apiKey) throw new GroqError('missing_key');
@@ -41,6 +42,7 @@ async function complete(options, fetchImpl = globalThis.fetch, sleep = ms => new
         });
       } catch (_) { throw new GroqError(controller.signal.aborted ? (signal?.aborted ? 'cancelled' : 'timeout') : 'network'); }
       const data = await response.json().catch(() => null);
+      if (controller.signal.aborted) throw new GroqError(signal?.aborted ? 'cancelled' : 'timeout');
       if (response.ok) {
         const content = data?.choices?.[0]?.message?.content;
         if (typeof content !== 'string' || !content.trim()) throw new GroqError('invalid_response');
@@ -55,7 +57,9 @@ async function complete(options, fetchImpl = globalThis.fetch, sleep = ms => new
       const retryHeader = response.headers?.get('retry-after');
       const retryMs = retryHeader == null ? 1000 : Number(retryHeader) * 1000;
       if (attempt === 0 && ['rate_limit', 'service'].includes(reason) && Number.isFinite(retryMs) && retryMs >= 0 && retryMs <= 10000) {
-        await sleep(retryMs); continue;
+        try { await sleep(retryMs, controller.signal); }
+        catch (_) { throw new GroqError(signal?.aborted ? 'cancelled' : 'timeout'); }
+        continue;
       }
       throw new GroqError(reason);
     }

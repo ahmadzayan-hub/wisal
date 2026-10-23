@@ -43,6 +43,17 @@ class GroqTransportTest {
         }
     }
 
+    @Test fun invalidRetryAfterStopsWithoutExtraRequest() = runBlocking {
+        listOf("tomorrow", "NaN", "-1").forEach { header ->
+            MockWebServer().use { server ->
+                server.enqueue(MockResponse().setResponseCode(429).addHeader("Retry-After", header))
+                val error = runCatching { transport(server).complete("fake", "openai/gpt-oss-20b", messages) }.exceptionOrNull()
+                assertEquals("rate_limit", (error as GenerationException).reason)
+                assertEquals(1, server.requestCount)
+            }
+        }
+    }
+
     @Test fun distinguishesAuthRetiredQuotaAndMalformedResponses() = runBlocking {
         listOf(401 to "authentication", 400 to "retired_model", 429 to "quota", 200 to "invalid_response").forEach { (status, expected) ->
             MockWebServer().use { server ->

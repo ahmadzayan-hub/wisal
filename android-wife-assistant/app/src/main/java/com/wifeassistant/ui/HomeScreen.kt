@@ -130,6 +130,7 @@ fun HomeScreen(
     // كل ما نرجع للشاشة نحدّث قائمة الأشخاص (ممكن اتغيّرت من شاشة الأشخاص).
     LaunchedEffect(Unit) { vm.refreshRecipients() }
     val current = people.current
+    LaunchedEffect(current?.id) { contextText = ""; selectedIntent = null }
 
     // ---- تقويم الموبايل (Google Calendar وغيره) ----
     var calEvents by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -156,7 +157,7 @@ fun HomeScreen(
     }
 
     // نعرض رسائل الحالة (نجاح/خطأ) كـ Snackbar لطيف.
-    LaunchedEffect(state.info) { state.info?.let { snackbar.showSnackbar(it) } }
+    LaunchedEffect(state.info) { if (!state.offline) state.info?.let { snackbar.showSnackbar(it) } }
     LaunchedEffect(state.error) { state.error?.let { snackbar.showSnackbar("⚠️ $it") } }
 
     Scaffold(
@@ -202,7 +203,7 @@ fun HomeScreen(
                     }
                 }
                 Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("" to t("تفضيل الشخص", "Person's preference"), "واضحة ومحترمة، بدون افتراض قرب" to t("واضحة", "Clear"), "ودّية ودافئة بدون مبالغة" to t("ودّية", "Warm"), "مهنية ومختصرة" to t("مهنية", "Professional")).forEach { (id, label) ->
+                    listOf("" to t("حسب العلاقة", "Relationship default"), "واضحة ومحترمة، بدون افتراض قرب" to t("واضحة", "Clear"), "ودّية ودافئة بدون مبالغة" to t("ودّية", "Warm"), "مهنية ومختصرة" to t("مهنية", "Professional")).forEach { (id, label) ->
                         FilterChip(selected = person.tone == id, onClick = { vm.updatePreferences(tone = id) }, label = { Text(label) })
                     }
                 }

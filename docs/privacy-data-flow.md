@@ -1,29 +1,26 @@
-# Wisal — Privacy Data Flow (honest map)
+# Wisal privacy data flow
 
-> Rule: marketing copy may never claim more than this document proves.
+Updated 2026-10-23. Describe actual boundaries, not blanket “everything stays local” promises.
 
-## Personal Assistant mode (Android/Windows)
+## Personal drafting
 
-| Data | Where it lives | Ever leaves the device? |
-|---|---|---|
-| People (names, relations, numbers, notes, photos) | Device only (SharedPreferences/JSON, app-private) | ❌ Never uploaded. Optional user-initiated backup is a local text export (excludes secrets) |
-| Message history, favorites, style learning | Device only (`store.json`, atomic writes) | ❌ |
-| Groq API key | Android Keystore (EncryptedSharedPreferences) | ❌ Excluded from backups |
-| Generation context (relation, name, notes, occasion, draft) | — | ⚠️ Sent to **Groq** only at the moment the user requests a suggestion; disclosed in onboarding + first-run AI dialog + website. Not stored by Wisal (we run no servers for personal mode) |
-| Calendar/contacts reads | Device only, optional permissions | ❌ read locally, never uploaded |
+- Names, relationships, phone numbers, notes and style examples are persisted in each surface's local storage.
+- When Groq is explicitly enabled, a request may contain the selected name, relationship, notes, situation, draft and style examples. Phone numbers and photos are not required by the ordinary composer prompt.
+- Contact and calendar imports are optional user-triggered features. Imported information may later become generation context if the user uses it; local reading does not imply it can never leave the device.
+- Local templates require no provider request. Their displayed source is distinct from AI output.
+- Android's Groq key uses encrypted preferences backed by Android Keystore. Legacy plaintext Groq keys are removed only after encrypted migration succeeds. New plaintext fallback writes are prohibited.
+- Android JSON backups exclude the Groq key, but contain private people/history/preferences. Sharing a backup exports that private data. Existing backup scope is not a full backup of every integration's state or device identity.
+- Desktop currently stores its settings in local JSON, including the provider key. Do not describe that storage as encrypted. Use OS/device protections and avoid sharing the profile directory. OS-backed desktop credential migration remains separate work.
+- Other legacy integration secrets have separate stores and need their own review. This change does not claim every historical secret was migrated.
 
-## Business mode (opt-in, separate)
+## Sending and optional integrations
 
-- Configured by the user with an explicit endpoint + key (`wisal-cloud-api`).
-- Message + customer number transit the user's configured Vercel deployment → Meta WhatsApp Business Cloud API. Disclosed in the UI before use.
-- Backend stores nothing (stateless functions); logs exclude message bodies except Meta's delivery metadata (`inbound from/type/id`, `status`). Webhook signature (HMAC-SHA256, timing-safe) prevents forged events; API key compare is timing-safe; best-effort rate limit.
+Copying, selecting or opening a draft is not proof of delivery. The Android composer records contact only on explicit user confirmation.
 
-## What we deliberately do NOT do
+Business-mode transmission uses the configured backend and WhatsApp Business service. The Direct relay is a separate libsignal-based delivery feature; see its threat model and ADRs. Neither path makes Groq inference end-to-end encrypted.
 
-- No auto-send, no scheduled sends, no auto-replies, no bulk blast.
-- No analytics/tracking SDKs in the app or website; website makes zero external requests.
-- No contact-book upload. No account. No message-content push notifications (no push at all today).
-- No "no servers" claims for anything that touches a server (business mode, future Direct relay).
+There is no new contact scraping, third-party profile fetching, auto-send, analytics SDK or automatic provider switch in this update. The repository preserves existing integrations; evaluate their current configuration before enabling them.
 
-## Future Direct mode (commitment)
-When built: E2EE envelopes only on the relay, no plaintext in storage/logs (with automated leak tests), minimal metadata, neutral notifications («رسالة جديدة في وصال»). Until then, nothing in the product claims E2EE.
+## Verification boundaries
+
+Development uses mock HTTP responses, synthetic adult contacts and JVM/Node tests. No real API key, live generation call, private family screenshot, device permission grant or external message is part of the test fixture.

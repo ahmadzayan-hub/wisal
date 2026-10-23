@@ -29,3 +29,20 @@ test('pre-cancelled request cannot call provider', async () => {
   const controller = new AbortController(); controller.abort();
   await assert.rejects(complete({ ...opts, signal: controller.signal }, () => { throw Error('must not call'); }), { code: 'cancelled' });
 });
+
+test('cancellation interrupts retry wait and sends no second request', async () => {
+  const controller = new AbortController(); let calls = 0;
+  const promise = complete({ ...opts, signal: controller.signal }, async () => {
+    calls++; setImmediate(() => controller.abort());
+    return { ok: false, status: 429, headers: new Headers({ 'retry-after': '10' }), json: async () => ({}) };
+  });
+  await assert.rejects(promise, { code: 'cancelled' });
+  assert.equal(calls, 1);
+});
+test('invalid and excessive retry delays do not retry', async () => {
+  for (const delay of ['tomorrow', '60', '-1']) {
+    let calls = 0;
+    await assert.rejects(complete(opts, async () => { calls++; return { ok: false, status: 429, headers: new Headers({ 'retry-after': delay }), json: async () => ({}) }; }), { code: 'rate_limit' });
+    assert.equal(calls, 1);
+  }
+});

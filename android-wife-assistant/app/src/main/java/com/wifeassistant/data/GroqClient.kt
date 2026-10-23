@@ -84,9 +84,11 @@ internal class GroqTransport(
                         }
                     }
                     // Honor Retry-After; if it exceeds our short interactive budget, stop.
-                    val retryAfter = resp.header("Retry-After")?.toDoubleOrNull()?.times(1000)?.toLong()
-                    if (reason != "quota" && attempt == 0 && (resp.code == 429 || resp.code in 500..599) &&
-                        (retryAfter == null || retryAfter in 0..10_000)) {
+                    val retryHeader = resp.header("Retry-After")
+                    val retrySeconds = retryHeader?.toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0 && it <= 10 }
+                    val retryAfter = retrySeconds?.times(1000)?.toLong()
+                    if (reason in setOf("rate_limit", "service") && attempt == 0 &&
+                        (retryHeader == null || retryAfter != null)) {
                         retryDelay = retryAfter ?: 1000L
                     } else throw GenerationException(reason)
                 }
