@@ -5,10 +5,14 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.provider.Settings
 import android.view.View
+import android.os.Looper
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalDensity
@@ -32,6 +36,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
@@ -41,14 +46,16 @@ import org.robolectric.annotation.GraphicsMode
 class MotionUiTest {
     @get:Rule val rule = createComposeRule()
     private lateinit var view: View
+    private lateinit var inputMode: InputModeManager
     @After fun reset() {
         I18n.lang = "ar"
         Settings.Global.putFloat(ApplicationProvider.getApplicationContext<Context>().contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
     }
     private fun show(content: @Composable () -> Unit) {
         I18n.lang = "en"
-        rule.setContent { view = LocalView.current; WifeAssistantTheme(darkTheme = false) { Surface { Column(Modifier.fillMaxWidth().padding(20.dp)) { content() } } } }
+        rule.setContent { view = LocalView.current; inputMode = LocalInputModeManager.current; WifeAssistantTheme(darkTheme = false) { Surface(Modifier.fillMaxSize()) { Column(Modifier.fillMaxWidth().padding(20.dp)) { content() } } } }
     }
+    private fun keyboardMode() = rule.runOnIdle { assertTrue(inputMode.requestInputMode(InputMode.Keyboard)) }
     private fun capture(name: String) = rule.runOnIdle {
         val directory = File("build/wisal-screenshots/motion").apply { mkdirs() }
         val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
@@ -86,7 +93,9 @@ class MotionUiTest {
             Settings.Global.putFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 0f)
             resolver.notifyChange(Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE), null)
         }
-        rule.waitUntil(3000) { !allowed }
+        shadowOf(Looper.getMainLooper()).idle()
+        rule.waitForIdle()
+        rule.runOnIdle { assertFalse(allowed) }
         rule.onNode(hasSetTextAction()).assertIsFocused().assertTextContains("Keep my words")
     }
     @Test fun hiddenOptionsAreRemovedAndToggleFocusIsStable() {
@@ -97,7 +106,10 @@ class MotionUiTest {
             Button(onClick = { expanded = !expanded }, modifier = Modifier.focusRequester(focus)) { Text("Options") }
             WisalDisclosure(expanded, motion) { Text("Optional controls") }
         }
-        rule.runOnIdle { focus.requestFocus(); expanded = true }
+        keyboardMode()
+        rule.runOnIdle { focus.requestFocus() }
+        rule.onNodeWithText("Options").assertIsFocused()
+        rule.runOnIdle { expanded = true }
         rule.onNodeWithText("Optional controls").assertExists()
         rule.onNodeWithText("Options").assertIsFocused()
         rule.runOnIdle { motion = false }
@@ -111,7 +123,9 @@ class MotionUiTest {
         var loading by mutableStateOf(true)
         show { if (loading) DraftProgress(stage, false) { loading = false } }
         rule.onNodeWithText("Writing drafts").assertExists()
+        keyboardMode()
         rule.onNodeWithTag("cancel-draft").performSemanticsAction(SemanticsActions.RequestFocus) { it() }
+        rule.onNodeWithTag("cancel-draft").assertIsFocused()
         rule.runOnIdle { stage = DraftStage.REVIEW }
         rule.onNodeWithText("Writing drafts").assertDoesNotExist()
         rule.onNodeWithText("Reviewing meaning and privacy").assertExists()
@@ -124,10 +138,14 @@ class MotionUiTest {
         var fail = true
         var copies = 0
         var shares = 0
+        var confirmations = 0
         var text by mutableStateOf("A fictional draft")
         show {
-            CopyDraftButton(text, true, false, onCopy = { copies++; if (fail) error("clipboard unavailable") })
-            Button(onClick = { shares++ }) { Text("Share preview") }
+            Text("Fictional fixture · no provider call")
+            SuggestionCard(index = 0, item = Suggestion(text, "neutral"), motionAllowed = false,
+                onEdit = { text = it }, onConfirmContact = { confirmations++ }, sendLabel = "Review in WhatsApp", onChoose = {},
+                onCopy = { copies++; if (fail) error("clipboard unavailable") }, onShare = { shares++ },
+                onWhatsApp = {}, onGroup = {}, onRefine = {}, onRemind = {})
         }
         rule.onNodeWithText("Copy").performClick()
         rule.onNodeWithText("Copied").assertDoesNotExist()
@@ -136,17 +154,25 @@ class MotionUiTest {
         rule.onNodeWithText("Retry copy").performClick()
         rule.onNodeWithText("Copied").assertExists()
         assertEquals(2, copies)
+        capture("copy-confirmed")
         rule.runOnIdle { text = "Edited fictional draft" }
         rule.onNodeWithText("Copy").assertExists()
         rule.onNodeWithText("Copied").assertDoesNotExist()
-        rule.onNodeWithText("Share preview").performClick()
-        assertEquals(1, shares); assertEquals(2, copies)
+        rule.onNodeWithText("Share").performClick()
+        assertEquals(1, shares); assertEquals(2, copies); assertEquals(0, confirmations)
         rule.onNodeWithText("Copied").assertDoesNotExist()
         rule.onNodeWithText("Sent").assertDoesNotExist()
     }
     @Test fun revealFinishesAndProducesActualTransitionFrames() {
         var visible by mutableStateOf(false)
-        show { if (visible) WisalReveal(true) { Text("Two options. Your words, your choice.", style = MaterialTheme.typography.headlineSmall) } }
+        show {
+            Text("Local templates · not AI output", style = MaterialTheme.typography.labelLarge)
+            if (visible) WisalReveal(true) {
+                SuggestionCard(index = 0, item = Suggestion("Alex, I hope you're doing well. I wanted to check in.", "neutral"),
+                    motionAllowed = true, onEdit = {}, onConfirmContact = {}, sendLabel = "Review in WhatsApp", onChoose = {},
+                    onCopy = {}, onShare = {}, onWhatsApp = {}, onGroup = {}, onRefine = {}, onRemind = {})
+            }
+        }
         rule.mainClock.autoAdvance = false
         rule.runOnIdle { visible = true }
         rule.mainClock.advanceTimeByFrame()
@@ -155,7 +181,7 @@ class MotionUiTest {
         capture("reveal-080")
         rule.mainClock.advanceTimeBy(240)
         capture("reveal-320")
-        rule.onNodeWithText("Two options. Your words, your choice.").assertIsDisplayed()
+        rule.onNodeWithText("Draft 1").assertIsDisplayed()
         rule.mainClock.advanceTimeBy(1000)
         capture("reveal-settled")
         assertArrayEquals(File("build/wisal-screenshots/motion/reveal-320.png").readBytes(), File("build/wisal-screenshots/motion/reveal-settled.png").readBytes())

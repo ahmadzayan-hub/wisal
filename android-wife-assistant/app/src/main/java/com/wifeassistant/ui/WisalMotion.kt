@@ -54,7 +54,7 @@ internal fun rememberMotionAllowed(): Boolean {
             true
         }.getOrDefault(false)
         if (!observing) allowed = false
-        val resume = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) allowed = read() }
+        val resume = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) allowed = observing && read() }
         lifecycle.addObserver(resume)
         onDispose { if (observing) resolver.unregisterContentObserver(observer); lifecycle.removeObserver(resume) }
     }
