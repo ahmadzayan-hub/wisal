@@ -31,6 +31,23 @@ object Relations {
     )
 
     fun byId(id: String): Relation = ALL.firstOrNull { it.id == id } ?: ALL[0]
-    fun labelOf(id: String): String = byId(id).label
+    fun labelOf(id: String): String = t(byId(id).label, when (id) {
+        "other" -> "Other person"
+        "friend" -> "Friend"
+        "colleague" -> "Colleague"
+        "client" -> "Customer"
+        "partner_wife" -> "Wife"
+        "partner_husband" -> "Husband"
+        "son" -> "Son"
+        "daughter" -> "Daughter"
+        "mother" -> "Mother"
+        "father" -> "Father"
+        "brother" -> "Brother"
+        "sister" -> "Sister"
+        "group_family" -> "Family group"
+        "group_friends" -> "Friends group"
+        "group" -> "Group"
+        else -> "Other person"
+    })
     fun emojiOf(id: String): String = byId(id).emoji
 }

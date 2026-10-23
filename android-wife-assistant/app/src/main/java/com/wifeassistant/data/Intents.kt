@@ -25,5 +25,21 @@ object Intents {
         Intent("reconnect", "إعادة تواصل", "🌉", "رسالة بسيطة تكسر برود المسافة بعد فترة انقطاع، بتفتح الكلام بلطف من غير عتاب ولا لوم، بتحسّسه إنك افتكرته وإنه وحشك."),
     )
 
+    fun labelOf(intent: Intent): String = t(intent.label, when (intent.id) {
+        "check_in" -> "Check in"
+        "follow_up" -> "Follow up"
+        "request" -> "Ask"
+        "apology" -> "Apologize"
+        "congrats" -> "Celebrate"
+        "comfort" -> "Comfort"
+        "thanks" -> "Thank"
+        "longing" -> "Miss you"
+        "reassure" -> "Reassure"
+        "support" -> "Encourage"
+        "dua" -> "Prayer"
+        "reconnect" -> "Reconnect"
+        else -> intent.label
+    })
+
     fun byId(id: String?): Intent? = if (id == null) null else ALL.firstOrNull { it.id == id }
 }

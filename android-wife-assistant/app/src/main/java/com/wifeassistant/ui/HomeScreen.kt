@@ -499,7 +499,7 @@ private fun IntentPicker(selected: String?, onToggle: (String) -> Unit) {
                 FilterChip(
                     selected = selected == intent.id,
                     onClick = { onToggle(intent.id) },
-                    label = { Text("${intent.emoji} ${intent.label}") },
+                    label = { Text("${intent.emoji} ${Intents.labelOf(intent)}") },
                 )
             }
         }

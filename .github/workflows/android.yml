@@ -48,8 +48,11 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Verify preinstalled Android SDK
+        run: |
+          test -f "$ANDROID_HOME/platforms/android-35/android.jar"
+          test -d "$ANDROID_HOME/build-tools/35.0.0"
+          echo "Using the runner's preinstalled Android 35 SDK; no blanket license acceptance."
 
       - name: Set up Gradle (with cache)
         uses: gradle/actions/setup-gradle@v4
