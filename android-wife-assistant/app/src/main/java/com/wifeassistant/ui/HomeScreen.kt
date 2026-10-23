@@ -160,7 +160,12 @@ fun HomeScreen(
     // كل ما نرجع للشاشة نحدّث قائمة الأشخاص (ممكن اتغيّرت من شاشة الأشخاص).
     LaunchedEffect(Unit) { vm.refreshRecipients() }
     val current = people.current
-    LaunchedEffect(current?.id) { contextText = ""; selectedIntent = null; editBrief = true }
+    var boundRecipient by remember { mutableStateOf(current?.id) }
+    LaunchedEffect(current?.id) {
+        if (boundRecipient != null && boundRecipient != current?.id) { contextText = ""; selectedIntent = null }
+        boundRecipient = current?.id
+        editBrief = true
+    }
     LaunchedEffect(state.items.isNotEmpty()) { if (state.items.isNotEmpty()) { editBrief = false; pageScroll.animateScrollTo(0) } }
 
     // ---- تقويم الموبايل (Google Calendar وغيره) ----
@@ -225,7 +230,7 @@ fun HomeScreen(
                                     Text(current?.let { it.name.ifBlank { Relations.labelOf(it.relation) } } ?: t("اختر شخصاً", "Choose a person"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                                 }
                                 TextButton(onClick = { showPeople = true }, modifier = Modifier.heightIn(min = 48.dp)) {
-                                    Text(t("تغيير", "Change")); Icon(Icons.Outlined.ExpandMore, contentDescription = null, modifier = Modifier.size(20.dp))
+                                    Text(if (current == null) t("اختيار شخص", "Choose person") else t("تغيير", "Change")); Icon(Icons.Outlined.ExpandMore, contentDescription = null, modifier = Modifier.size(20.dp))
                                 }
                             }
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

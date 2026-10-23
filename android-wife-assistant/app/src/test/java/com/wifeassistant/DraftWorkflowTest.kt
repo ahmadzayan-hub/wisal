@@ -116,4 +116,40 @@ class DraftWorkflowTest {
         assertEquals(4, DraftWorkflow.MAX_MODEL_CALLS)
         assertNotNull(DraftClarifier.check(brief.copy(source = "x".repeat(4001))))
     }
+    @Test fun writerRejectsUnknownKeysAndNonStringValues() {
+        for (raw in listOf(
+            """{"drafts":["Hello","Hi"],"send":true}""",
+            """{"drafts":[1,2]}""",
+            """{"drafts":[true,"Hi"]}""",
+            """{"drafts":"Hello"}""",
+        )) assertEquals("invalid_response", (runCatching { DraftWriter.parse(raw) }.exceptionOrNull() as GenerationException).reason)
+    }
+    @Test fun reviewerRejectsUnknownKeysAndNonStringValues() {
+        val valid = reviewed(faithful)
+        val bad = listOf(
+            valid.dropLast(1) + ",\"extra\":true}",
+            valid.replace("\"pass\"", "true"),
+            valid.replace("\"${DraftReviewer.digest(faithful)}\"", "123"),
+            valid.replace("[]", "[true]"),
+            valid.replace("[]", "\"none\""),
+        )
+        bad.forEach { assertEquals("invalid_review", (runCatching { DraftReviewer.parse(it, faithful) }.exceptionOrNull() as GenerationException).reason) }
+    }
+    @Test fun unsupportedLanguageClarifiesWithoutProviderCall() = runBlocking {
+        val model = Script()
+        assertEquals(DraftOutcome.NeedsDetails("choose_language"), DraftWorkflow(model).run(brief.copy(language = "fr")))
+        assertTrue(model.requests.isEmpty())
+    }
+    @Test fun cancellationDuringReviewerDoesNotRepairOrExposeDrafts() = runBlocking {
+        var calls = 0; val reviewing = CompletableDeferred<Unit>(); val stages = mutableListOf<DraftStage>()
+        val model = DraftCompletion { _, _ ->
+            calls++
+            if (calls == 1) written(faithful) else { reviewing.complete(Unit); awaitCancellation() }
+        }
+        val job = launch { DraftWorkflow(model).run(brief, stages::add) }
+        reviewing.await(); job.cancelAndJoin()
+        assertTrue(job.isCancelled); assertEquals(2, calls)
+        assertFalse(DraftStage.REPAIR in stages); assertFalse(DraftStage.PREVIEW in stages)
+    }
+
 }

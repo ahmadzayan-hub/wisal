@@ -103,7 +103,9 @@ object DraftWriter {
     )
     fun parse(raw: String): List<String> {
         val drafts = runCatching {
-            Json.parseToJsonElement(raw).jsonObject["drafts"]?.jsonArray?.map { value ->
+            val obj = Json.parseToJsonElement(raw).jsonObject
+            require(obj.keys == setOf("drafts"))
+            obj["drafts"]?.jsonArray?.map { value ->
                 val item = value.jsonPrimitive
                 require(item.isString)
                 item.content.trim()
@@ -161,8 +163,16 @@ object DraftReviewer {
     fun parse(raw: String, drafts: List<String>): Set<DraftIssue> {
         return try {
             val obj = Json.parseToJsonElement(raw).jsonObject
+            if (obj.keys != setOf("digest", "decision", "issues") ||
+                obj["digest"]?.jsonPrimitive?.isString != true || obj["decision"]?.jsonPrimitive?.isString != true) {
+                throw GenerationException("invalid_review")
+            }
             if (obj["digest"]?.jsonPrimitive?.content != digest(drafts)) throw GenerationException("invalid_review")
-            val issues = obj["issues"]?.jsonArray?.map { DraftIssue.valueOf(it.jsonPrimitive.content) }?.toSet()
+            val issues = obj["issues"]?.jsonArray?.map {
+                val issue = it.jsonPrimitive
+                if (!issue.isString) throw GenerationException("invalid_review")
+                DraftIssue.valueOf(issue.content)
+            }?.toSet()
                 ?: throw GenerationException("invalid_review")
             val decision = obj["decision"]?.jsonPrimitive?.content
             if ((decision == "pass" && issues.isNotEmpty()) || (decision == "revise" && issues.isEmpty()) || decision !in setOf("pass", "revise")) {
