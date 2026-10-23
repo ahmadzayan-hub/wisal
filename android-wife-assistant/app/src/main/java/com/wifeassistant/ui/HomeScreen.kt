@@ -109,6 +109,7 @@ fun HomeScreen(
     onOpenReply: () -> Unit = {},
     onOpenPolish: () -> Unit = {},
 ) {
+    val motionAllowed = rememberMotionAllowed()
     var reviewedMode by remember { mutableStateOf(false) }
     var showOptions by remember { mutableStateOf(false) }
     var showPeople by remember { mutableStateOf(false) }
@@ -166,7 +167,7 @@ fun HomeScreen(
         boundRecipient = current?.id
         editBrief = true
     }
-    LaunchedEffect(state.items.isNotEmpty()) { if (state.items.isNotEmpty()) { editBrief = false; pageScroll.animateScrollTo(0) } }
+    LaunchedEffect(state.items.isNotEmpty()) { if (state.items.isNotEmpty()) { editBrief = false; if (motionAllowed) pageScroll.animateScrollTo(0) else pageScroll.scrollTo(0) } }
 
     // ---- تقويم الموبايل (Google Calendar وغيره) ----
     var calEvents by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -251,7 +252,7 @@ fun HomeScreen(
                                     Text("  " + t("اللغة والأسلوب", "Language & style"))
                                 }
                             }
-                            if (showOptions) {
+                            WisalDisclosure(showOptions, motionAllowed) {
                                 current?.let { person ->
                                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                         listOf("ar" to "العربية", "en" to "English").forEach { (id, label) ->
@@ -294,7 +295,7 @@ fun HomeScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(t("مسودتك إلى ", "Your drafts for ") + (current?.name ?: ""), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                        Text(t("قارن، عدّل، ثم شارك باختيارك.", "Compare, edit, then share when ready."), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(t("قارن وعدّل على مهل. المشاركة باختيارك.", "Take your time to compare and edit. Sharing is your choice."), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     TextButton(onClick = { editBrief = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text(t("تعديل الفكرة", "Edit brief")) }
                 }
@@ -326,21 +327,9 @@ fun HomeScreen(
             }
 
             if (state.loading) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.height(28.dp))
-                    Spacer(Modifier.height(0.dp))
-                    Text(when (state.reviewStage) {
-                        DraftStage.CLARIFY -> t("  توضيح الهدف...", "  Clarifying intent...")
-                        DraftStage.WRITE -> t("  كتابة الصياغتين...", "  Writing drafts...")
-                        DraftStage.REVIEW -> t("  مراجعة المعنى والخصوصية...", "  Reviewing meaning and privacy...")
-                        DraftStage.REPAIR -> t("  محاولة إصلاح واحدة...", "  One repair attempt...")
-                        else -> t("  جاري تجهيز الصياغتين...", "  Preparing two drafts...")
-                    }, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    TextButton(onClick = { vm.cancelGeneration() }) { Text(t("إلغاء", "Cancel")) }
+                DraftProgress(state.reviewStage, motionAllowed) {
+                    vm.cancelGeneration()
+                    scope.launch { snackbar.showSnackbar(t("توقفت الصياغة. يمكنك متابعة تعديل فكرتك.", "Stopped. You can keep editing your idea.")) }
                 }
             }
 
@@ -357,6 +346,7 @@ fun HomeScreen(
             val draftContent: @Composable (Int, Suggestion, Modifier) -> Unit = { idx, item, cardModifier ->
                 SuggestionCard(
                     modifier = cardModifier,
+                    motionAllowed = motionAllowed,
                     index = idx,
                     item = item,
                     enabled = !state.loading,
@@ -383,10 +373,10 @@ fun HomeScreen(
 
             if (wide && state.items.size == 2) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Top) {
-                    state.items.forEachIndexed { i, item -> draftContent(i, item, Modifier.weight(1f)) }
+                    state.items.forEachIndexed { i, item -> WisalReveal(motionAllowed, Modifier.weight(1f)) { draftContent(i, item, Modifier.fillMaxWidth()) } }
                 }
             } else {
-                state.items.forEachIndexed { i, item -> draftContent(i, item, Modifier.fillMaxWidth()) }
+                state.items.forEachIndexed { i, item -> WisalReveal(motionAllowed, Modifier.fillMaxWidth()) { draftContent(i, item, Modifier.fillMaxWidth()) } }
             }
 
             if (state.items.isNotEmpty()) {
@@ -631,6 +621,7 @@ private fun sendLabelFor(current: Recipient?): String {
 @Composable
 internal fun SuggestionCard(
     modifier: Modifier = Modifier,
+    motionAllowed: Boolean = false,
     index: Int,
     item: Suggestion,
     enabled: Boolean = true,
@@ -654,11 +645,11 @@ internal fun SuggestionCard(
                 label = { Text(t("راجع وعدّل", "Review and edit")) }, modifier = Modifier.fillMaxWidth(), minLines = 2, maxLines = 6,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(lineHeight = 28.sp), shape = RoundedCornerShape(14.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton(onClick = onCopy, enabled = enabled && item.text.isNotBlank(), modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text(t("نسخ", "Copy")) }
+                CopyDraftButton(item.text, enabled, motionAllowed, Modifier.weight(1f), onCopy)
                 Button(onClick = onShare, enabled = enabled && item.text.isNotBlank(), modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text(t("مشاركة", "Share")) }
             }
             TextButton(onClick = { more = !more }, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (more) t("إخفاء الخيارات", "Hide options") else t("خيارات المسودة", "Draft options")) }
-            if (more) {
+            WisalDisclosure(more, motionAllowed) {
                 Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("shorter" to t("أقصر", "Shorter"), "simpler" to t("أوضح", "Clearer"), "formal" to t("أكثر رسمية", "More formal")).forEach { (id, label) ->
                         AssistChip(onClick = { onRefine(id) }, enabled = enabled, label = { Text(label) })
