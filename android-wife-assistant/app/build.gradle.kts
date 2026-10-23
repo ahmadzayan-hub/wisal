@@ -13,9 +13,10 @@ android {
         applicationId = "com.wisal.app"
         minSdk = 26
         targetSdk = 35
-        // رقم الإصدار بيزيد تلقائياً من رقم بناء الـ CI (VERSION_CODE) عشان
-        // التحديثات تتثبّت فوق بعضها. محلياً بيرجع لـ 1.
-        versionCode = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1
+        // Local development defaults to 1. Releases need an explicitly verified higher code.
+        val suppliedCode = System.getenv("VERSION_CODE")?.takeIf { it.isNotBlank() }
+        versionCode = if (suppliedCode == null) 1 else suppliedCode.toIntOrNull()
+            ?.takeIf { it in 1..2_100_000_000 } ?: error("VERSION_CODE must be a valid Android integer; never silently reset it to 1.")
         versionName = System.getenv("VERSION_NAME") ?: "1.0"
 
         // libsignal-android بتحمل مكتبة native (~74MB) لكل ABI. مفيش تقسيم APK
@@ -53,6 +54,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     compileOptions {

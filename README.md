@@ -11,7 +11,8 @@ Wisal helps you decide what to say, not who someone is. Choose a person, select 
 
 وصال يساعدك تكتب رسالة أوضح وأقرب لأسلوبك: اختر الشخص والهدف واللغة والنبرة، راجع الصياغتين وعدّل، ثم انسخ أو شارك بنفسك. مناسب للأهل والأصدقاء والزملاء والعملاء، وليس للعلاقات العاطفية فقط.
 
-- **A focused Android composer:** person → intent → language/tone → editable drafts → copy/share.
+- **A focused Android writing workspace:** one purpose input, contextual recipient, optional language/tone, then editable draft comparison and explicit copy/share.
+- **Optional source review:** Arabic/English writing and review roles, at most one repair and four model calls. Additional calls consume account quota; automated review is not a correctness guarantee. See [bounded drafting](docs/BOUNDED_DRAFTING.md).
 - **Useful offline:** local Arabic and English templates remain available when AI is off, unavailable or out of quota. They are explicitly labeled, not passed off as AI output.
 - **Preferences you control:** edit communication tone, inspect style rules, disable them or reset learning. No sensitive personality inference from a name or relationship.
 - **You decide what leaves the app:** personal drafting never sends a message automatically. Opening another app does not prove a message was sent.

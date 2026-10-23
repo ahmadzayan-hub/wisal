@@ -56,6 +56,7 @@ data class PendingRound(
     val recipientId: String = "",
     val offline: Boolean = false,
     val note: String? = null,
+    val reviewNote: String? = null,
 )
 
 // تجاوز المستخدم لقاعدة أسلوب مشتقّة (شاشة «ما الذي تعلّمه وصال؟»):
@@ -100,6 +101,7 @@ data class GenerationResult(
     val slot: String,
     val offline: Boolean = false,  // true لو رجعنا لبنك الرسائل الجاهز (بدون نت/مفتاح)
     val note: String? = null,      // ملاحظة تتعرض للمستخدم (سبب الرجوع للجاهز)
+    val reviewNote: String? = null,
 )
 
 // مناسبة النهاردة.
