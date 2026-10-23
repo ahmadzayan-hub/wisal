@@ -1,6 +1,8 @@
 package com.wifeassistant.data
 
 import kotlin.random.Random
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
 
 // قلب التوليد - نظير generateSuggestion.js.
 // تعلّم بالسياق (few-shot) + ترجيح المواضيع + تنويع + مرساة صوت ثابتة.
@@ -30,13 +32,23 @@ class SuggestionEngine(
             )
             GenerationResult(parseTwo(raw, themes), themes, slot)
         } catch (e: Exception) {
+            if (e is CancellationException && e !is TimeoutCancellationException) throw e
             // مفيش نت أو مفيش مفتاح: نرجّع بنك الرسائل الجاهز عشان التطبيق ما يقفش.
-            val hasKey = settings.groqKey.isNotBlank()
             val items = FallbackBank.two(settings.currentRecipient(), intent)
-            val note = if (!hasKey)
-                "ضيف مفتاح Groq من الإعدادات عشان اقتراحات أذكى ✨ دي رسائل جاهزة دلوقتي."
-            else
-                "النت مش متاح دلوقتي 📴 دي رسائل جاهزة تقدر تعدّلها وتبعتها."
+            val reason = when ((e as? GenerationException)?.reason) {
+                "disabled" -> t("Groq غير مفعّل.", "Groq is off.")
+                "missing_key" -> t("أضف مفتاح Groq في الإعدادات.", "Add a Groq key in Settings.")
+                "authentication" -> t("مفتاح Groq غير صالح.", "Groq rejected the API key.")
+                "permission" -> t("الحساب لا يسمح بهذا النموذج.", "Your account cannot access this model.")
+                "retired_model" -> t("النموذج متوقف. اختر بديلاً في الإعدادات.", "This model is retired. Choose a replacement in Settings.")
+                "quota" -> t("انتهت حصة الحساب. القوالب المحلية ما زالت متاحة.", "Your account quota is exhausted. Local templates remain available.")
+                "model" -> t("راجع النموذج المختار في الإعدادات؛ قد يكون متوقفاً.", "Check the model in Settings; it may be retired.")
+                "rate_limit" -> t("وصلت لحد استخدام Groq. حاول لاحقاً.", "Groq's usage limit was reached. Try later.")
+                "too_long" -> t("السياق طويل جداً. اختصره وحاول مجدداً.", "The context is too long. Shorten it and retry.")
+                "invalid_response" -> t("لم يرجع Groq نصاً صالحاً.", "Groq returned no usable text.")
+                else -> t("تعذّر الاتصال بـ Groq الآن.", "Groq is unavailable right now.")
+            }
+            val note = reason + " " + t("هذه قوالب محلية، وليست نتيجة ذكاء اصطناعي. راجع اللغة والتفاصيل.", "These are local templates, not AI output. Review their language and details.")
             GenerationResult(items, items.map { it.theme }, slot, offline = true, note = note)
         }
     }
@@ -57,8 +69,9 @@ class SuggestionEngine(
             "reassure" -> "بتطمّن وتهدّي، إنك جنبه وإن كل حاجة هتبقى تمام"
             else -> "أحلى وأصدق"
         }
-        val rel = Relations.byId(settings.currentRecipient()?.relation ?: "partner_wife")
-        val sys = "انت بتعيد صياغة رسالة قصيرة باللهجة المصرية العامية. " +
+        val rel = Relations.byId(settings.currentRecipient()?.relation ?: "other")
+        val lang = Lang.resolve(settings.currentRecipient()?.language, settings.currentRecipient()?.name)
+        val sys = Lang.promptDirective(lang) + " انت بتعيد صياغة رسالة قصيرة. " +
             "حافظ على نفس المعنى والصدق والدفء، ورجّع النص بس من غير أي كلام قبله أو بعده."
         val user = "أعد صياغة الرسالة دي بحيث تبقى $hint (النبرة تناسب ${rel.label}):\n\n$text"
         return groq.complete(listOf(ChatMessage("system", sys), ChatMessage("user", user)), 0.7).trim()
@@ -68,7 +81,7 @@ class SuggestionEngine(
     // تقريبية بس - مفيش أسعار حقيقية (التطبيق مش متصفّح).
     suspend fun giftIdeas(occasionLabel: String): String {
         val r = settings.currentRecipient()
-        val rel = Relations.byId(r?.relation ?: "partner_wife")
+        val rel = Relations.byId(r?.relation ?: "other")
         val who = r?.name?.ifBlank { rel.label } ?: rel.label
         val notes = r?.notes?.takeIf { it.isNotBlank() }
         val sys = "انت مستشار لطيف بتقترح أفكار عملية لمناسبة. اكتب مصري بسيط. " +
@@ -116,7 +129,7 @@ class SuggestionEngine(
     // مرساة الصوت - النبرة الأساسية حسب نوع العلاقة (شريك/ابن/أم/أخ...).
     private fun buildSystemPrompt(intent: Intents.Intent? = null): String {
         val recipient = settings.currentRecipient()
-        val rel = Relations.byId(recipient?.relation ?: "partner_wife")
+        val rel = Relations.byId(recipient?.relation ?: "other")
         // نبرة ولهجة خاصة بالشخص لو موجودة، غير كده الافتراضي.
         val tone = recipient?.tone?.takeIf { it.isNotBlank() } ?: rel.tone
         val dialect = AppConstants.dialectPhrase(recipient?.dialect ?: "egyptian")
@@ -127,6 +140,8 @@ class SuggestionEngine(
             "النبرة المناسبة: $tone.",
             "اكتب كإنسان حقيقي بمشاعر صادقة ودفء إنساني - مش كلام آلة.",
             "قواعد ثابتة لا تتغيّر:",
+            "- لا تستنتج شخصية أو صفات حساسة من الاسم أو العلاقة. استخدم فقط تفضيلات التواصل التي اختارها المستخدم.",
+            "- لا تضف وعوداً أو التزامات أو معلومات غير موجودة في السياق. العلاقة ليست دليلاً على درجة القرب.",
             if (settings.messageLength == "medium")
                 "- الرسالة من سطرين لـ 3 أسطر."
             else

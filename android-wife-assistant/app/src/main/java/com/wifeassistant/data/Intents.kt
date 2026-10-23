@@ -11,6 +11,9 @@ object Intents {
     )
 
     val ALL = listOf(
+        Intent("check_in", "اطمئنان", "👋", "سؤال لطيف عن الحال، بدون لوم أو افتراض مشكلة."),
+        Intent("follow_up", "متابعة", "📌", "متابعة واضحة ومحترمة بخصوص السياق، بلا ضغط أو مواعيد أو التزامات مخترعة."),
+        Intent("request", "طلب", "💬", "طلب واضح ومهذب، يترك للشخص مساحة للاعتذار أو اختيار الوقت المناسب."),
         Intent("apology", "اعتذار", "🕊️", "رسالة اعتذار صادقة بتصالح وتكسر الزعل، بتعترف بالغلط بلطف من غير تبرير زيادة."),
         Intent("congrats", "تهنئة", "🎉", "تهنئة فرحانة بمناسبة سعيدة، بتحسّسه إنك مبسوط له وفخور بيه."),
         Intent("comfort", "مواساة", "🤍", "مواساة وتخفيف في وقت صعب، حضور وسند ودفء من غير كلام جارح ولا وعظ."),
@@ -21,6 +24,22 @@ object Intents {
         Intent("dua", "دعاء", "🤲", "دعاء من القلب بالخير والستر والصحة، بلمسة إيمانية بسيطة صادقة."),
         Intent("reconnect", "إعادة تواصل", "🌉", "رسالة بسيطة تكسر برود المسافة بعد فترة انقطاع، بتفتح الكلام بلطف من غير عتاب ولا لوم، بتحسّسه إنك افتكرته وإنه وحشك."),
     )
+
+    fun labelOf(intent: Intent): String = t(intent.label, when (intent.id) {
+        "check_in" -> "Check in"
+        "follow_up" -> "Follow up"
+        "request" -> "Ask"
+        "apology" -> "Apologize"
+        "congrats" -> "Celebrate"
+        "comfort" -> "Comfort"
+        "thanks" -> "Thank"
+        "longing" -> "Miss you"
+        "reassure" -> "Reassure"
+        "support" -> "Encourage"
+        "dua" -> "Prayer"
+        "reconnect" -> "Reconnect"
+        else -> intent.label
+    })
 
     fun byId(id: String?): Intent? = if (id == null) null else ALL.firstOrNull { it.id == id }
 }

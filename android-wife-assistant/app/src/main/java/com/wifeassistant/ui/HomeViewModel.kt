@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
+import com.wifeassistant.data.t
 
 data class HomeState(
     val loading: Boolean = false,
@@ -28,6 +31,7 @@ data class HomeState(
     val slot: String = "manual",
     val themesShown: List<String> = emptyList(),
     val occasionLabel: String? = null,
+    val offline: Boolean = false,
 )
 
 // حالة الأشخاص - عشان الواجهة تتفاعل فوراً مع اختيار أي شخص وتظبط كل الخيارات عليه.
@@ -77,11 +81,19 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     private val _streak = MutableStateFlow(0)
     val streak: StateFlow<Int> = _streak.asStateFlow()
 
+    private var generationJob: Job? = null
+    private var ideasJob: Job? = null
+
     init { loadPending(); refreshRecipients() }
 
     // نقرأ الأشخاص والشخص المختار من الإعدادات - بننده دي كل ما نفتح الشاشة
     // أو نغيّر الاختيار عشان الواجهة تفضل مظبوطة على الشخص الحالي.
     fun refreshRecipients() {
+        val previous = _people.value.current?.id
+        if (previous != null && previous != settings.currentRecipient()?.id) {
+            generationJob?.cancel()
+            _state.value = HomeState()
+        }
         _people.value = PeopleState(
             recipients = settings.recipients,
             selectedId = settings.selectedRecipientId,
@@ -95,7 +107,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     private fun updateNextAction() {
         // تحديث سلسلة الدفء من سجل الرسايل المبعوتة (قراءة واحدة للسجل).
         _streak.value = com.wifeassistant.data.Streak.compute(
-            store.feedback().filter { !it.finalText.isNullOrBlank() }.map { it.date },
+            store.feedback().filter { it.choice == "sent_confirmed" }.map { it.date },
             DateUtil.today(),
         )
         val recips = settings.recipients
@@ -129,9 +141,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
 
     // تنفيذ اللفتة الجاية: يختار الشخص ويبدأ يكتبله على طول.
     fun writeToNext(a: NextAction) {
-        settings.selectedRecipientId = a.recipientId
-        store.clearPending()
-        refreshRecipients()
+        selectRecipient(a.recipientId)
         // لو مناسبة → توليد مناسبة؛ غير كده دي «لفتة إعادة تواصل» فبنوجّه التوليد
         // بنيّة reconnect عشان تطلع رسالة تكسر البرود بلطف.
         if (a.occasionLabel != null) generate("occasion", Occasion("person", a.occasionLabel))
@@ -142,6 +152,8 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     // زر الواتساب) بتتظبط عليه فوراً. بنمسح الاقتراحات القديمة لأنها كانت لشخص تاني.
     fun selectRecipient(id: String) {
         if (id == settings.selectedRecipientId) return
+        generationJob?.cancel()
+        ideasJob?.cancel()
         settings.selectedRecipientId = id
         store.clearPending()
         refreshRecipients()
@@ -152,11 +164,14 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     // عند فتح التطبيق: لو فيه جولة محفوظة (من إشعار) نعرضها.
     fun loadPending() {
         val p = store.getPending() ?: return
+        if (p.recipientId.isNotBlank() && p.recipientId != settings.currentRecipient()?.id) return
         _state.value = HomeState(
             items = p.items,
             slot = p.slot,
             themesShown = p.themesShown,
             occasionLabel = p.occasionLabel,
+            offline = p.offline,
+            info = p.note,
         )
     }
 
@@ -170,23 +185,28 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         intentId: String? = null,
         context: String = "",
     ) {
+        generationJob?.cancel()
+        val recipientId = settings.currentRecipient()?.id.orEmpty()
         val occ = occasion ?: if (slot == "occasion") occasions.todaysOccasion() else null
         val effectiveSlot = if (occ != null) "occasion" else slot
         lastIntent = intentId
         lastContext = context
         _state.value = _state.value.copy(loading = true, error = null, info = null)
-        viewModelScope.launch {
+        generationJob = viewModelScope.launch {
             try {
                 val res = engine.generate(effectiveSlot, occ, intentId, context)
-                store.setPending(PendingRound(res.slot, res.themesShown, res.items, occ?.label))
+                if (settings.currentRecipient()?.id.orEmpty() != recipientId) return@launch
+                store.setPending(PendingRound(res.slot, res.themesShown, res.items, occ?.label, recipientId, res.offline, res.note))
                 _state.value = HomeState(
                     items = res.items,
                     slot = res.slot,
                     themesShown = res.themesShown,
                     occasionLabel = occ?.label,
+                    offline = res.offline,
                     info = res.note, // لو رجعنا للجاهز، نوضّح السبب للمستخدم
                 )
             } catch (e: Exception) {
+                if (e is CancellationException && e !is kotlinx.coroutines.TimeoutCancellationException) throw e
                 _state.value = _state.value.copy(loading = false, error = e.message ?: "حصل خطأ")
             }
         }
@@ -215,7 +235,6 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         store.addFeedback(
             Feedback(DateUtil.todayISO(), _state.value.slot, themes(), if (idx == 0) "pick1" else "pick2", chosen.text, rid())
         )
-        store.markContacted(rid())
         store.clearPending()
         updateNextAction()
         _state.value = _state.value.copy(info = "حفظت أسلوبك من الاختيار ده 👌")
@@ -228,10 +247,42 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         store.addStyleExample(t, theme, rid())
         if (theme != null) store.bumpThemeWeight(theme, +0.3)
         store.addFeedback(Feedback(DateUtil.todayISO(), _state.value.slot, themes(), "edited", t, rid()))
-        store.markContacted(rid())
         store.clearPending()
         updateNextAction()
         _state.value = _state.value.copy(info = "سجّلت نسختك المعدّلة وضفتها لأسلوبي 🌟")
+    }
+
+    fun updatePreferences(language: String? = null, tone: String? = null) {
+        val current = settings.currentRecipient() ?: return
+        generationJob?.cancel()
+        settings.recipients = settings.recipients.map {
+            if (it.id == current.id) it.copy(language = language ?: it.language, tone = tone ?: it.tone) else it
+        }
+        store.clearPending()
+        _state.value = HomeState()
+        refreshRecipients()
+    }
+
+    fun updateDraft(index: Int, text: String) {
+        if (_state.value.loading || index !in _state.value.items.indices) return
+        val updated = _state.value.items.toMutableList()
+        updated[index] = updated[index].copy(text = text)
+        _state.value = _state.value.copy(items = updated)
+        val state = _state.value
+        store.setPending(PendingRound(state.slot, state.themesShown, updated, state.occasionLabel, rid(), state.offline, state.info))
+    }
+
+    fun confirmContact(index: Int) {
+        val item = _state.value.items.getOrNull(index) ?: return
+        store.markContacted(rid())
+        store.addFeedback(Feedback(DateUtil.todayISO(), _state.value.slot, themes(), "sent_confirmed", item.text, rid()))
+        updateNextAction()
+        _state.value = _state.value.copy(info = t("سجّلنا تأكيدك للتواصل. وصال لا يرسل تلقائياً.", "Your contact confirmation was saved. Wisal does not send automatically."))
+    }
+
+    fun cancelGeneration() {
+        generationJob?.cancel()
+        _state.value = _state.value.copy(loading = false)
     }
 
     fun ignore() {
@@ -251,17 +302,21 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     fun refine(idx: Int, styleId: String) {
         val items = _state.value.items
         if (idx !in items.indices) return
+        generationJob?.cancel()
+        val recipientId = rid()
         _state.value = _state.value.copy(loading = true, error = null, info = null)
-        viewModelScope.launch {
+        generationJob = viewModelScope.launch {
             try {
                 val newText = engine.refine(items[idx].text, styleId)
+                if (rid() != recipientId) return@launch
                 val updated = items.toMutableList()
                 updated[idx] = updated[idx].copy(text = newText)
                 store.setPending(
-                    PendingRound(_state.value.slot, _state.value.themesShown, updated, _state.value.occasionLabel)
+                    PendingRound(_state.value.slot, _state.value.themesShown, updated, _state.value.occasionLabel, recipientId)
                 )
-                _state.value = _state.value.copy(items = updated, loading = false, info = "عدّلت الاقتراح ✍️")
+                _state.value = _state.value.copy(items = updated, loading = false, offline = false, info = "عدّلت الاقتراح ✍️")
             } catch (e: Exception) {
+                if (e is CancellationException && e !is kotlinx.coroutines.TimeoutCancellationException) throw e
                 _state.value = _state.value.copy(loading = false, error = "التعديل مش متاح دلوقتي (محتاج نت + مفتاح)")
             }
         }
@@ -270,11 +325,13 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     // أفكار عملية للمناسبة للشخص الحالي.
     fun loadGiftIdeas(occasionLabel: String) {
         _ideas.value = IdeasState(open = true, loading = true, title = occasionLabel)
-        viewModelScope.launch {
+        ideasJob?.cancel()
+        ideasJob = viewModelScope.launch {
             try {
                 val text = engine.giftIdeas(occasionLabel)
                 _ideas.value = IdeasState(open = true, loading = false, title = occasionLabel, text = text)
             } catch (e: Exception) {
+                if (e is CancellationException && e !is kotlinx.coroutines.TimeoutCancellationException) throw e
                 _ideas.value = IdeasState(
                     open = true, loading = false, title = occasionLabel,
                     text = "الأفكار مش متاحة دلوقتي (محتاج نت + مفتاح Groq).",
@@ -283,5 +340,5 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun closeIdeas() { _ideas.value = IdeasState() }
+    fun closeIdeas() { ideasJob?.cancel(); _ideas.value = IdeasState() }
 }

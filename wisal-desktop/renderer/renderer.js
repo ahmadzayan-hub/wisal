@@ -372,6 +372,9 @@ function openMemberEdit(g, m) {
   body.appendChild(dch);
   $('#meName', body).value = m.name || ''; $('#meNum', body).value = m.number || '';
   $('#meRel', body).value = m.relationship || ''; $('#meNotes', body).value = m.notes || '';
+  $('#sGroqEnabled', c).onchange = event => { S.groqEnabled = event.target.checked; };
+  $('#sKey', c).oninput = event => { S.groqKey = event.target.value; };
+  $('#sName', c).oninput = event => { S.myName = event.target.value; };
   const save = el('<button class="btn">💾 حفظ</button>');
   save.onclick = async () => {
     m.name = $('#meName').value.trim() || m.name; m.number = $('#meNum').value.trim().replace(/[^\d+]/g, '');
@@ -677,7 +680,9 @@ function renderSettings() {
   c.appendChild(el(`<label class="field"><span>مفتاح Groq (console.groq.com/keys)</span><input type="password" id="sKey" value="${esc(S.groqKey)}"></label>`));
   c.appendChild(el(`<label class="field"><span>اسمك</span><input type="text" id="sName" value="${esc(S.myName)}"></label>`));
   c.appendChild(el('<div class="muted" style="margin-bottom:4px">الموديل</div>'));
-  const models = [['llama-3.3-70b-versatile', 'لاما 3.3 (الأفضل للعربي)'], ['llama-3.1-8b-instant', 'لاما 3.1 (أسرع)']];
+  const models = (META.modelCatalog?.models || []).map(id => [id, id.replace('openai/', '')]);
+  if (!models.some(([id]) => id === S.model)) c.appendChild(el(`<p class="sub">النموذج المحفوظ غير متاح: ${esc(S.model)}. اختر بديلاً؛ لم يتغير اختيارك تلقائياً.</p>`));
+  c.appendChild(el(`<label class="field"><span><input id="sGroqEnabled" type="checkbox" ${S.groqEnabled ? 'checked' : ''}> راجعت خطة Groq المجانية وحدودها وأوافق على إرسال الاسم والملاحظات وأمثلة الأسلوب لتوليد الرسالة.</span></label><p class="sub">القوالب المحلية تعمل دون شبكة. لا تحويل تلقائي لخطة مدفوعة. مراجعة القائمة: ${esc(META.modelCatalog?.reviewed)}</p>`));
   const mchips = el('<div class="chips" style="margin-bottom:12px"></div>');
   models.forEach(([id, lbl]) => { const b = el(`<button class="chip ${S.model === id ? 'sel' : ''}">${lbl}</button>`); b.onclick = () => { S.model = id; renderSettings(); }; mchips.appendChild(b); });
   c.appendChild(mchips);
@@ -694,8 +699,11 @@ function renderSettings() {
   const tchips = el('<div class="chips" style="margin-bottom:12px"></div>');
   [['light', 'فاتح'], ['dark', 'غامق']].forEach(([id, lbl]) => { const b = el(`<button class="chip ${S.theme === id ? 'sel' : ''}">${lbl}</button>`); b.onclick = () => { S.theme = id; applyTheme(); renderSettings(); }; tchips.appendChild(b); });
   c.appendChild(tchips);
+  $('#sGroqEnabled', c).onchange = event => { S.groqEnabled = event.target.checked; };
+  $('#sKey', c).oninput = event => { S.groqKey = event.target.value; };
+  $('#sName', c).oninput = event => { S.myName = event.target.value; };
   const save = el('<button class="btn">💾 حفظ</button>');
-  save.onclick = async () => { S = await call('settings:set', { groqKey: $('#sKey').value.trim(), myName: $('#sName').value.trim(), model: S.model, messageLength: S.messageLength, emoji: S.emoji, humor: S.humor, theme: S.theme }); applyTheme(); toast('اتحفظ ✅'); };
+  save.onclick = async () => { S = await call('settings:set', { groqKey: $('#sKey').value.trim(), groqEnabled: $('#sGroqEnabled').checked, myName: $('#sName').value.trim(), model: S.model, messageLength: S.messageLength, emoji: S.emoji, humor: S.humor, theme: S.theme }); applyTheme(); toast('اتحفظ ✅'); };
   c.appendChild(save);
   host.appendChild(c);
 }
@@ -705,7 +713,7 @@ function renderOnboard() {
   const host = $('#view-onboard'); host.innerHTML = '';
   host.appendChild(el('<div class="banner"><h1>أهلاً بيك في وصال 💗</h1><p>مساعدك عشان تفضل قريّب من اللي بتحبهم.</p></div>'));
   const c = el('<div class="card"></div>');
-  c.appendChild(el('<p class="sub">حط مفتاح Groq المجاني واسمك عشان نبدأ. كله بيتخزّن على جهازك بس.</p>'));
+  c.appendChild(el('<p class="sub">ابدأ بالقوالب المحلية. Groq اختياري بحصص حسب الحساب؛ راجع الخطة وفعّله من الإعدادات.</p>'));
   c.appendChild(el(`<label class="field"><span>مفتاح Groq (console.groq.com/keys)</span><input type="password" id="oKey"></label>`));
   c.appendChild(el(`<label class="field"><span>اسمك</span><input type="text" id="oName"></label>`));
   const b = el('<button class="btn block">يلا نبدأ ✨</button>');

@@ -253,7 +253,7 @@ fun PeopleScreen(onBack: () -> Unit) {
                     FilterChip(
                         selected = relation == rel.id,
                         onClick = { relation = rel.id },
-                        label = { Text("${rel.emoji} ${rel.label}") },
+                        label = { Text("${rel.emoji} ${Relations.labelOf(rel.id)}") },
                     )
                 }
             }
@@ -300,7 +300,7 @@ fun PeopleScreen(onBack: () -> Unit) {
             }
 
             // لغة الرسالة حسب لغته الأولى: تلقائي (نكشفها) / عربي / إنجليزي.
-            Text(t("لغة الرسالة (حسب لغته الأولى)", "Message language (their first language)"), style = MaterialTheme.typography.bodyMedium)
+            Text(t("لغة الرسالة المفضّلة", "Preferred message language"), style = MaterialTheme.typography.bodyMedium)
             Row(
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

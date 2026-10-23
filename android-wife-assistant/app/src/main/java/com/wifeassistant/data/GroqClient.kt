@@ -2,90 +2,119 @@ package com.wifeassistant.data
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.add
-import kotlinx.serialization.json.addJsonObject
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonArray
+import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.json.*
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 data class ChatMessage(val role: String, val content: String)
 
-// طبقة تجريد عقل الـ AI (Groq) - نظير llm.js. المزوّد معزول هنا بس.
+/** Safe messages only: never expose the provider body, prompt or API key. */
+class GenerationException(val reason: String) : IOException(reason)
+
 class GroqClient(private val settings: Settings) {
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(20, TimeUnit.SECONDS)
-        .readTimeout(45, TimeUnit.SECONDS)
-        .build()
-    private val json = Json { ignoreUnknownKeys = true }
+    private val transport = GroqTransport()
 
-    // خطأ مؤقت (شبكة/زحمة/سيرفر) يستاهل إعادة محاولة، عكس خطأ المفتاح.
-    private class RetryableException(message: String) : Exception(message)
+    suspend fun complete(messages: List<ChatMessage>, temperature: Double = 0.8): String {
+        if (!settings.groqEnabled) throw GenerationException("disabled")
+        val key = settings.groqKey
+        if (key.isBlank()) throw GenerationException("missing_key")
+        val model = settings.model
+        if (model in AppConstants.RETIRED_MODELS) throw GenerationException("retired_model")
+        if (AppConstants.MODELS.none { it.first == model }) throw GenerationException("model")
+        return transport.complete(key, model, messages, temperature)
+    }
+}
 
-    suspend fun complete(messages: List<ChatMessage>, temperature: Double = 0.8): String =
-        withContext(Dispatchers.IO) {
-            val key = settings.groqKey
-            require(key.isNotBlank()) { "مفتاح Groq مش متسجّل. روح الإعدادات وحطه." }
-
+/** Injectable transport for offline tests. Production always uses the official Groq endpoint. */
+internal class GroqTransport(
+    private val endpoint: String = "https://api.groq.com/openai/v1/chat/completions",
+    private val client: OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .callTimeout(35, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(false)
+        .build(),
+) {
+    suspend fun complete(key: String, model: String, messages: List<ChatMessage>, temperature: Double = 0.8): String =
+        withTimeout(45_000) {
+            // An explicit ceiling protects the free-plan budget. No paid/provider fallback.
+            if (messages.sumOf { it.content.length } > 16_000) throw GenerationException("too_long")
             val payload = buildJsonObject {
-                put("model", settings.model)
-                put("temperature", temperature)
-                put("max_tokens", 400)
+                put("model", model)
+                put("temperature", temperature.coerceIn(0.0, 1.0))
+                put("max_completion_tokens", 1024)
+                if (model.startsWith("openai/gpt-oss")) put("reasoning_effort", "low")
                 putJsonArray("messages") {
-                    messages.forEach { m ->
-                        addJsonObject {
-                            put("role", m.role)
-                            put("content", m.content)
-                        }
-                    }
+                    messages.forEach { m -> addJsonObject { put("role", m.role); put("content", m.content) } }
                 }
             }.toString()
-
-            // إعادة محاولة مع تأخير متزايد للأخطاء المؤقتة (زحمة/سيرفر/انقطاع شبكة).
-            var last: Exception? = null
-            repeat(3) { attempt ->
-                try {
-                    return@withContext call(payload, key)
-                } catch (e: RetryableException) {
-                    last = e
-                } catch (e: java.io.IOException) {
-                    last = e
+            val request = Request.Builder().url(endpoint)
+                .header("Authorization", "Bearer $key")
+                .post(payload.toRequestBody("application/json".toMediaType())).build()
+            repeat(2) { attempt ->
+                val response = client.newCall(request).await()
+                var retryDelay: Long? = null
+                response.use { resp ->
+                    if (resp.isSuccessful) {
+                        val body = withContext(Dispatchers.IO) { resp.body?.string().orEmpty() }
+                        return@withTimeout parseContent(body)
+                    }
+                    val errorCode = runCatching {
+                        Json.parseToJsonElement(resp.body?.string().orEmpty()).jsonObject["error"]
+                            ?.jsonObject?.get("code")?.jsonPrimitive?.contentOrNull
+                    }.getOrNull()
+                    val reason = when {
+                        errorCode == "model_decommissioned" -> "retired_model"
+                        errorCode in setOf("insufficient_quota", "quota_exceeded", "billing_hard_limit_reached") -> "quota"
+                        else -> when (resp.code) {
+                        401 -> "authentication"
+                        403 -> "permission"
+                        400, 404 -> "model"
+                        429 -> "rate_limit"
+                        in 500..599 -> "service"
+                        else -> "request"
+                        }
+                    }
+                    // Honor Retry-After; if it exceeds our short interactive budget, stop.
+                    val retryHeader = resp.header("Retry-After")
+                    val retrySeconds = retryHeader?.toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0 && it <= 10 }
+                    val retryAfter = retrySeconds?.times(1000)?.toLong()
+                    if (reason in setOf("rate_limit", "service") && attempt == 0 &&
+                        (retryHeader == null || retryAfter != null)) {
+                        retryDelay = retryAfter ?: 1000L
+                    } else throw GenerationException(reason)
                 }
-                delay(500L * (attempt + 1))
+                delay(retryDelay ?: 1000L)
             }
-            throw last ?: IllegalStateException("تعذّر الاتصال بـ Groq")
+            throw GenerationException("service")
         }
 
-    private fun call(payload: String, key: String): String {
-        val req = Request.Builder()
-            .url("https://api.groq.com/openai/v1/chat/completions")
-            .addHeader("Authorization", "Bearer $key")
-            .addHeader("Content-Type", "application/json")
-            .post(payload.toRequestBody("application/json".toMediaType()))
-            .build()
-
-        client.newCall(req).execute().use { resp ->
-            val text = resp.body?.string().orEmpty()
-            if (!resp.isSuccessful) {
-                // 429/5xx مؤقتة نعيد المحاولة، الباقي (401/400...) خطأ ثابت.
-                if (resp.code == 429 || resp.code >= 500) throw RetryableException("Groq ${resp.code}")
-                error("Groq رجّع خطأ ${resp.code}")
+    private suspend fun Call.await(): Response = suspendCancellableCoroutine { continuation ->
+        continuation.invokeOnCancellation { cancel() }
+        enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                if (continuation.isActive) continuation.resumeWithException(GenerationException("network"))
             }
-            val content = json.parseToJsonElement(text).jsonObject["choices"]
-                ?.jsonArray?.firstOrNull()?.jsonObject
-                ?.get("message")?.jsonObject
-                ?.get("content")?.jsonPrimitive?.contentOrNull
-            return content?.trim() ?: error("Groq رجّع رد فاضي.")
-        }
+            override fun onResponse(call: Call, response: Response) {
+                continuation.resume(response) { _, value, _ -> value.close() }
+            }
+        })
+    }
+
+    private fun parseContent(body: String): String {
+        val content = runCatching {
+            Json.parseToJsonElement(body).jsonObject["choices"]?.jsonArray?.firstOrNull()
+                ?.jsonObject?.get("message")?.jsonObject?.get("content")?.jsonPrimitive?.contentOrNull?.trim()
+        }.getOrNull()
+        if (content.isNullOrBlank()) throw GenerationException("invalid_response")
+        return content
     }
 }

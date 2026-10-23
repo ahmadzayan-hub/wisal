@@ -1,30 +1,15 @@
-# وصال (Wisal)
+# Wisal · وصال
 
-> وصال تطبيق أندرويد عربي مجاني يساعد المستخدم على كتابة رسائل دافئة لأفراد عائلته
-> وأحبابه، بنبرة تناسب كل علاقة (شريك، ابن، بنت، أم، أب، أخ، أخت، ومجموعات). يعمل
-> على الجهاز بالكامل بدون خوادم وبدون حساب، والإرسال يدوي عبر واتساب.
+Personal communication drafting for family, friends, colleagues and customers.
+Android: Kotlin/Compose; desktop: Electron; optional Telegram and relay services remain separate.
 
-## الفكرة
-الهدف تعزيز الترابط الأسري والتواصل العاطفي الفعّال. التطبيق يقترح رسائل، والمستخدم
-يختار ويعدّل ويرسل بنفسه. لا يوجد إرسال تلقائي.
+Choose a person, intent, language and tone; edit two drafts; copy/share explicitly.
+Arabic and English are the current focused message controls and local template languages.
+Local templates remain available when hosted generation is disabled or unavailable and are clearly labeled.
+Groq is optional, account-limited and not guaranteed free or unlimited. No paid/provider failover.
+When enabled, prompt data may include names, relationships, notes, context and style examples.
 
-## المزايا الأساسية
-- أشخاص متعددون بنبرة لكل علاقة.
-- مناسبات خاصة لكل شخص، وربط بتقويم الجهاز (يشمل تقويم جوجل).
-- تعلّم أسلوب المستخدم لكل شخص على حدة.
-- إيموجي معبّر عن معنى الرسالة.
-- خصوصية كاملة: البيانات على الجهاز فقط.
-
-## التقنية
-- تطبيق أندرويد أصلي (Kotlin + Jetpack Compose).
-- نموذج لغوي مجاني عبر Groq يعمل من الجهاز مباشرة.
-- بوت تيليجرام مصاحب لنفس الخدمة.
-
-## التحميل
-النسخة الأحدث بصيغة APK:
-https://github.com/ahmadzayan-hub/desktop-tutorial/releases/tag/android-latest
-
-## أسئلة شائعة
-- هل مجاني؟ نعم، مجاني بالكامل بدون اشتراك.
-- هل يرسل بنفسه؟ لا، الإرسال يدوي بضغطة من المستخدم.
-- هل يحفظ بياناتي على خادم؟ لا، كل شيء على الجهاز فقط.
+Source: https://github.com/ahmadzayan-hub/wisal
+Android release channel: https://github.com/ahmadzayan-hub/wisal/releases/tag/android-latest
+Windows release channel: https://github.com/ahmadzayan-hub/wisal/releases/tag/windows-latest
+Release channels may predate current source. Verify Android signing continuity and higher versionCode; do not uninstall to bypass a signature mismatch.

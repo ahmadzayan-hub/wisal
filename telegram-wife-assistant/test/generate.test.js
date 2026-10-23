@@ -42,3 +42,12 @@ test('المناسبة بتفرض الموضوع على الاتنين', async (
   assert.deepStrictEqual(r.themesShown, ['عيد جوازنا', 'عيد جوازنا']);
   assert.match(captured, /عيد جوازنا/);
 });
+
+test('provider failure returns explicitly labeled local templates', async () => {
+  llm.complete = async () => { const e = new Error('انتهت الحصة.'); e.code = 'quota'; throw e; };
+  const result = await generateSuggestions({ slot: 'morning' });
+  assert.strictEqual(result.offline, true);
+  assert.strictEqual(result.items.length, 2);
+  assert.match(result.note, /قوالب محلية/);
+  assert.match(result.note, /انتهت الحصة/);
+});

@@ -82,11 +82,11 @@ fun GradientButton(
 
 // الوضع الفاتح (الافتراضي): Porcelain + Midnight نصوص + لمسات كورال/عنبر/تيل.
 private val LightColors = lightColorScheme(
-    primary = WisalColors.HumanCoral,
+    primary = Color(0xFFB53142), // Deeper coral for readable text/controls on light surfaces.
     onPrimary = Color.White,
     primaryContainer = Color(0xFFFFE1E0),
     onPrimaryContainer = Color(0xFF4A1213),
-    secondary = Color(0xFFB8862F), // عنبر أغمق للنصوص على الفاتح (تباين AA)
+    secondary = Color(0xFF765711), // عنبر أغمق للنصوص على الفاتح (تباين AA)
     onSecondary = Color.White,
     secondaryContainer = Color(0xFFF7E7C4),
     onSecondaryContainer = Color(0xFF3C2E08),
@@ -95,6 +95,8 @@ private val LightColors = lightColorScheme(
     background = WisalColors.Porcelain,
     onBackground = WisalColors.MidnightAtlantic,
     surface = WisalColors.PorcelainCard,
+    surfaceContainerLow = WisalColors.PorcelainCard,
+    surfaceContainer = WisalColors.PorcelainRaised,
     onSurface = WisalColors.MidnightAtlantic,
     surfaceVariant = WisalColors.PorcelainRaised,
     onSurfaceVariant = Color(0xFF4E5B68),

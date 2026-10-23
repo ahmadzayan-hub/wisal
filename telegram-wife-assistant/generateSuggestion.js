@@ -119,13 +119,18 @@ async function generateSuggestions({ slot, occasion } = {}) {
     '٢- <نص الاقتراح التاني>',
   ].join('\n');
 
-  const raw = await llm.complete([
-    { role: 'system', content: buildSystemPrompt() },
-    { role: 'user', content: userPrompt },
-  ]);
-
-  const items = parseTwo(raw, themes);
-  return { items, slot, themesShown: themes };
+  try {
+    const raw = await llm.complete([
+      { role: 'system', content: buildSystemPrompt() },
+      { role: 'user', content: userPrompt },
+    ]);
+    return { items: parseTwo(raw, themes), slot, themesShown: themes, offline: false };
+  } catch (error) {
+    const items = ['أتمنى أن تكون بخير. أحببت أن أطمئن عليك.', 'مرحباً، أتمنى لك يوماً طيباً. يسعدني أن نتواصل عندما يناسبك.']
+      .map(text => ({ text, theme: 'تواصل' }));
+    return { items, slot, themesShown: items.map(x => x.theme), offline: true,
+      note: (error.code ? error.message : 'تعذّر التوليد.') + ' هذه قوالب محلية، وليست نتيجة ذكاء اصطناعي.' };
+  }
 }
 
 // ---- تحليل رد الموديل لاقتراحين ----

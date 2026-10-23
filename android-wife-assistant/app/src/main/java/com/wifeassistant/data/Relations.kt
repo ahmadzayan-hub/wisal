@@ -12,6 +12,10 @@ object Relations {
     )
 
     val ALL = listOf(
+        Relation("other", "شخص آخر", "لهذا الشخص", "واضحة ومحترمة، بدون افتراض درجة قرب أو وعود", "👤"),
+        Relation("friend", "صديق / صديقة", "لصديق", "ودّية وطبيعية، بلا رومانسية مفترضة", "🤝"),
+        Relation("colleague", "زميل / زميلة", "لزميل", "مهنية وودّية، واضحة ومختصرة وتحترم الوقت", "💼"),
+        Relation("client", "عميل / عميلة", "لعميل", "مهنية ومحترمة، بلا وعود أو التزامات غير مؤكدة", "🗂️"),
         Relation("partner_wife", "زوجتي", "لمراتي", "حب رومانسي دافئ وصادق، حنية وشوق من غير مبالغة", "💗"),
         Relation("partner_husband", "زوجي", "لجوزي", "حب رومانسي دافئ وصادق، حنية وشوق من غير مبالغة", "💗"),
         Relation("son", "ابني", "لابني", "حنان وفخر وتشجيع وأمان، كلام بيقرّب", "👦"),
@@ -27,6 +31,23 @@ object Relations {
     )
 
     fun byId(id: String): Relation = ALL.firstOrNull { it.id == id } ?: ALL[0]
-    fun labelOf(id: String): String = byId(id).label
+    fun labelOf(id: String): String = t(byId(id).label, when (id) {
+        "other" -> "Other person"
+        "friend" -> "Friend"
+        "colleague" -> "Colleague"
+        "client" -> "Customer"
+        "partner_wife" -> "Wife"
+        "partner_husband" -> "Husband"
+        "son" -> "Son"
+        "daughter" -> "Daughter"
+        "mother" -> "Mother"
+        "father" -> "Father"
+        "brother" -> "Brother"
+        "sister" -> "Sister"
+        "group_family" -> "Family group"
+        "group_friends" -> "Friends group"
+        "group" -> "Group"
+        else -> "Other person"
+    })
     fun emojiOf(id: String): String = byId(id).emoji
 }
