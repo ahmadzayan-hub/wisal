@@ -16,6 +16,7 @@ The capability interface has only text completion, not permissions, contacts, br
 
 - At most four logical model calls, one repair, and a 90-second total workflow budget.
 - Existing per-call ceilings still apply: 16,000 input characters, 1,024 completion tokens, at most two HTTP attempts and bounded Retry-After. Thus four logical calls can include up to eight HTTP attempts, still bounded by the total workflow timer.
+- This reviewed flow currently accepts Arabic and English only. Other languages require explicit implementation and evaluation; no all-language quality claim is made.
 - Typed source is limited to 4,000 characters; each draft to 600 characters.
 - Cancellation interrupts the active role, including HTTP/backoff through the adapter. Leaving the composer, changing person/preferences/intent or editing context stops in-flight work.
 - Hosted generation and this additional review mode are separately opt-in. Additional calls consume the user's account quota. No free/unlimited claim.

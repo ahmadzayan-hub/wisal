@@ -269,7 +269,7 @@ fun HomeScreen(
                                     Checkbox(checked = reviewedMode, onCheckedChange = { vm.cancelGeneration(); reviewedMode = it })
                                     Text(t("أضف مراجعة آلية للمعنى", "Add an automated meaning review"), style = MaterialTheme.typography.bodyMedium)
                                 }
-                                if (reviewedMode) Text(t("حتى ٤ استدعاءات للنموذج وحصة إضافية. نرسل الاسم والعلاقة والسياق المكتوب واللغة والنبرة فقط، لا الملاحظات أو سجل الرسائل. قد تخطئ المراجعة.", "Up to 4 model calls and additional quota. Only the name, relationship, typed context, language and tone are sent, not saved notes or history. Review can be wrong."), style = MaterialTheme.typography.bodySmall)
+                                if (reviewedMode) Text(t("للعربية والإنجليزية فقط. حتى ٤ استدعاءات للنموذج وحصة إضافية. نرسل الاسم والعلاقة والسياق المكتوب واللغة والنبرة فقط، لا الملاحظات أو سجل الرسائل. قد تخطئ المراجعة.", "Arabic and English only. Up to 4 model calls and additional quota. Only the name, relationship, typed context, language and tone are sent, not saved notes or history. Review can be wrong."), style = MaterialTheme.typography.bodySmall)
                             }
                             Button(onClick = { editBrief = false; vm.generate("manual", intentId = selectedIntent, context = contextText.trim(), reviewed = reviewedMode) },
                                 enabled = !state.loading && current != null, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp), shape = RoundedCornerShape(16.dp)) {
@@ -283,7 +283,7 @@ fun HomeScreen(
                         Text(t("أو ابدأ بفكرة بسيطة", "Or start with a simple intention"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             listOf("check_in", "thanks", "follow_up").forEach { id ->
-                                TextButton(onClick = { selectedIntent = id; showIntent = id != "check_in" }, modifier = Modifier.heightIn(min = 48.dp)) {
+                                TextButton(onClick = { vm.cancelGeneration(); selectedIntent = id; showIntent = id != "check_in" }, modifier = Modifier.heightIn(min = 48.dp)) {
                                     Text(Intents.byId(id)?.let { Intents.labelOf(it) } ?: id)
                                 }
                             }

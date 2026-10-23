@@ -1,6 +1,8 @@
 package com.wifeassistant
 
 import android.content.Context
+import android.app.Application
+import com.wifeassistant.ui.HomeViewModel
 import androidx.test.core.app.ApplicationProvider
 import com.wifeassistant.data.*
 import kotlinx.coroutines.runBlocking
@@ -40,4 +42,22 @@ class ReviewedGenerationRoboTest {
         val result = engine.generateReviewed("manual", intentId = "request", context = source)
         assertTrue(result.items.isEmpty()); assertFalse(result.reviewNote.orEmpty().contains(source))
     }
+    @Test fun manualEditsInvalidateStoredAutomatedReview() {
+        setup(false)
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val store = Store(app)
+        store.setPending(PendingRound("manual", emptyList(),
+            listOf(Suggestion("Original draft", "neutral"), Suggestion("Alternative draft", "neutral")),
+            recipientId = "fictional-review", reviewNote = "Automated review completed"))
+        I18n.lang = "en"
+        try {
+            val vm = HomeViewModel(app)
+            vm.updateDraft(0, "My edited draft")
+            assertEquals("My edited draft", vm.state.value.items[0].text)
+            assertTrue(vm.state.value.reviewNote.orEmpty().contains("not covered"))
+            assertEquals(vm.state.value.reviewNote, store.getPending()?.reviewNote)
+            assertNull(store.daysSinceContact("fictional-review"))
+        } finally { I18n.lang = "ar" }
+    }
+
 }
