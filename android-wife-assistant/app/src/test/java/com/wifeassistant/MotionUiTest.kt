@@ -55,6 +55,7 @@ class MotionUiTest {
         I18n.lang = "en"
         rule.setContent { view = LocalView.current; inputMode = LocalInputModeManager.current; WifeAssistantTheme(darkTheme = false) { Surface(Modifier.fillMaxSize()) { Column(Modifier.fillMaxWidth().padding(20.dp)) { content() } } } }
     }
+    @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
     private fun keyboardMode() = rule.runOnIdle { assertTrue(inputMode.requestInputMode(InputMode.Keyboard)) }
     private fun capture(name: String) = rule.runOnIdle {
         val directory = File("build/wisal-screenshots/motion").apply { mkdirs() }
@@ -177,9 +178,13 @@ class MotionUiTest {
         rule.runOnIdle { visible = true }
         rule.mainClock.advanceTimeByFrame()
         capture("reveal-000")
-        rule.mainClock.advanceTimeBy(80)
-        capture("reveal-080")
-        rule.mainClock.advanceTimeBy(240)
+        capture("draft-entry-00")
+        for (frame in 1..12) {
+            rule.mainClock.advanceTimeByFrame()
+            capture("draft-entry-${frame.toString().padStart(2, '0')}")
+            if (frame == 5) capture("reveal-080")
+        }
+        rule.mainClock.advanceTimeBy(128)
         capture("reveal-320")
         rule.onNodeWithText("Draft 1").assertIsDisplayed()
         rule.mainClock.advanceTimeBy(1000)
