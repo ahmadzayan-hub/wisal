@@ -93,7 +93,7 @@ fun HomeScreen(
     val streak by vm.streak.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
-    var edited by remember { mutableStateOf("") }
+    var moreTools by remember { mutableStateOf(false) }
     var selectedIntent by remember { mutableStateOf<String?>(null) }
     var contextText by remember { mutableStateOf("") }
     val snackbar = remember { SnackbarHostState() }
@@ -111,11 +111,11 @@ fun HomeScreen(
                     t(
                         "• الاقتراحات بيكتبها ذكاء اصطناعي — راجعها وعدّلها قبل ما تبعت.\n" +
                             "• لما تطلب توليد، بيتبعت نص الموقف/السياق لمزوّد الذكاء (Groq) عشان يجهّز الرسالة.\n" +
-                            "• بياناتك وتعلّم أسلوبك متخزّنين على جهازك بس، ومفتاح Groq مشفّر.\n" +
+                            "• التخزين محلي، لكن الاسم والعلاقة والملاحظات وأمثلة أسلوبك تدخل طلب Groq عند تفعيله. تجنّب المعلومات الحساسة.\n" +
                             "• مفيش أي رسالة بتتبعت تلقائيًا — الضغطة الأخيرة دايمًا بإيدك.",
                         "• Suggestions are written by AI — review and tweak them before you send.\n" +
                             "• When you ask for a suggestion, the situation/context text goes to the AI provider (Groq) to craft the message.\n" +
-                            "• Your data and style learning stay on your device only, and your Groq key is encrypted.\n" +
+                            "• Storage is local, but the name, relationship, notes and style examples are included in Groq requests when enabled. Avoid sensitive information.\n" +
                             "• Nothing is ever sent automatically — the final tap is always yours.",
                     ),
                     style = MaterialTheme.typography.bodyMedium,
@@ -163,7 +163,7 @@ fun HomeScreen(
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
-                title = { Text(t("وصال 💗", "Wesal 💗"), fontWeight = FontWeight.Bold) },
+                title = { Text(t("وصال", "Wisal"), fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                 ),
@@ -179,8 +179,6 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             HeaderBanner(current)
-            StreakCard(streak)
-            next?.let { na -> NextActionCard(na) { vm.writeToNext(na) } }
             RecipientSwitcher(
                 people = people,
                 onSelect = { vm.selectRecipient(it) },
@@ -195,6 +193,20 @@ fun HomeScreen(
             IntentPicker(selected = selectedIntent) { id ->
                 selectedIntent = if (selectedIntent == id) null else id
             }
+            current?.let { person ->
+                Text(t("٣ · اللغة والنبرة", "3 · Language & tone"), style = MaterialTheme.typography.labelLarge)
+                Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("ar" to "العربية", "en" to "English").forEach { (id, label) ->
+                        FilterChip(selected = com.wifeassistant.data.Lang.resolve(person.language, person.name) == id,
+                            onClick = { vm.updatePreferences(language = id) }, label = { Text(label) })
+                    }
+                }
+                Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("" to t("تفضيل الشخص", "Person's preference"), "واضحة ومحترمة، بدون افتراض قرب" to t("واضحة", "Clear"), "ودّية ودافئة بدون مبالغة" to t("ودّية", "Warm"), "مهنية ومختصرة" to t("مهنية", "Professional")).forEach { (id, label) ->
+                        FilterChip(selected = person.tone == id, onClick = { vm.updatePreferences(tone = id) }, label = { Text(label) })
+                    }
+                }
+            }
             // سياق سريع للرسالة دي بس (اللي حصل/المناسبة).
             OutlinedTextField(
                 value = contextText,
@@ -204,57 +216,13 @@ fun HomeScreen(
                 minLines = 1,
             )
 
-            // أزرار التوليد
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                GradientButton(
-                    onClick = { vm.generate("manual", intentId = selectedIntent, context = contextText.trim()) },
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(if (selectedIntent != null) t("✨ اكتب الرسالة", "✨ Write the message") else t("✨ اقتراح فوري", "✨ Instant suggestion"))
-                }
-                FilledTonalButton(onClick = { vm.requestOccasion() }, modifier = Modifier.weight(1f)) {
-                    Text(t("💌 مناسبة", "💌 Occasion"))
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = { vm.generate("morning", intentId = selectedIntent, context = contextText.trim()) },
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(t("🌅 صباحي", "🌅 Morning"))
-                }
-                OutlinedButton(
-                    onClick = { vm.generate("evening", intentId = selectedIntent, context = contextText.trim()) },
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text(t("🌙 مسائي", "🌙 Evening"))
-                }
-            }
-            OutlinedButton(onClick = { openCalendar() }, modifier = Modifier.fillMaxWidth()) {
-                Text(t("📅 مناسبة من أجندتي", "📅 From my calendar"))
-            }
-            OutlinedButton(onClick = onOpenReply, modifier = Modifier.fillMaxWidth()) {
-                Text(t("💬 رد ذكي على رسالة وصلتك", "💬 Smart reply to a message"))
-            }
-            OutlinedButton(onClick = onOpenPolish, modifier = Modifier.fillMaxWidth()) {
-                Text(t("✨ حسّن رسالتي قبل ما أبعتها", "✨ Polish my draft before sending"))
-            }
-            OutlinedButton(onClick = onOpenBroadcast, modifier = Modifier.fillMaxWidth()) {
-                Text(t("📣 رسالة جماعية لجهات الاتصال", "📣 Group message to contacts"))
-            }
-
-            // المناسبات الجاية عبر كل الأشخاص - تخطيط وتنبيه مبكّر + أفكار عملية.
-            UpcomingOccasions(
-                people = people,
-                onWrite = { rid, label ->
-                    vm.selectRecipient(rid)
-                    vm.generate("occasion", Occasion("person", label))
-                },
-                onIdeas = { rid, label ->
-                    vm.selectRecipient(rid)
-                    vm.loadGiftIdeas(label)
-                },
-            )
+            GradientButton(
+                onClick = { vm.generate("manual", intentId = selectedIntent, context = contextText.trim()) },
+                enabled = !state.loading && current != null,
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(t("اقترح صياغتين", "Suggest two drafts")) }
+            Text(t("راجع وعدّل، ثم انسخ أو شارك بنفسك. لا إرسال تلقائي.", "Review and edit, then copy or share yourself. No automatic sending."),
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             if (showCal) {
                 AlertDialog(
@@ -288,7 +256,8 @@ fun HomeScreen(
                 ) {
                     CircularProgressIndicator(modifier = Modifier.height(28.dp))
                     Spacer(Modifier.height(0.dp))
-                    Text(t("  بكتب لك اقتراحين...", "  Writing two suggestions for you..."), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(t("  جاري تجهيز الصياغتين...", "  Preparing two drafts..."), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    TextButton(onClick = { vm.cancelGeneration() }) { Text(t("إلغاء", "Cancel")) }
                 }
             }
 
@@ -296,11 +265,19 @@ fun HomeScreen(
                 Text(t("💝 مناسبة: ", "💝 Occasion: ") + it, style = MaterialTheme.typography.titleMedium)
             }
 
+            if (state.items.isNotEmpty()) {
+                Text(if (state.offline) t("قوالب محلية · ليست نتيجة AI", "Local templates · not AI output") else t("صياغة Groq · راجعها قبل المشاركة", "Groq drafts · review before sharing"),
+                    style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                if (state.offline) state.info?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+            }
             val isGroup = current?.relation?.startsWith("group") == true
             state.items.forEachIndexed { idx, item ->
                 SuggestionCard(
                     index = idx,
                     item = item,
+                    enabled = !state.loading,
+                    onEdit = { vm.updateDraft(idx, it) },
+                    onConfirmContact = { vm.confirmContact(idx) },
                     sendLabel = sendLabelFor(current),
                     onChoose = { vm.choose(idx) },
                     onCopy = { clipboard.setText(AnnotatedString(item.text)) },
@@ -329,19 +306,24 @@ fun HomeScreen(
                         Text(t("🙈 تجاهل", "🙈 Skip"))
                     }
                 }
-                OutlinedTextField(
-                    value = edited,
-                    onValueChange = { edited = it },
-                    label = { Text(t("عدّل بنفسك واحفظه لأسلوبك", "Edit it yourself and save it to your style")) },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 2,
-                )
-                GradientButton(
-                    onClick = { vm.edit(edited); edited = "" },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Text(t("💾 احفظ نسختي المعدّلة", "💾 Save my edited version")) }
             } else if (!state.loading) {
                 EmptyState()
+            }
+
+            TextButton(onClick = { moreTools = !moreTools }, modifier = Modifier.fillMaxWidth()) {
+                Text(if (moreTools) t("إخفاء الأدوات الإضافية", "Hide more tools") else t("أدوات إضافية وتذكيرات", "More tools & reminders"))
+            }
+            if (moreTools) {
+                StreakCard(streak)
+                next?.let { na -> NextActionCard(na) { vm.writeToNext(na) } }
+                OutlinedButton(onClick = onOpenReply, modifier = Modifier.fillMaxWidth()) { Text(t("رد على رسالة", "Reply to a message")) }
+                OutlinedButton(onClick = onOpenPolish, modifier = Modifier.fillMaxWidth()) { Text(t("حسّن مسودتي", "Polish my draft")) }
+                OutlinedButton(onClick = { openCalendar() }, modifier = Modifier.fillMaxWidth()) { Text(t("مناسبة من التقويم", "Occasion from calendar")) }
+                OutlinedButton(onClick = onOpenBroadcast, modifier = Modifier.fillMaxWidth()) { Text(t("أدوات المجموعات", "Group tools")) }
+                OutlinedButton(onClick = { vm.requestOccasion() }, modifier = Modifier.fillMaxWidth()) { Text(t("اكتب لمناسبة", "Write for an occasion")) }
+                UpcomingOccasions(people = people,
+                    onWrite = { rid, label -> vm.selectRecipient(rid); vm.generate("occasion", Occasion("person", label)) },
+                    onIdeas = { rid, label -> vm.selectRecipient(rid); vm.loadGiftIdeas(label) })
             }
 
             Spacer(Modifier.height(24.dp))
@@ -454,7 +436,7 @@ private fun RecipientSwitcher(
         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    t("✍️ بتكتب لـ", "✍️ Writing to"),
+                    t("١ · بتكتب لمين؟", "1 · Who is it for?"),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
@@ -488,7 +470,7 @@ private fun RecipientSwitcher(
                 }
                 people.current?.let { r ->
                     Text(
-                        t("النبرة: ", "Tone: ") + Relations.byId(r.relation).tone,
+                        t("التفضيلات محفوظة لهذا الشخص؛ عدّلها وقتما تحب.", "Preferences are saved for this person; change them anytime."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 6.dp),
@@ -504,7 +486,7 @@ private fun RecipientSwitcher(
 private fun IntentPicker(selected: String?, onToggle: (String) -> Unit) {
     Column {
         Text(
-            t("نيّة الرسالة (اختياري)", "Message intent (optional)"),
+            t("٢ · هدف الرسالة", "2 · What do you want to say?"),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 4.dp),
@@ -541,44 +523,11 @@ private fun PersonOccasionChips(current: Recipient?, onPick: (String) -> Unit) {
 
 @Composable
 private fun HeaderBanner(current: Recipient?) {
-    val who = current?.let { it.name.ifBlank { Relations.labelOf(it.relation) } }
-    val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
-    val greeting = when (hour) {
-        in 5..11 -> t("صباح الخير 🌅", "Good morning 🌅")
-        in 12..16 -> t("نهارك سعيد ☀️", "Have a lovely day ☀️")
-        in 17..21 -> t("مساء الخير 🌙", "Good evening 🌙")
-        else -> t("سهرة هنيّة ✨", "Sweet night ✨")
-    }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(12.dp, RoundedCornerShape(28.dp))
-            .clip(RoundedCornerShape(28.dp))
-            .background(
-                Brush.linearGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.secondary,
-                        MaterialTheme.colorScheme.tertiary,
-                    )
-                )
-            )
-            .padding(22.dp),
-    ) {
-        Column {
-            Text(
-                greeting,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onPrimary,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                if (who != null) t("مين تحب تطمّن عليه؟ ابعت لـ$who بكلمة حلوة 💗", "Who needs to hear from you? Send $who a kind word 💗")
-                else t("مين تحب تفاجئه بكلمة حلوة النهاردة؟ 💗", "Who will you surprise with a kind word today? 💗"),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimary,
-            )
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(t("كلام أوضح. تواصل أقرب.", "Clear words. Better connections."),
+            style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(t("للأهل والأصدقاء والزملاء والعملاء", "For family, friends, colleagues and customers"),
+            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -669,9 +618,12 @@ private fun sendLabelFor(current: Recipient?): String {
 }
 
 @Composable
-private fun SuggestionCard(
+internal fun SuggestionCard(
     index: Int,
     item: Suggestion,
+    enabled: Boolean = true,
+    onEdit: (String) -> Unit,
+    onConfirmContact: () -> Unit,
     sendLabel: String,
     onChoose: () -> Unit,
     onCopy: () -> Unit,
@@ -681,68 +633,27 @@ private fun SuggestionCard(
     onRefine: (String) -> Unit,
     onRemind: () -> Unit,
 ) {
+    var more by remember { mutableStateOf(false) }
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            // شارة الموضوع
-            Surface(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(50),
-            ) {
-                Text(
-                    "${index + 1}️⃣  ${item.theme}",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
-                )
-            }
-            Text(item.text, style = MaterialTheme.typography.bodyLarge)
-
-            // تحرير تكراري: نعدّل الاقتراح ده لحد ما يعجبك.
-            Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                AssistChip(onClick = { onRefine("longer") }, label = { Text(t("➕ أطول", "➕ Longer")) })
-                AssistChip(onClick = { onRefine("shorter") }, label = { Text(t("➖ أقصر", "➖ Shorter")) })
-                AssistChip(onClick = { onRefine("romantic") }, label = { Text(t("💘 أرومانسي", "💘 More romantic")) })
-                AssistChip(onClick = { onRefine("simpler") }, label = { Text(t("🌿 أبسط", "🌿 Simpler")) })
-                AssistChip(onClick = onRemind, label = { Text(t("⏰ ذكّرني بكرة", "⏰ Remind me tomorrow")) })
-            }
-
-            // نبرة سريعة: نفس الرسالة بمزاج مختلف بضغطة واحدة.
-            Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                AssistChip(onClick = { onRefine("playful") }, label = { Text(t("😄 مرح", "😄 Playful")) })
-                AssistChip(onClick = { onRefine("serious") }, label = { Text(t("🎯 جاد", "🎯 Serious")) })
-                AssistChip(onClick = { onRefine("apology") }, label = { Text(t("🕊️ اعتذار", "🕊️ Apology")) })
-                AssistChip(onClick = { onRefine("grateful") }, label = { Text(t("🙏 امتنان", "🙏 Grateful")) })
-                AssistChip(onClick = { onRefine("reassure") }, label = { Text(t("🫂 طمأنة", "🫂 Reassure")) })
-            }
-
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(t("صياغة ${index + 1}", "Draft ${index + 1}"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            OutlinedTextField(value = item.text, onValueChange = onEdit, enabled = enabled,
+                label = { Text(t("راجع وعدّل", "Review and edit")) }, modifier = Modifier.fillMaxWidth(), minLines = 3)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                GradientButton(
-                    onClick = onWhatsApp,
-                    modifier = Modifier.weight(1f),
-                ) { Text(sendLabel) }
-                FilledTonalButton(onClick = onGroup, modifier = Modifier.weight(1f)) {
-                    Text(t("📣 منتقي", "📣 Picker"))
-                }
+                FilledTonalButton(onClick = onCopy, enabled = enabled && item.text.isNotBlank(), modifier = Modifier.weight(1f)) { Text(t("نسخ", "Copy")) }
+                OutlinedButton(onClick = onShare, enabled = enabled && item.text.isNotBlank(), modifier = Modifier.weight(1f)) { Text(t("مشاركة", "Share")) }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = onCopy, modifier = Modifier.weight(1f)) {
-                    Text(t("📋 نسخ", "📋 Copy"))
+            TextButton(onClick = { more = !more }) { Text(if (more) t("أقل", "Less") else t("تحسين وحفظ وخيارات أخرى", "Refine, save & more")) }
+            if (more) {
+                Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("shorter" to t("أقصر", "Shorter"), "simpler" to t("أوضح", "Clearer"), "formal" to t("أكثر رسمية", "More formal")).forEach { (id, label) ->
+                        AssistChip(onClick = { onRefine(id) }, enabled = enabled, label = { Text(label) })
+                    }
                 }
-                OutlinedButton(onClick = onShare, modifier = Modifier.weight(1f)) {
-                    Text(t("🔗 مشاركة", "🔗 Share"))
-                }
-                FilledTonalButton(onClick = onChoose, modifier = Modifier.weight(1f)) {
-                    Text(t("👍 اختار", "👍 Choose"))
-                }
+                OutlinedButton(onClick = onWhatsApp, enabled = enabled && item.text.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text(t("افتح في واتساب للمراجعة", "Review in WhatsApp")) }
+                TextButton(onClick = onChoose, enabled = enabled && item.text.isNotBlank()) { Text(t("احفظ كأسلوب أفضّله", "Save as my preferred style")) }
+                TextButton(onClick = onRemind, enabled = enabled && item.text.isNotBlank()) { Text(t("ذكّرني غداً", "Remind me tomorrow")) }
+                TextButton(onClick = onConfirmContact, enabled = enabled && item.text.isNotBlank()) { Text(t("أؤكد أنني تواصلت بالفعل", "I confirm I reached out")) }
             }
         }
     }
@@ -757,11 +668,11 @@ private fun EmptyState() {
     ) {
         Text("💌", style = MaterialTheme.typography.displayMedium)
         Text(
-            t("دوس \"اقتراح فوري\" وابدأ", "Tap \"Instant suggestion\" to begin"),
+            t("اختر الشخص والهدف لتبدأ", "Choose a person and intent to begin"),
             style = MaterialTheme.typography.titleMedium,
         )
         Text(
-            t("كل ما تختار وتعدّل، الاقتراحات بتقرب أكتر من أسلوبك", "Every pick and edit brings suggestions closer to your style"),
+            t("ابدأ بقالب محلي، أو فعّل Groq من الإعدادات.", "Start with local templates, or enable Groq in Settings."),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

@@ -37,8 +37,8 @@ android {
     }
 
     // توقيع نسخة الـ release. بيقرأ من متغيّرات البيئة (بتتحط في الـ CI من
-    // GitHub Secrets). لو مفيش keystore بنرجع لتوقيع الـ debug عشان الـ APK
-    // يفضل بيتثبّت والـ CI يفضل أخضر من غير أسرار.
+    // GitHub Secrets). A missing release key leaves release output unsigned;
+    // never create a replacement identity or present a debug key as an upgrade.
     signingConfigs {
         create("release") {
             val ksPath = System.getenv("KEYSTORE_FILE")
@@ -78,7 +78,7 @@ android {
             signingConfig = if (!ksPath.isNullOrBlank() && file(ksPath).exists()) {
                 signingConfigs.getByName("release")
             } else {
-                signingConfigs.getByName("debug")
+                null
             }
         }
     }

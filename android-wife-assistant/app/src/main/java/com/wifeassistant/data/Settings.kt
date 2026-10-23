@@ -25,6 +25,15 @@ class Settings(context: Context) {
         get() = prefs.getString("model", AppConstants.DEFAULT_MODEL) ?: AppConstants.DEFAULT_MODEL
         set(v) = prefs.edit().putString("model", v).apply()
 
+    // New installs and upgrades remain local until the user explicitly verifies free-plan access.
+    var groqEnabled: Boolean
+        get() = prefs.getBoolean("groqEnabled", false)
+        set(v) = prefs.edit().putBoolean("groqEnabled", v).apply()
+
+    var backgroundSuggestions: Boolean
+        get() = prefs.getBoolean("backgroundSuggestions", false)
+        set(v) = prefs.edit().putBoolean("backgroundSuggestions", v).apply()
+
     // ---- التخصيص والإنسانية ----
     var myName: String // اسم المُرسِل (انت)
         get() = prefs.getString("myName", "").orEmpty()
@@ -197,6 +206,7 @@ class Settings(context: Context) {
     // أول تشغيل: لو مفيش أشخاص، اعمل واحد افتراضي (من بيانات الزوجة القديمة لو موجودة).
     fun ensureSeed() {
         if (recipients.isNotEmpty()) return
+        if (wifeName.isBlank() && wifeNumber.isBlank() && relationshipNotes.isBlank()) return
         val seed = Recipient(
             id = "seed-1",
             name = wifeName,

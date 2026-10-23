@@ -30,20 +30,26 @@ object SecureStore {
         context.getSharedPreferences(LEGACY_PREFS, Context.MODE_PRIVATE)
 
     fun getGroqKey(context: Context): String {
-        secure(context)?.getString(KEY, null)?.let { return it }
-        // احتياطي: النسخة القديمة غير المشفّرة.
-        return legacy(context).getString(KEY, "").orEmpty()
+        val enc = secure(context) ?: return ""
+        enc.getString(KEY, null)?.let { return it }
+        val old = legacy(context).getString(KEY, "").orEmpty()
+        if (old.isNotBlank() && enc.edit().putString(KEY, old).commit()) {
+            legacy(context).edit().remove(KEY).apply()
+            return old
+        }
+        return ""
     }
 
     fun setGroqKey(context: Context, value: String) {
-        val enc = secure(context)
-        if (enc != null) {
-            enc.edit().putString(KEY, value).apply()
-            // نمسح النسخة القديمة غير المشفّرة لو موجودة (ترحيل آمن).
+        // Empty is safe to remove even when device encryption is temporarily unavailable.
+        if (value.isBlank()) {
+            secure(context)?.edit()?.remove(KEY)?.apply()
             legacy(context).edit().remove(KEY).apply()
-        } else {
-            legacy(context).edit().putString(KEY, value).apply()
+            return
         }
+        val enc = secure(context) ?: error("Secure key storage is unavailable. No key was saved.")
+        check(enc.edit().putString(KEY, value).commit()) { "Could not securely save the key." }
+        legacy(context).edit().remove(KEY).apply()
     }
 
     // ---- تخزين أسرار عامة (هوية الجهاز وغيرها) ----

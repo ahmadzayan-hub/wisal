@@ -18,8 +18,13 @@ object Scheduler {
 
     fun scheduleDaily(context: Context) {
         val settings = Settings(context)
-        scheduleSlot(context, "morning", settings.morningTime)
-        scheduleSlot(context, "evening", settings.eveningTime)
+        if (settings.backgroundSuggestions && settings.groqEnabled) {
+            scheduleSlot(context, "morning", settings.morningTime)
+            scheduleSlot(context, "evening", settings.eveningTime)
+        } else {
+            WorkManager.getInstance(context).cancelUniqueWork("suggestion_morning")
+            WorkManager.getInstance(context).cancelUniqueWork("suggestion_evening")
+        }
         scheduleReminders(context)
     }
 

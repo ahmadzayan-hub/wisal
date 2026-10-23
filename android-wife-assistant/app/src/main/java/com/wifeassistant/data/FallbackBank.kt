@@ -11,7 +11,7 @@ object FallbackBank {
         relation == "mother" || relation == "father" -> "parent"
         relation == "brother" || relation == "sister" -> "sibling"
         relation.startsWith("group") -> "group"
-        else -> "partner"
+        else -> "general"
     }
 
     // رسائل حسب النيّة (مستقلة عن العلاقة تقريباً) - أولوية لو المستخدم اختار نيّة.
@@ -52,6 +52,7 @@ object FallbackBank {
 
     // رسائل عامة حسب العلاقة - لو مفيش نيّة مختارة.
     private val byCategory: Map<String, List<String>> = mapOf(
+        "general" to listOf("أتمنى أن تكون بخير. أحببت أن أطمئن عليك.", "مرحباً، أتمنى لك يوماً طيباً. يسعدني أن نتواصل عندما يناسبك."),
         "partner" to listOf(
             "وجودك في حياتي أحلى حاجة حصلتلي، بحبك وبشكر ربنا عليك كل يوم ❤️",
             "فاكرك دايماً وقلبي معاك، ربنا يخليكي ليا ويسعد قلبك 💗",
@@ -76,16 +77,32 @@ object FallbackBank {
 
     // رسالتين مناسبتين للشخص (وللنية لو موجودة).
     fun two(recipient: Recipient?, intent: Intents.Intent?): List<Suggestion> {
-        val theme = intent?.label ?: "كلمة من القلب"
-        val texts = intent?.let { byIntent[it.id] }
-            ?: byCategory[category(recipient?.relation ?: "partner_wife")]
-            ?: byCategory.getValue("partner")
-        return texts.take(2).map { Suggestion(personalize(it, recipient), theme) }
+        val english = Lang.resolve(recipient?.language, recipient?.name) == Lang.EN
+        val professional = recipient?.relation in setOf("colleague", "client", "other", "friend") || recipient == null
+        val ar = when (intent?.id) {
+            "thanks" -> listOf("شكراً لك على مساعدتك، أقدّر وقتك وجهدك.", "أحببت أن أشكرك. مساعدتك محل تقدير.")
+            "apology" -> listOf("أعتذر عمّا حدث. أود أن أفهم كيف يمكنني تصحيح الموقف.", "آسف على الإزعاج. أقدّر تفهّمك وأرحب بسماع رأيك.")
+            "follow_up" -> listOf("أتابع معك بخصوص الموضوع الذي تحدثنا عنه. هل لديك أي مستجدات؟", "مرحباً، متى يناسبك أن نتابع هذا الموضوع؟")
+            "request" -> listOf("هل يمكنك مساعدتي في هذا الموضوع عندما يناسبك؟", "أود أن أطلب مساعدتك. أخبرني إن كان الوقت مناسباً.")
+            else -> byCategory.getValue("general")
+        }
+        val en = when (intent?.id) {
+            "thanks" -> listOf("Thank you for your help. I appreciate your time and effort.", "I wanted to say thank you. Your help means a lot.")
+            "apology" -> listOf("I'm sorry about what happened. I'd like to understand how I can put it right.", "I'm sorry for the inconvenience. I appreciate your understanding.")
+            "follow_up" -> listOf("I'm following up on what we discussed. Do you have any updates?", "Hello, when would be a good time to follow up on this?")
+            "request" -> listOf("Could you help me with this when you have a moment?", "I'd appreciate your help. Please let me know if this is a good time.")
+            "congrats" -> listOf("Congratulations! I'm happy for you.", "Wonderful news. Wishing you all the best!")
+            else -> listOf("I hope you're doing well. I wanted to check in.", "Hello, I hope you're having a good day. It would be lovely to catch up when it suits you.")
+        }
+        val theme = intent?.label ?: if (english) "Check in" else "تواصل"
+        val texts = if (english) en else if (professional) ar else intent?.let { byIntent[it.id] }
+            ?: byCategory[category(recipient?.relation.orEmpty())] ?: ar
+        return texts.take(2).map { Suggestion(personalize(it, recipient, english), theme) }
     }
 
     // لمسة بسيطة: نضيف اسم الشخص لو موجود، بشكل طبيعي في الأول.
-    private fun personalize(text: String, recipient: Recipient?): String {
+    private fun personalize(text: String, recipient: Recipient?, english: Boolean): String {
         val name = recipient?.name?.trim().orEmpty()
-        return if (name.isNotBlank()) "يا $name، $text" else text
+        return if (name.isNotBlank()) if (english) "$name, $text" else "$name، $text" else text
     }
 }

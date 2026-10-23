@@ -9,13 +9,17 @@ object AppConstants {
     const val AVOID_RECENT_THEME_DAYS = 3L
     const val TIMEZONE = "Asia/Dubai"
     const val TONE = "دافئة، صادقة، بسيطة، من غير مبالغة ولا كلام مصنوع"
-    const val DEFAULT_MODEL = "llama-3.3-70b-versatile"
+    const val DEFAULT_MODEL = "openai/gpt-oss-20b"
 
-    // موديلات Groq المجانية (id -> اسم للعرض). الأولانية الأفضل للعربي.
+    // Official catalog checked 2026-10-23. Free-plan access depends on the user's organization.
     val MODELS = listOf(
-        "llama-3.3-70b-versatile" to "لاما 3.3 (70B) - الأفضل للعربي",
-        "llama-3.1-8b-instant" to "لاما 3.1 (8B) - أسرع",
+        "openai/gpt-oss-20b" to "GPT OSS 20B",
+        "openai/gpt-oss-120b" to "GPT OSS 120B",
     )
+    const val MODEL_CATALOG_REVIEWED = "2026-10-23"
+    const val MODEL_CATALOG_SOURCE = "https://console.groq.com/docs/models"
+    const val MODEL_LIMITS_SOURCE = "https://console.groq.com/docs/rate-limits"
+    val RETIRED_MODELS = setOf("llama-3.3-70b-versatile", "llama-3.1-8b-instant")
 
     // طول الرسالة (id -> اسم).
     val LENGTHS = listOf(

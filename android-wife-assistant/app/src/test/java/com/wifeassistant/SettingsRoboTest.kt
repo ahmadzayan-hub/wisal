@@ -78,4 +78,21 @@ class SettingsRoboTest {
         assertTrue(back.contains("r1|عيد ميلاد"))
         assertTrue(back.contains("رمضان"))
     }
+    @Test fun upgradePreservesRetiredModelUntilExplicitChoice() {
+        val s = Settings(ctx())
+        s.model = "llama-3.3-70b-versatile"
+        assertEquals("llama-3.3-70b-versatile", s.model)
+        assertEquals(false, s.groqEnabled)
+        assertEquals(false, s.backgroundSuggestions)
+    }
+
+    @Test fun freshInstallDoesNotInventAPartnerAndLegacyDataMigrates() {
+        val s = Settings(ctx())
+        s.ensureSeed()
+        assertTrue(s.recipients.isEmpty())
+        s.wifeName = "Fictional person"
+        s.ensureSeed()
+        assertEquals("Fictional person", s.recipients.single().name)
+        assertEquals("partner_wife", s.recipients.single().relation)
+    }
 }

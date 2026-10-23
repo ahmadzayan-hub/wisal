@@ -29,6 +29,7 @@ class PersonaAnalyzer(private val groq: GroqClient) {
     ): PersonaResult {
         val sys = "انت بتحلّل معلومات عن شخص عشان تساعد حد يكتبله رسائل مخصّصة. " +
             "اشتغل بس على المعلومات المكتوبة تحت وما تخترعش أي حاجة. " +
+            "لا تستنتج الشخصية أو الصحة أو الدين أو السياسة أو أي صفات حساسة. استخرج فقط تفضيلات تواصل صريحة. " +
             "لو معلومة مش موجودة سيبها فاضية. رجّع JSON بس من غير أي كلام قبله ولا بعده."
         val user = buildString {
             appendLine("العلاقة: $relationLabel")
@@ -41,7 +42,7 @@ class PersonaAnalyzer(private val groq: GroqClient) {
             appendLine("{\"nickname\":\"\",\"interests\":\"\",\"toneHint\":\"\",\"notes\":\"\",\"occasions\":[{\"label\":\"\",\"date\":\"MM-DD\"}]}")
             appendLine("- nickname: دلع مناسب لو ظهر، غير كده فاضي.")
             appendLine("- interests: اهتماماته واللي بيحبه في جملة أو اتنين.")
-            appendLine("- toneHint: نبرة تناسبه في كلمة أو اتنين.")
+            appendLine("- toneHint: نبرة طلبها هذا الشخص صراحة فقط، وإلا فاضي.")
             appendLine("- notes: ملخّص يخصّص بيه الرسائل (حاجات عنه).")
             appendLine("- occasions: مناسبات بتاريخ MM-DD بس لو مذكورة صراحة، غير كده مصفوفة فاضية.")
         }

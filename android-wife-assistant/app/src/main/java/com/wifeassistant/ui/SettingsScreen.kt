@@ -59,6 +59,8 @@ fun SettingsScreen(onBack: () -> Unit, onThemeChanged: () -> Unit = {}, onOpenSt
     var humor by remember { mutableStateOf(settings.humor) }
     var emoji by remember { mutableStateOf(settings.emoji) }
     var messageLength by remember { mutableStateOf(settings.messageLength) }
+    var groqEnabled by remember { mutableStateOf(settings.groqEnabled) }
+    var backgroundSuggestions by remember { mutableStateOf(settings.backgroundSuggestions) }
     var model by remember { mutableStateOf(settings.model) }
     var morning by remember { mutableStateOf(settings.morningTime) }
     var evening by remember { mutableStateOf(settings.eveningTime) }
@@ -185,7 +187,18 @@ fun SettingsScreen(onBack: () -> Unit, onThemeChanged: () -> Unit = {}, onOpenSt
                 }
             }
 
-            Section(t("موديل الذكاء (Groq مجاني)", "AI model (free via Groq)"))
+            Section(t("الذكاء الاصطناعي · Groq", "AI provider · Groq"))
+            Text(t("القوالب المحلية متاحة بلا حساب أو شبكة. Groq خدمة خارجية بحصص وشروط حسب حسابك، وليست مجانية بلا حدود.", "Local templates need no account or network. Groq is an external service with account-specific limits and terms, not unlimited free access."))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(t("راجعت خطة حسابي المجانية وحدودها وأوافق على إرسال سياق الرسالة إلى Groq", "I checked my organization's free plan and limits, and allow message context to be sent to Groq"), modifier = Modifier.weight(1f))
+                Switch(checked = groqEnabled, onCheckedChange = { groqEnabled = it })
+            }
+            Text(t("الطلب يشمل الاسم والعلاقة والملاحظات وأمثلة أسلوبك. تجنّب البيانات الحساسة. لا يتم التحويل تلقائياً لمزوّد أو خطة مدفوعة.", "Requests include the name, relationship, notes and style examples. Avoid sensitive data. Wisal never switches to another provider or paid plan automatically."), style = MaterialTheme.typography.bodySmall)
+            val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+            TextButton(onClick = { uriHandler.openUri(AppConstants.MODEL_LIMITS_SOURCE) }) { Text(t("راجع حدود Groq", "Check Groq limits")) }
+            if (AppConstants.MODELS.none { it.first == model }) {
+                Text(t("النموذج المحفوظ غير متاح في القائمة الحالية: $model. اختر بديلاً بنفسك؛ لم نغيّر اختيارك تلقائياً.", "Your saved model is not in the current catalog: $model. Choose a replacement; your selection was not changed automatically."), color = MaterialTheme.colorScheme.error)
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AppConstants.MODELS.forEach { (id, label) ->
                     FilterChip(
@@ -196,6 +209,8 @@ fun SettingsScreen(onBack: () -> Unit, onThemeChanged: () -> Unit = {}, onOpenSt
                     )
                 }
             }
+
+            Text(t("تمت مراجعة قائمة النماذج: ", "Model catalog reviewed: ") + AppConstants.MODEL_CATALOG_REVIEWED, style = MaterialTheme.typography.bodySmall)
 
             Section(t("الخصوصية والتعلّم", "Privacy & learning"))
             OutlinedButton(
@@ -212,6 +227,11 @@ fun SettingsScreen(onBack: () -> Unit, onThemeChanged: () -> Unit = {}, onOpenSt
             )
 
             Section(t("مواعيد الاقتراحات", "Suggestion times"))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(t("توليد في الخلفية عبر Groq (يستهلك من الحصة)", "Background Groq suggestions (uses quota)"), modifier = Modifier.weight(1f))
+                Switch(checked = backgroundSuggestions, onCheckedChange = { backgroundSuggestions = it })
+            }
+            Text(t("مواعيد الخلفية الحالية بتوقيت دبي. التذكير ليس إرسالاً.", "Background times currently use Dubai time. A reminder never sends a message."), style = MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = morning,
@@ -300,7 +320,14 @@ fun SettingsScreen(onBack: () -> Unit, onThemeChanged: () -> Unit = {}, onOpenSt
 
             GradientButton(
                 onClick = {
-                    settings.groqKey = groqKey.trim()
+                    if (groqKey.trim() != settings.groqKey) {
+                        try { settings.groqKey = groqKey.trim() } catch (e: IllegalStateException) {
+                            Toast.makeText(context, t("تعذّر حفظ المفتاح مشفّراً. لم نحفظه كنص مكشوف.", "Encrypted key storage failed. The key was not saved as plaintext."), Toast.LENGTH_LONG).show()
+                            return@GradientButton
+                        }
+                    }
+                    settings.groqEnabled = groqEnabled
+                    settings.backgroundSuggestions = backgroundSuggestions
                     settings.myName = myName.trim()
                     settings.humor = humor
                     settings.emoji = emoji

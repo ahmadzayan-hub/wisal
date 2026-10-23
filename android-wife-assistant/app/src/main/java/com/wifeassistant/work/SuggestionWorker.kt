@@ -19,7 +19,7 @@ class SuggestionWorker(context: Context, params: WorkerParameters) :
     override suspend fun doWork(): Result {
         val slot = inputData.getString("slot") ?: "morning"
         val settings = Settings(applicationContext)
-        if (settings.groqKey.isBlank()) return Result.success() // مفيش مفتاح - نتخطى بهدوء
+        if (!settings.backgroundSuggestions || !settings.groqEnabled || settings.groqKey.isBlank()) return Result.success() // مفيش مفتاح - نتخطى بهدوء
 
         val store = Store(applicationContext)
         val occasion = if (slot == "morning") Occasions(settings).todaysOccasion() else null
@@ -30,7 +30,7 @@ class SuggestionWorker(context: Context, params: WorkerParameters) :
             val engine = SuggestionEngine(store, GroqClient(settings), settings)
             val res = engine.generate(effectiveSlot, occasion)
             // نحفظ الجولة عشان الواجهة تفتح على نفس الاقتراحين لما تدوس الإشعار.
-            store.setPending(PendingRound(res.slot, res.themesShown, res.items, occasion?.label))
+            store.setPending(PendingRound(res.slot, res.themesShown, res.items, occasion?.label, settings.currentRecipient()?.id.orEmpty(), res.offline, res.note))
 
             val title = when {
                 occasion != null -> "💌 ${occasion.label}"
@@ -42,6 +42,7 @@ class SuggestionWorker(context: Context, params: WorkerParameters) :
             store.markSlotSentToday(effectiveSlot)
             Result.success()
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             Result.retry()
         }
     }

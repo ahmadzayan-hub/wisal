@@ -53,6 +53,9 @@ data class PendingRound(
     val themesShown: List<String>,
     val items: List<Suggestion>,
     val occasionLabel: String? = null,
+    val recipientId: String = "",
+    val offline: Boolean = false,
+    val note: String? = null,
 )
 
 // تجاوز المستخدم لقاعدة أسلوب مشتقّة (شاشة «ما الذي تعلّمه وصال؟»):
