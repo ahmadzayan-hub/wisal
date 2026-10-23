@@ -50,6 +50,7 @@ jobs:
           node --check lib/core.js
           node --check renderer/renderer.js
           node test/core.test.js
+          node --test test/groq-policy.test.js
 
       - name: Build Windows installer + portable
         run: npx electron-builder --win --publish never
@@ -82,7 +83,7 @@ jobs:
             برنامج وصال لويندوز.
             • Wisal-Setup.exe — تثبيت عادي بدون صلاحيات أدمن.
             • Wisal-Portable.exe — نسخة محمولة تشتغل من غير تثبيت.
-            أول تشغيل ممكن Windows SmartScreen يحذّر لأن البرنامج مش موقّع تجارياً — اضغط More info ثم Run anyway.
+            تحقّق من مصدر الملف وتوقيعه قبل التثبيت. لا تتجاوز تحذيرات أمان النظام إذا لم تستطع التحقق من الملف.
           files: |
             wisal-desktop/dist/Wisal-Setup.exe
             wisal-desktop/dist/Wisal-Portable.exe

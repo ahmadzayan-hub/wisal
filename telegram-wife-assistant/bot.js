@@ -84,7 +84,7 @@ async function sendSuggestions(bot, { slot, occasion, force = false, target } = 
   const result = await generateSuggestions({ slot, occasion });
   pending = { slot, themesShown: result.themesShown, items: result.items, occasion };
 
-  const text = formatMessage(result.items, slot, occasion);
+  const text = (result.offline ? result.note + '\n\n' : '') + formatMessage(result.items, slot, occasion);
 
   if (config.dryRun) {
     console.log('\n===== [dryRun] مش هيتبعت، ده اللي كان هيوصلك =====');

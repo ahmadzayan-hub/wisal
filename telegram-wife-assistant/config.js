@@ -78,7 +78,7 @@ module.exports = {
   },
 
   // ---- عقل الـ AI ----
-  groqModel: 'llama-3.3-70b-versatile', // موديل مجاني قوي على Groq
+  groqModel: 'openai/gpt-oss-20b', // Catalog reviewed 2026-10-23; opt in through GROQ_ENABLED.
 
   // ---- التعلّم بالسياق ----
   // أقصى عدد أمثلة أسلوب نحتفظ بيها (آخر اختياراتك). الأقدم يخرج.

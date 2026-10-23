@@ -2,6 +2,9 @@ package com.wifeassistant
 
 import android.app.Application
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.view.View
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -29,6 +32,7 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [34], qualifiers = "w411dp-h891dp-xhdpi")
 class ComposerFlowTest {
     @get:Rule val rule = createComposeRule()
+    private lateinit var contentView: View
     @After fun resetLanguage() { I18n.lang = "ar" }
 
     private fun show(language: String): HomeViewModel {
@@ -44,6 +48,7 @@ class ComposerFlowTest {
         I18n.lang = language
         val vm = HomeViewModel(app)
         rule.setContent {
+            contentView = LocalView.current
             CompositionLocalProvider(LocalLayoutDirection provides if (language == "ar") LayoutDirection.Rtl else LayoutDirection.Ltr) {
                 WifeAssistantTheme(darkTheme = false) {
                     HomeScreen(vm, {}, {}, {}, {})
@@ -56,8 +61,11 @@ class ComposerFlowTest {
 
     private fun capture(name: String) {
         val directory = File("build/wisal-screenshots").apply { mkdirs() }
-        File(directory, "$name.png").outputStream().use {
-            rule.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it)
+        rule.runOnIdle {
+            val bitmap = Bitmap.createBitmap(contentView.width, contentView.height, Bitmap.Config.ARGB_8888)
+            contentView.draw(Canvas(bitmap))
+            File(directory, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            bitmap.recycle()
         }
     }
 

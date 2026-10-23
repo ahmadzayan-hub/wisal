@@ -4,6 +4,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const groqPolicy = require('./groq-policy');
 
 let DATA_DIR = '.';
 function init(dir) {
@@ -26,7 +27,7 @@ function writeJson(name, obj) {
 
 // ---------- الإعدادات ----------
 const DEFAULT_SETTINGS = {
-  groqKey: '', myName: '', model: 'llama-3.3-70b-versatile',
+  groqKey: '', myName: '', model: 'openai/gpt-oss-20b', groqEnabled: false,
   humor: false, emoji: true, messageLength: 'short',
   theme: 'light', selectedRecipientId: '', onboarded: false,
 };
@@ -151,17 +152,13 @@ function markContacted(recipientId) {
 // ---------- Groq ----------
 async function groqComplete(messages, temperature) {
   const s = getSettings();
-  if (!s.groqKey) throw new Error('no-key');
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + s.groqKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: s.model, temperature: temperature || 0.8, max_tokens: 400, messages }),
-  });
-  if (!res.ok) throw new Error('groq-' + res.status);
-  const j = await res.json();
-  const c = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
-  if (!c) throw new Error('empty');
-  return String(c).trim();
+  try {
+    return await groqPolicy.complete({ enabled: s.groqEnabled, apiKey: s.groqKey, model: s.model, messages, temperature });
+  } catch (error) {
+    const safe = new Error(groqPolicy.publicMessage(error));
+    safe.code = error.code;
+    throw safe;
+  }
 }
 
 // ---------- بناء البرومبت ----------
@@ -274,10 +271,9 @@ async function generate(opts) {
     ]);
     return { items: parseTwo(raw, themes), themes, offline: false, note: null };
   } catch (e) {
-    const hasKey = !!getSettings().groqKey;
     return {
       items: fallbackTwo(recipient, intent), themes, offline: true,
-      note: hasKey ? 'النت مش متاح 📴 دي رسائل جاهزة تقدر تعدّلها.' : 'ضيف مفتاح Groq من الإعدادات عشان اقتراحات أذكى ✨',
+      note: e.message + ' هذه قوالب محلية وليست نتيجة ذكاء اصطناعي. راجع اللغة والتفاصيل.',
     };
   }
 }
@@ -454,7 +450,7 @@ function stats() {
   };
 }
 
-module.exports = {
+module.exports = { modelCatalog: groqPolicy.catalog,
   init, getSettings, setSettings, getPeople, setPeople, currentRecipient,
   RELATIONS, DIALECTS, INTENTS, GROUP_KINDS, relationById,
   getStore, addStyleExample, addFeedback, bumpTheme, toggleFavorite, deleteHistory, markContacted,

@@ -42,7 +42,7 @@ function registerIpc() {
     'settings:set': (patch) => core.setSettings(patch),
     'people:get': () => core.getPeople(),
     'people:set': (list) => core.setPeople(list),
-    'meta:get': () => ({ relations: core.RELATIONS, dialects: core.DIALECTS, intents: core.INTENTS, groupKinds: core.GROUP_KINDS }),
+    'meta:get': () => ({ relations: core.RELATIONS, dialects: core.DIALECTS, intents: core.INTENTS, groupKinds: core.GROUP_KINDS, modelCatalog: core.modelCatalog }),
     'stats:get': () => core.stats(),
     // المجموعات + الاستيراد + التحليل + التوليد الجماعي
     'groups:get': () => core.getGroups(),
