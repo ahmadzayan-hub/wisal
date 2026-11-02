@@ -17,14 +17,15 @@ function sign(privateKey, data) {
   return s.sign(privateKey).toString('base64');
 }
 
+(async () => {
 const NOW = 1_800_000_000;
 const SEEDED_PLAINTEXT = 'وحشتني أوي يا قمر — هذه رسالة اختبار سرّية 12345';
 
 const store = createInMemoryStore();
 const alice = makeIdentity();
 const bob = makeIdentity();
-registerDevice(store, { deviceId: 'devA', publicKeyB64: alice.publicKeyB64, signatureB64: sign(alice.privateKey, 'wisal-direct-register:devA') }, NOW);
-registerDevice(store, { deviceId: 'devB', publicKeyB64: bob.publicKeyB64, signatureB64: sign(bob.privateKey, 'wisal-direct-register:devB') }, NOW);
+await registerDevice(store, { deviceId: 'devA', publicKeyB64: alice.publicKeyB64, signatureB64: sign(alice.privateKey, 'wisal-direct-register:devA') }, NOW);
+await registerDevice(store, { deviceId: 'devB', publicKeyB64: bob.publicKeyB64, signatureB64: sign(bob.privateKey, 'wisal-direct-register:devB') }, NOW);
 
 // العميل الحقيقي بيبعت ciphertext ناتج تشفير فعلي — هنا بنمثّله بـ base64 عادي
 // (المهم: الحقل ده هو المكان الوحيد المسموح يحمل تمثيل للمحتوى، والسيرفر
@@ -32,7 +33,7 @@ registerDevice(store, { deviceId: 'devB', publicKeyB64: bob.publicKeyB64, signat
 const ciphertextB64 = Buffer.from(SEEDED_PLAINTEXT, 'utf8').toString('base64');
 const expiresAt = NOW + 3600;
 const proof = `devA:devB:${ciphertextB64}:${expiresAt}`;
-const submit = submitEnvelope(
+const submit = await submitEnvelope(
   store,
   { senderDeviceId: 'devA', recipientDeviceId: 'devB', ciphertextB64, backend: 'VODOZEMAC', expiresAtEpochSec: expiresAt },
   sign(alice.privateKey, proof),
@@ -40,14 +41,14 @@ const submit = submitEnvelope(
 );
 assert.strictEqual(submit.ok, true);
 
-listInbox(store, { deviceId: 'devB', timestamp: NOW + 1, signatureB64: sign(bob.privateKey, `fetch:devB:${NOW + 1}`) }, NOW + 1);
-ackDelivery(store, { deviceId: 'devB', envelopeId: submit.id, signatureB64: sign(bob.privateKey, `ack:${submit.id}`) }, NOW + 2);
+await listInbox(store, { deviceId: 'devB', timestamp: NOW + 1, signatureB64: sign(bob.privateKey, `fetch:devB:${NOW + 1}`) }, NOW + 1);
+await ackDelivery(store, { deviceId: 'devB', envelopeId: submit.id, signatureB64: sign(bob.privateKey, `ack:${submit.id}`) }, NOW + 2);
 
 // ---- 1) السكيمة: كل مغلف مخزّن فيه توجيه + ciphertext معتم بس ----
 const store2 = createInMemoryStore(); // مغلف ثاني حي (الأول اتمسح بعد التسليم) عشان نفحص شكل السجل
-registerDevice(store2, { deviceId: 'devA', publicKeyB64: alice.publicKeyB64, signatureB64: sign(alice.privateKey, 'wisal-direct-register:devA') }, NOW);
-registerDevice(store2, { deviceId: 'devB', publicKeyB64: bob.publicKeyB64, signatureB64: sign(bob.privateKey, 'wisal-direct-register:devB') }, NOW);
-const submit2 = submitEnvelope(
+await registerDevice(store2, { deviceId: 'devA', publicKeyB64: alice.publicKeyB64, signatureB64: sign(alice.privateKey, 'wisal-direct-register:devA') }, NOW);
+await registerDevice(store2, { deviceId: 'devB', publicKeyB64: bob.publicKeyB64, signatureB64: sign(bob.privateKey, 'wisal-direct-register:devB') }, NOW);
+const submit2 = await submitEnvelope(
   store2,
   { senderDeviceId: 'devA', recipientDeviceId: 'devB', ciphertextB64, backend: 'VODOZEMAC', expiresAtEpochSec: expiresAt },
   sign(alice.privateKey, proof),
@@ -81,3 +82,4 @@ assert.ok(!line.includes(SEEDED_PLAINTEXT));
 assert.ok(!ALLOWED_FIELDS.has('ciphertextB64'), 'ciphertextB64 must never be an allowed log field');
 
 console.log('plaintext-leak.test.js: all assertions passed ✅');
+})().catch((err) => { console.error(err); process.exit(1); });

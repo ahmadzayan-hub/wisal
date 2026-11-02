@@ -17,12 +17,18 @@ field in the schema for it.
   (libsignal/vodozemac) against this relay yet — that's the next slice. Until
   that ships and passes the ADR-002 release gates, nothing in the product may
   call this "encrypted."
-- **Not production storage.** `lib/store.js` is an in-memory Map, intentional
-  for this slice's tests and local dev. On Vercel serverless it resets on
-  every cold start. **Production blocker**: swap it for a real datastore
-  (Postgres) implementing the same interface (`getDevice`, `putDevice`,
-  `putEnvelope`, `getEnvelope`, `deleteEnvelope`, `listEnvelopesFor`,
-  `sweepExpired`) before any real deployment.
+- **Storage is chosen by environment** (`lib/selectStore.js`):
+  - `DATABASE_URL` set: PostgreSQL (`lib/pgStore.js`). Tables are created on
+    first use (`CREATE TABLE IF NOT EXISTS`).
+  - Production (`NODE_ENV` or `VERCEL_ENV` = `production`) without
+    `DATABASE_URL`: every request returns `503 relay storage unavailable`. It
+    never falls back to memory that resets on each cold start.
+  - Otherwise (local dev, tests): in-memory (`lib/store.js`).
+- **Race conditions are handled inside single SQL statements**, not
+  read-then-write in Node: registration is insert-if-absent, a pre-key publish
+  applies only if its one-time key id is higher, and a claim locks the row and
+  clears the one-time key in one `UPDATE`. `test/pg-store.test.js` runs ten
+  simultaneous claims and requires exactly one winner.
 
 ## Endpoints
 
@@ -35,11 +41,22 @@ of the device's private key — the server never trusts a bare device id.
 | POST | `/api/envelopes` | Submit an encrypted envelope for a recipient | signs `{sender}:{recipient}:{ciphertextB64}:{expiresAt}` |
 | GET | `/api/inbox?deviceId=&timestamp=&signatureB64=` | List envelopes addressed to you | signs `fetch:{deviceId}:{timestamp}` (±5min clock skew) |
 | POST | `/api/ack` | Confirm delivery — deletes the envelope | signs `ack:{envelopeId}` |
+| POST | `/api/prekeys` | Publish a Signal pre-key bundle (public keys only) | signs `wisal-direct-prekeys:{timestamp}:{bundle fields in SignalPreKeyBundleDto order}` (±5min) |
+| POST | `/api/prekeys-claim` | Claim another device's bundle; consumes its one-time pre-key | signs `claim-prekeys:{requester}:{target}:{timestamp}` (±5min) |
 
 Signatures are ECDSA-SHA256 over EC P-256 (`prime256v1`), public key as
 X.509 SubjectPublicKeyInfo, base64-encoded — the same format
 `android-wife-assistant`'s `DeviceIdentityCodec` produces, so an Android
 client's identity keypair verifies here with no format conversion.
+
+## Pre-key bundles
+
+- The relay stores public keys only. It checks that the publisher owns the registered device (P-256 signature); Signal's own signed pre-key and Kyber signatures are verified by the client through libsignal when it builds the session.
+- A one-time pre-key is handed out **once**, then deleted. A second claim is refused with `no one-time pre-key available` until the device publishes a new bundle. The relay never returns a bundle without its one-time key and never reuses one.
+- Each new bundle must carry a higher `oneTimePreKeyId` than any the device published before, so replaying an old signed publish cannot bring back a used key. Re-sending the identical, still-unclaimed bundle is accepted as a retry.
+- Claims require a registered, signed, recent request, so anonymous callers cannot drain one-time keys.
+- Claims are atomic in PostgreSQL (see storage above); concurrent claims never receive the same one-time key.
+- **Not yet built:** the Android client calls, persistence of pre-keys on the device, and identity-key verification between users (safety numbers). Nothing here supports an "encrypted" claim yet.
 
 ## Data retention
 
@@ -74,6 +91,12 @@ Node functions, same shape as `../wisal-cloud-api`.
 ## Deploy
 
 New Vercel project, Root Directory = `wisal-direct-relay`. Set `DATABASE_URL`
-once the storage layer is swapped from in-memory (see blocker above) — there
-is no shared API key to configure; every client authenticates itself with its
-own device signature.
+to a PostgreSQL database (for example Neon or Vercel Postgres; add
+`?sslmode=require` if the provider needs TLS). Without it, production returns
+503 on every call. There is no shared API key to configure; every client
+authenticates itself with its own device signature.
+
+Tests: `npm test`. The PostgreSQL test runs when `RELAY_TEST_DATABASE_URL`
+points at an empty test database (it drops and recreates the `relay_*`
+tables). CI starts a PostgreSQL 16 service and sets `REQUIRE_PG=1`, so the
+test fails rather than skips there.
