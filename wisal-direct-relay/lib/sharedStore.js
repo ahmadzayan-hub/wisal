@@ -1,6 +1,8 @@
-// نسخة تخزين واحدة مشتركة بين كل الـ handlers داخل نفس الـ process (instance
-// دافئة). في dev/test ده كافي. في إنتاج Vercel ده بيتصفّر مع كل cold start —
-// حد إنتاج موثّق (README + ADR-002): لازم storage حقيقي قبل أي إطلاق عام.
-const { createInMemoryStore } = require('./store');
+// نسخة تخزين واحدة مشتركة بين كل الـ handlers داخل نفس الـ process.
+// - DATABASE_URL متظبط: PostgreSQL (lib/pgStore.js) — ده المطلوب في الإنتاج.
+// - إنتاج من غير DATABASE_URL: تخزين بيرفض كل عملية (503) بدل ما يشتغل
+//   بصمت على ذاكرة بتضيع مع كل cold start.
+// - غير كده (تطوير/اختبار محلي): في الذاكرة.
+const { selectStore } = require('./selectStore');
 
-module.exports = createInMemoryStore();
+module.exports = selectStore();

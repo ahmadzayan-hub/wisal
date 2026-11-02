@@ -62,12 +62,12 @@ function sameBundle(a, b) {
 }
 
 // ---- نشر حزمة ----
-function publishPreKeyBundle(store, { bundle, timestamp, signatureB64 }, nowEpochSec) {
+async function publishPreKeyBundle(store, { bundle, timestamp, signatureB64 }, nowEpochSec) {
   if (!bundle || !timestamp || !signatureB64) return refused('missing fields');
   const invalid = validateBundle(bundle);
   if (invalid) return refused(invalid);
 
-  const device = store.getDevice(bundle.deviceId);
+  const device = await store.getDevice(bundle.deviceId);
   if (!device) return refused('device not registered');
   if (!verifySignature(device.publicKeyB64, publishProof(bundle, timestamp), signatureB64)) {
     return refused('bad signature');
@@ -75,34 +75,34 @@ function publishPreKeyBundle(store, { bundle, timestamp, signatureB64 }, nowEpoc
   if (Math.abs(nowEpochSec - Number(timestamp)) > PREKEY_CLOCK_SKEW_SECONDS) return refused('stale timestamp');
 
   // نفس الحزمة اللي لسه ما اتسلّمتش: إعادة محاولة آمنة (idempotent).
-  const current = store.getPreKeyBundle(bundle.deviceId);
+  const current = await store.getPreKeyBundle(bundle.deviceId);
   if (current && !current.oneTimePreKeyClaimed && sameBundle(current, bundle)) {
     return ok({ deviceId: bundle.deviceId, oneTimePreKeyId: bundle.oneTimePreKeyId });
   }
-  if (bundle.oneTimePreKeyId <= store.getHighestOneTimePreKeyId(bundle.deviceId)) {
-    return refused('one-time pre-key id must be higher than any previously published id');
-  }
-
   const stored = {};
   for (const f of BUNDLE_FIELDS) stored[f] = bundle[f];
-  store.putPreKeyBundle(bundle.deviceId, { ...stored, publishedAtEpochSec: nowEpochSec, oneTimePreKeyClaimed: false });
+  // شرط "المعرّف لازم يزيد" بيتطبّق جوه التخزين ذرّيًا (نشرين متزامنين).
+  const applied = await store.putPreKeyBundle(
+    bundle.deviceId, { ...stored, publishedAtEpochSec: nowEpochSec, oneTimePreKeyClaimed: false },
+  );
+  if (!applied) return refused('one-time pre-key id must be higher than any previously published id');
   safeLog('prekeys_published', { deviceId: bundle.deviceId, atEpochSec: nowEpochSec });
   return ok({ deviceId: bundle.deviceId, oneTimePreKeyId: bundle.oneTimePreKeyId });
 }
 
 // ---- طلب حزمة جهاز تاني (بيستهلك المفتاح الفردي) ----
-function claimPreKeyBundle(store, { requesterDeviceId, targetDeviceId, timestamp, signatureB64 }, nowEpochSec) {
+async function claimPreKeyBundle(store, { requesterDeviceId, targetDeviceId, timestamp, signatureB64 }, nowEpochSec) {
   if (!requesterDeviceId || !targetDeviceId || !timestamp || !signatureB64) return refused('missing fields');
   if (requesterDeviceId === targetDeviceId) return refused('cannot claim your own bundle');
 
-  const requester = store.getDevice(requesterDeviceId);
+  const requester = await store.getDevice(requesterDeviceId);
   if (!requester) return refused('device not registered');
   const proof = claimProof(requesterDeviceId, targetDeviceId, timestamp);
   if (!verifySignature(requester.publicKeyB64, proof, signatureB64)) return refused('bad signature');
   if (Math.abs(nowEpochSec - Number(timestamp)) > PREKEY_CLOCK_SKEW_SECONDS) return refused('stale timestamp');
 
-  if (!store.getPreKeyBundle(targetDeviceId)) return refused('no bundle published');
-  const bundle = store.claimPreKeyBundle(targetDeviceId);
+  if (!(await store.getPreKeyBundle(targetDeviceId))) return refused('no bundle published');
+  const bundle = await store.claimPreKeyBundle(targetDeviceId);
   // مفيش مفتاح فردي متاح: نرفض بدل ما نسلّم حزمة ناقصة أو نعيد استخدام مفتاح.
   // العميل الهدف لازم ينشر حزمة جديدة.
   if (!bundle) return refused('no one-time pre-key available');

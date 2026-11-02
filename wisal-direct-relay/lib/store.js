@@ -18,8 +18,11 @@ function createInMemoryStore() {
     getDevice(deviceId) {
       return devices.get(deviceId) || null;
     },
+    // إدخال لو مش موجود بس، وبيرجّع السجل المخزّن فعلًا — الطبقة الأعلى
+    // بتقارن المفتاح، فتسجيلين متزامنين بمفتاحين مختلفين ما يكتبوش فوق بعض.
     putDevice(device) {
-      devices.set(device.deviceId, device);
+      if (!devices.has(device.deviceId)) devices.set(device.deviceId, device);
+      return devices.get(device.deviceId);
     },
 
     // ---- المغلفات ----
@@ -43,16 +46,17 @@ function createInMemoryStore() {
     // مفاتيح عامة بس — مفيش مفتاح خاص ولا محتوى. المفتاح الفردي (one-time)
     // بيتسلّم مرة واحدة وبعدين بيتمسح؛ ده لازم يبقى ذرّي (transaction) في أي
     // تخزين إنتاج حقيقي، عشان طلبين متزامنين ما ياخدوش نفس المفتاح.
+    // بيرجّع false لو معرّف المفتاح الفردي مش أعلى من أي معرّف سابق — الشرط
+    // جوه التخزين نفسه عشان نشرين متزامنين ما يعدّوش الفحص الاتنين.
     putPreKeyBundle(deviceId, bundle) {
-      preKeyBundles.set(deviceId, bundle);
       const prev = highestOneTimePreKeyId.get(deviceId) || 0;
-      highestOneTimePreKeyId.set(deviceId, Math.max(prev, bundle.oneTimePreKeyId));
+      if (bundle.oneTimePreKeyId <= prev) return false;
+      preKeyBundles.set(deviceId, bundle);
+      highestOneTimePreKeyId.set(deviceId, bundle.oneTimePreKeyId);
+      return true;
     },
     getPreKeyBundle(deviceId) {
       return preKeyBundles.get(deviceId) || null;
-    },
-    getHighestOneTimePreKeyId(deviceId) {
-      return highestOneTimePreKeyId.get(deviceId) || 0;
     },
     // بيرجّع الحزمة كاملة ويشيل منها المفتاح الفردي في نفس الخطوة. لو المفتاح
     // الفردي اتسلّم قبل كده بيرجّع null — الحزمة نفسها بتفضل لحد ما الجهاز

@@ -16,28 +16,28 @@ function refused(reason) { return { ok: false, reason }; }
 
 // ---- تسجيل جهاز ----
 // إثبات الملكية: توقيع على "wisal-direct-register:{deviceId}" بالمفتاح الخاص.
-function registerDevice(store, { deviceId, publicKeyB64, signatureB64 }, nowEpochSec) {
+async function registerDevice(store, { deviceId, publicKeyB64, signatureB64 }, nowEpochSec) {
   if (!deviceId || !publicKeyB64 || !signatureB64) return refused('missing fields');
   const proof = `wisal-direct-register:${deviceId}`;
   if (!verifySignature(publicKeyB64, proof, signatureB64)) return refused('bad signature');
 
-  const existing = store.getDevice(deviceId);
   // إعادة تسجيل بنفس المفتاح مسموحة (idempotent)؛ بمفتاح مختلف مرفوضة —
   // يمنع محاولة انتحال جهاز عن طريق تسجيل مفتاح جديد على نفس المعرّف.
-  if (existing && existing.publicKeyB64 !== publicKeyB64) return refused('device id already bound to a different key');
-
-  store.putDevice({ deviceId, publicKeyB64, registeredAtEpochSec: nowEpochSec });
+  // putDevice بيدخل لو مش موجود بس ويرجّع المخزّن فعلًا، فالمقارنة آمنة حتى
+  // مع طلبين متزامنين.
+  const stored = await store.putDevice({ deviceId, publicKeyB64, registeredAtEpochSec: nowEpochSec });
+  if (stored.publicKeyB64 !== publicKeyB64) return refused('device id already bound to a different key');
   safeLog('device_registered', { deviceId, atEpochSec: nowEpochSec });
   return ok({ deviceId });
 }
 
 // ---- إيداع مغلف ----
-function submitEnvelope(store, envelope, signatureB64, nowEpochSec) {
+async function submitEnvelope(store, envelope, signatureB64, nowEpochSec) {
   const { senderDeviceId, recipientDeviceId, ciphertextB64, backend, expiresAtEpochSec } = envelope || {};
   if (!senderDeviceId || !recipientDeviceId || !ciphertextB64 || !backend || !expiresAtEpochSec) {
     return refused('missing fields');
   }
-  const sender = store.getDevice(senderDeviceId);
+  const sender = await store.getDevice(senderDeviceId);
   if (!sender) return refused('sender not registered');
 
   const proof = `${senderDeviceId}:${recipientDeviceId}:${ciphertextB64}:${expiresAtEpochSec}`;
@@ -47,7 +47,7 @@ function submitEnvelope(store, envelope, signatureB64, nowEpochSec) {
   if (expiresAtEpochSec - nowEpochSec > MAX_ENVELOPE_TTL_SECONDS) return refused('ttl too long');
 
   const id = `${senderDeviceId}:${nowEpochSec}:${Math.random().toString(36).slice(2, 10)}`;
-  store.putEnvelope({
+  await store.putEnvelope({
     id, senderDeviceId, recipientDeviceId, ciphertextB64, backend,
     expiresAtEpochSec, createdAtEpochSec: nowEpochSec,
   });
@@ -58,17 +58,17 @@ function submitEnvelope(store, envelope, signatureB64, nowEpochSec) {
 // ---- سحب صندوق الوارد ----
 // إثبات الطلب: توقيع على "fetch:{deviceId}:{timestamp}" بمفتاح المستلم نفسه،
 // والـ timestamp لازم يكون قريب من وقت السيرفر (يمنع إعادة استخدام توقيع قديم).
-function listInbox(store, { deviceId, timestamp, signatureB64 }, nowEpochSec) {
+async function listInbox(store, { deviceId, timestamp, signatureB64 }, nowEpochSec) {
   if (!deviceId || !timestamp || !signatureB64) return refused('missing fields');
-  const device = store.getDevice(deviceId);
+  const device = await store.getDevice(deviceId);
   if (!device) return refused('device not registered');
 
   const proof = `fetch:${deviceId}:${timestamp}`;
   if (!verifySignature(device.publicKeyB64, proof, signatureB64)) return refused('bad signature');
   if (Math.abs(nowEpochSec - Number(timestamp)) > FETCH_CLOCK_SKEW_SECONDS) return refused('stale timestamp');
 
-  store.sweepExpired(nowEpochSec);
-  const items = store.listEnvelopesFor(deviceId).map(
+  await store.sweepExpired(nowEpochSec);
+  const items = (await store.listEnvelopesFor(deviceId)).map(
     ({ id, senderDeviceId, ciphertextB64, backend, createdAtEpochSec }) =>
       ({ id, senderDeviceId, ciphertextB64, backend, createdAtEpochSec }),
   );
@@ -76,19 +76,19 @@ function listInbox(store, { deviceId, timestamp, signatureB64 }, nowEpochSec) {
 }
 
 // ---- تأكيد التسليم (بيمسح المغلف فورًا) ----
-function ackDelivery(store, { deviceId, envelopeId, signatureB64 }, nowEpochSec) {
+async function ackDelivery(store, { deviceId, envelopeId, signatureB64 }, nowEpochSec) {
   if (!deviceId || !envelopeId || !signatureB64) return refused('missing fields');
-  const device = store.getDevice(deviceId);
+  const device = await store.getDevice(deviceId);
   if (!device) return refused('device not registered');
 
   const proof = `ack:${envelopeId}`;
   if (!verifySignature(device.publicKeyB64, proof, signatureB64)) return refused('bad signature');
 
-  const env = store.getEnvelope(envelopeId);
+  const env = await store.getEnvelope(envelopeId);
   if (!env) return refused('not found');
   if (env.recipientDeviceId !== deviceId) return refused('not your envelope');
 
-  store.deleteEnvelope(envelopeId);
+  await store.deleteEnvelope(envelopeId);
   safeLog('envelope_delivered', { deviceId, envelopeId, atEpochSec: nowEpochSec });
   return ok({});
 }
