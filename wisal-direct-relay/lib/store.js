@@ -10,6 +10,8 @@
 function createInMemoryStore() {
   const devices = new Map();   // deviceId -> { deviceId, publicKeyB64, registeredAtEpochSec }
   const envelopes = new Map(); // id -> envelope
+  const preKeyBundles = new Map(); // deviceId -> published bundle (public keys only)
+  const highestOneTimePreKeyId = new Map(); // deviceId -> highest one-time pre-key id ever published
 
   return {
     // ---- الأجهزة ----
@@ -37,6 +39,31 @@ function createInMemoryStore() {
     allEnvelopes() {
       return Array.from(envelopes.values());
     },
+    // ---- حزم المفاتيح المسبقة (pre-key bundles) ----
+    // مفاتيح عامة بس — مفيش مفتاح خاص ولا محتوى. المفتاح الفردي (one-time)
+    // بيتسلّم مرة واحدة وبعدين بيتمسح؛ ده لازم يبقى ذرّي (transaction) في أي
+    // تخزين إنتاج حقيقي، عشان طلبين متزامنين ما ياخدوش نفس المفتاح.
+    putPreKeyBundle(deviceId, bundle) {
+      preKeyBundles.set(deviceId, bundle);
+      const prev = highestOneTimePreKeyId.get(deviceId) || 0;
+      highestOneTimePreKeyId.set(deviceId, Math.max(prev, bundle.oneTimePreKeyId));
+    },
+    getPreKeyBundle(deviceId) {
+      return preKeyBundles.get(deviceId) || null;
+    },
+    getHighestOneTimePreKeyId(deviceId) {
+      return highestOneTimePreKeyId.get(deviceId) || 0;
+    },
+    // بيرجّع الحزمة كاملة ويشيل منها المفتاح الفردي في نفس الخطوة. لو المفتاح
+    // الفردي اتسلّم قبل كده بيرجّع null — الحزمة نفسها بتفضل لحد ما الجهاز
+    // ينشر حزمة جديدة.
+    claimPreKeyBundle(deviceId) {
+      const bundle = preKeyBundles.get(deviceId);
+      if (!bundle || bundle.oneTimePreKeyClaimed) return null;
+      preKeyBundles.set(deviceId, { ...bundle, oneTimePreKeyPublicB64: null, oneTimePreKeyClaimed: true });
+      return bundle;
+    },
+
     sweepExpired(nowEpochSec) {
       let removed = 0;
       for (const [id, e] of envelopes) {

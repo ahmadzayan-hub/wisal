@@ -35,11 +35,22 @@ of the device's private key — the server never trusts a bare device id.
 | POST | `/api/envelopes` | Submit an encrypted envelope for a recipient | signs `{sender}:{recipient}:{ciphertextB64}:{expiresAt}` |
 | GET | `/api/inbox?deviceId=&timestamp=&signatureB64=` | List envelopes addressed to you | signs `fetch:{deviceId}:{timestamp}` (±5min clock skew) |
 | POST | `/api/ack` | Confirm delivery — deletes the envelope | signs `ack:{envelopeId}` |
+| POST | `/api/prekeys` | Publish a Signal pre-key bundle (public keys only) | signs `wisal-direct-prekeys:{timestamp}:{bundle fields in SignalPreKeyBundleDto order}` (±5min) |
+| POST | `/api/prekeys-claim` | Claim another device's bundle; consumes its one-time pre-key | signs `claim-prekeys:{requester}:{target}:{timestamp}` (±5min) |
 
 Signatures are ECDSA-SHA256 over EC P-256 (`prime256v1`), public key as
 X.509 SubjectPublicKeyInfo, base64-encoded — the same format
 `android-wife-assistant`'s `DeviceIdentityCodec` produces, so an Android
 client's identity keypair verifies here with no format conversion.
+
+## Pre-key bundles
+
+- The relay stores public keys only. It checks that the publisher owns the registered device (P-256 signature); Signal's own signed pre-key and Kyber signatures are verified by the client through libsignal when it builds the session.
+- A one-time pre-key is handed out **once**, then deleted. A second claim is refused with `no one-time pre-key available` until the device publishes a new bundle. The relay never returns a bundle without its one-time key and never reuses one.
+- Each new bundle must carry a higher `oneTimePreKeyId` than any the device published before, so replaying an old signed publish cannot bring back a used key. Re-sending the identical, still-unclaimed bundle is accepted as a retry.
+- Claims require a registered, signed, recent request, so anonymous callers cannot drain one-time keys.
+- **Production blocker (same as envelopes):** claiming must be atomic in a real datastore (one transaction), or two concurrent claims could receive the same one-time key.
+- **Not yet built:** the Android client calls, persistence of pre-keys on the device, and identity-key verification between users (safety numbers). Nothing here supports an "encrypted" claim yet.
 
 ## Data retention
 

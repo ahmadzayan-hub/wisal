@@ -4,7 +4,7 @@
 // يسجّلش رسائل نصية ولا مفاتيح فك تشفير المرفقات ولا محتوى إشعار كامل."
 
 const ALLOWED_FIELDS = new Set([
-  'event', 'deviceId', 'senderDeviceId', 'recipientDeviceId', 'envelopeId',
+  'event', 'deviceId', 'senderDeviceId', 'recipientDeviceId', 'targetDeviceId', 'envelopeId',
   'count', 'reason', 'atEpochSec', 'backend',
 ]);
 
