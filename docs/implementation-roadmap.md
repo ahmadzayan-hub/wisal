@@ -32,8 +32,9 @@
 ## Phase 4 — Windows adaptive UI 🗺️
 - Rail/sidebar + chat-list pane + conversation pane; keyboard shortcuts; window resize/scaling tests; QR device linking.
 
-## Phase 5 — Website expansion 🗺️
-- Pages: how-it-works, privacy, security architecture, AI principles, FAQ, business (separate), localized routes + hreflang for Level A locales; real screenshots from running apps.
+## Phase 5 — Website expansion 🚧 IN PROGRESS
+- ✅ Pages: how-it-works, AI principles, security (honest Wisal Direct status, no encryption claim), linked from the footer and sitemap. `wisal-web/scripts/check-pages.mjs` (CI: `web.yml`) checks structure, links, sitemap, CSP-blocked scripts and blocks any positive encryption claim.
+- 🗺️ Still to do: FAQ and business pages, localized routes + hreflang, real screenshots from running apps.
 
 ## Phase 6 — Family Circles 🗺️ (after 1:1 is stable)
 ## Phase 7 — Wisal Business workspace 🗺️

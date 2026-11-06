@@ -9,6 +9,9 @@ Local templates remain available when hosted generation is disabled or unavailab
 Groq is optional, account-limited and not guaranteed free or unlimited. No paid/provider failover.
 When enabled, prompt data may include names, relationships, notes, context and style examples.
 
+Pages: /how-it-works (steps), /ai-principles (opt-in AI, limits, what is sent), /security (key storage, backups, safe updates, Wisal Direct status), /privacy.
+Wisal Direct (device-to-device delivery) is under development and is not encrypted messaging yet; no encryption claim is made.
+
 Source: https://github.com/ahmadzayan-hub/wisal
 Android release channel: https://github.com/ahmadzayan-hub/wisal/releases/tag/android-latest
 Windows release channel: https://github.com/ahmadzayan-hub/wisal/releases/tag/windows-latest
