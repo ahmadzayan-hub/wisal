@@ -21,6 +21,7 @@ const { Pool } = require('pg');
 const { createPgStore } = require('../lib/pgStore');
 const { registerDevice, submitEnvelope, listInbox, ackDelivery } = require('../lib/relay');
 const { publishPreKeyBundle, claimPreKeyBundle, publishProof, claimProof } = require('../lib/prekeys');
+const { revokeDevice, revokeProof } = require('../lib/revocation');
 
 function makeIdentity() {
   const { publicKey, privateKey } = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
@@ -140,6 +141,35 @@ const NOW = 1_800_000_000;
   {
     const results = await Promise.all([publish(makeBundle('devB', 3)), publish(makeBundle('devB', 3))]);
     assert.strictEqual(results.filter((r) => r.ok).length, 1, 'two concurrent publishes of one id may not both apply');
+  }
+
+  // ---- إلغاء جهاز في PostgreSQL: transaction بتمسح الحزمة والمغلفات المستنية ----
+  {
+    const carol = makeIdentity();
+    await reg('devR', carol);
+    const ct = Buffer.from('waiting').toString('base64');
+    const exp = NOW + 3600;
+    const waiting = await submitEnvelope(store, {
+      senderDeviceId: 'devA', recipientDeviceId: 'devR', ciphertextB64: ct, backend: 'SIGNAL', expiresAtEpochSec: exp,
+    }, sign(alice.privateKey, `devA:devR:${ct}:${exp}`), NOW);
+    assert.strictEqual(waiting.ok, true);
+    const rBundle = makeBundle('devR', 1);
+    assert.strictEqual((await publishPreKeyBundle(store, {
+      bundle: rBundle, timestamp: NOW, signatureB64: sign(carol.privateKey, publishProof(rBundle, NOW)),
+    }, NOW)).ok, true);
+
+    // إلغاءين متزامنين: الاتنين ينجحوا، والإلغاء يتسجّل مرة واحدة بس
+    const revoke = () => revokeDevice(store, { deviceId: 'devR', timestamp: NOW, signatureB64: sign(carol.privateKey, revokeProof('devR', NOW)) }, NOW);
+    const both = await Promise.all([revoke(), revoke()]);
+    assert.ok(both.every((r) => r.ok));
+    assert.strictEqual((await store.getDevice('devR')).revokedAtEpochSec, NOW);
+    assert.strictEqual(await store.getPreKeyBundle('devR'), null);
+    assert.strictEqual(await store.getEnvelope(waiting.id), null);
+    assert.match((await reg('devR', carol)).reason, /revoked/);
+    const toRevoked = await submitEnvelope(store, {
+      senderDeviceId: 'devA', recipientDeviceId: 'devR', ciphertextB64: ct, backend: 'SIGNAL', expiresAtEpochSec: exp,
+    }, sign(alice.privateKey, `devA:devR:${ct}:${exp}`), NOW);
+    assert.strictEqual(toRevoked.reason, 'recipient revoked');
   }
 
   // ---- السكيمة: مفيش عمود لمحتوى أو مفتاح خاص ----

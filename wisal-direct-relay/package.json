@@ -5,8 +5,8 @@
   "description": "Store-and-forward relay for Wisal Direct (E2EE) — device registry + opaque encrypted envelopes. Not the E2EE protocol itself (see docs/decisions/ADR-002-e2ee-protocol.md).",
   "type": "commonjs",
   "scripts": {
-    "check": "node --check api/devices.js && node --check api/envelopes.js && node --check api/inbox.js && node --check api/ack.js && node --check api/prekeys.js && node --check api/prekeys-claim.js && node --check lib/crypto.js && node --check lib/store.js && node --check lib/pgStore.js && node --check lib/relay.js && node --check lib/prekeys.js && node --check lib/log.js && node --check lib/limiter.js && node --check lib/sharedStore.js && node --check lib/selectStore.js && node --check lib/storageError.js && node --check test/relay.test.js && node --check test/plaintext-leak.test.js && node --check test/prekeys.test.js && node --check test/fail-closed.test.js && node --check test/pg-store.test.js",
-    "test": "node test/relay.test.js && node test/plaintext-leak.test.js && node test/prekeys.test.js && node test/fail-closed.test.js && node test/pg-store.test.js"
+    "check": "node --check api/devices.js && node --check api/envelopes.js && node --check api/inbox.js && node --check api/ack.js && node --check api/prekeys.js && node --check api/prekeys-claim.js && node --check api/revoke.js && node --check lib/crypto.js && node --check lib/store.js && node --check lib/pgStore.js && node --check lib/relay.js && node --check lib/prekeys.js && node --check lib/revocation.js && node --check lib/log.js && node --check lib/limiter.js && node --check lib/sharedStore.js && node --check lib/selectStore.js && node --check lib/storageError.js && node --check test/relay.test.js && node --check test/plaintext-leak.test.js && node --check test/prekeys.test.js && node --check test/revocation.test.js && node --check test/fail-closed.test.js && node --check test/pg-store.test.js",
+    "test": "node test/relay.test.js && node test/plaintext-leak.test.js && node test/prekeys.test.js && node test/revocation.test.js && node test/fail-closed.test.js && node test/pg-store.test.js"
   },
   "engines": {
     "node": ">=18"

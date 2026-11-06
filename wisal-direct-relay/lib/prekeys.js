@@ -72,6 +72,7 @@ async function publishPreKeyBundle(store, { bundle, timestamp, signatureB64 }, n
   if (!verifySignature(device.publicKeyB64, publishProof(bundle, timestamp), signatureB64)) {
     return refused('bad signature');
   }
+  if (device.revokedAtEpochSec) return refused('device revoked');
   if (Math.abs(nowEpochSec - Number(timestamp)) > PREKEY_CLOCK_SKEW_SECONDS) return refused('stale timestamp');
 
   // نفس الحزمة اللي لسه ما اتسلّمتش: إعادة محاولة آمنة (idempotent).
@@ -100,7 +101,10 @@ async function claimPreKeyBundle(store, { requesterDeviceId, targetDeviceId, tim
   const proof = claimProof(requesterDeviceId, targetDeviceId, timestamp);
   if (!verifySignature(requester.publicKeyB64, proof, signatureB64)) return refused('bad signature');
   if (Math.abs(nowEpochSec - Number(timestamp)) > PREKEY_CLOCK_SKEW_SECONDS) return refused('stale timestamp');
+  if (requester.revokedAtEpochSec) return refused('device revoked');
 
+  const target = await store.getDevice(targetDeviceId);
+  if (target && target.revokedAtEpochSec) return refused('target revoked');
   if (!(await store.getPreKeyBundle(targetDeviceId))) return refused('no bundle published');
   const bundle = await store.claimPreKeyBundle(targetDeviceId);
   // مفيش مفتاح فردي متاح: نرفض بدل ما نسلّم حزمة ناقصة أو نعيد استخدام مفتاح.

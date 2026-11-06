@@ -43,6 +43,7 @@ of the device's private key — the server never trusts a bare device id.
 | POST | `/api/ack` | Confirm delivery — deletes the envelope | signs `ack:{envelopeId}` |
 | POST | `/api/prekeys` | Publish a Signal pre-key bundle (public keys only) | signs `wisal-direct-prekeys:{timestamp}:{bundle fields in SignalPreKeyBundleDto order}` (±5min) |
 | POST | `/api/prekeys-claim` | Claim another device's bundle; consumes its one-time pre-key | signs `claim-prekeys:{requester}:{target}:{timestamp}` (±5min) |
+| POST | `/api/revoke` | Revoke your own device: deletes its pre-key bundle and pending envelopes, burns its id | signs `revoke:{deviceId}:{timestamp}` (±5min) |
 
 Signatures are ECDSA-SHA256 over EC P-256 (`prime256v1`), public key as
 X.509 SubjectPublicKeyInfo, base64-encoded — the same format
@@ -57,6 +58,15 @@ client's identity keypair verifies here with no format conversion.
 - Claims require a registered, signed, recent request, so anonymous callers cannot drain one-time keys.
 - Claims are atomic in PostgreSQL (see storage above); concurrent claims never receive the same one-time key.
 - **Not yet built:** the Android client calls, persistence of pre-keys on the device, and identity-key verification between users (safety numbers). Nothing here supports an "encrypted" claim yet.
+
+## Device revocation
+
+- A device revokes itself with a signed, recent request. In one step (one transaction in PostgreSQL) the relay marks it revoked, deletes its pre-key bundle and deletes every envelope waiting for it. Envelopes it sent earlier stay for their recipients.
+- A revoked id is never reusable: registering it again is refused with the same or a different key.
+- A revoked device cannot send, fetch, acknowledge, publish or claim. Other devices get `recipient revoked` when sending to it and `target revoked` when claiming its bundle.
+- Revoking twice succeeds and changes nothing, so a client can retry.
+- Envelopes to an id that is not registered are refused (`recipient not registered`); before, they were stored and never collected.
+- **Not covered yet:** a lost or stolen device cannot revoke itself. That needs a second linked device or a recovery key, which do not exist yet (multi-device is later). This is the relay side only; the Android client and the ADR-002 release-gate tests on real devices are still to do.
 
 ## Data retention
 

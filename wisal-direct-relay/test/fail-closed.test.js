@@ -36,6 +36,7 @@ function fakeRes() {
     ['inbox', 'GET', { query: { deviceId: 'a', timestamp: '1', signatureB64: 'c' } }],
     ['ack', 'POST', { body: { deviceId: 'a', envelopeId: 'b', signatureB64: 'c' } }],
     ['prekeys-claim', 'POST', { body: { requesterDeviceId: 'a', targetDeviceId: 'b', timestamp: 1, signatureB64: 'c' } }],
+    ['revoke', 'POST', { body: { deviceId: 'a', timestamp: 1, signatureB64: 'c' } }],
   ];
   for (const [name, method, req] of cases) {
     // eslint-disable-next-line global-require, import/no-dynamic-require

@@ -1,0 +1,33 @@
+name: Website checks
+
+# فحص wisal-web: بنية الصفحات، الروابط الداخلية، خريطة الموقع، سياسة الأمان،
+# وقاعدة ADR-002 (مفيش ادّعاء تشفير إيجابي). بيتشغّل مع أي تعديل في الموقع.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "wisal-web/**"
+      - ".github/workflows/web.yml"
+  pull_request:
+    paths:
+      - "wisal-web/**"
+      - ".github/workflows/web.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check pages
+        run: node wisal-web/scripts/check-pages.mjs
