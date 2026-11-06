@@ -14,10 +14,12 @@ const pages = Object.keys(LOCALE_DIRS).flatMap((d) =>
   readdirSync(join(root, d)).filter((f) => f.endsWith('.html')).map((f) => (d ? `${d}/${f}` : f)),
 ).sort();
 const SITE = 'https://wisal-app.vercel.app';
-const urlOf = (page) => `${SITE}/${page.replace(/(^|\/)index\.html$/, '$1').replace(/\.html$/, '')}`;
+// en/index.html → /en (trailingSlash: false في vercel.json)، وindex.html → /
+const urlOf = (page) => `${SITE}/${page.replace(/\/?index\.html$/, '').replace(/\.html$/, '')}`;
 const pageOfUrl = (url) => {
   const rel = url.slice(SITE.length + 1);
-  return rel === '' ? 'index.html' : `${rel}.html`;
+  if (rel === '') return 'index.html';
+  return pages.includes(`${rel}/index.html`) ? `${rel}/index.html` : `${rel}.html`;
 };
 const alternates = new Map(); // page -> Map(hreflang -> url)
 const sitemap = readFileSync(join(root, 'sitemap.xml'), 'utf8');
@@ -25,7 +27,7 @@ const failures = [];
 const fail = (page, msg) => failures.push(`${page}: ${msg}`);
 
 // عبارات ادّعاء تشفير. مسموحة بس لو قبلها نفي قريب ("مش"، "غير"، "not"، "no").
-const CLAIM = /(رسائل مشف[ّ]?رة|مشف[ّ]?رة طرف لطرف|تشفير طرف لطرف|end-to-end|\bE2EE\b|encrypted messag)/gi;
+const CLAIM = /(رسائل مشف[ّ]?رة|تواصل مباشر مشف[ّ]?ر|مشف[ّ]?ر بين طرفين|مشف[ّ]?رة طرف لطرف|تشفير طرف لطرف|end-to-end|\bE2EE\b|encrypted messag)/gi;
 const NEGATION = /(مش|غير|ليست|ليس|not|no)\s+\S*\s*$/i;
 
 for (const page of pages) {
