@@ -34,8 +34,8 @@
 
 ## Phase 5 — Website expansion 🚧 IN PROGRESS
 - ✅ Pages: how-it-works, AI principles, security (honest Wisal Direct status, no encryption claim), linked from the footer and sitemap. `wisal-web/scripts/check-pages.mjs` (CI: `web.yml`) checks structure, links, sitemap, CSP-blocked scripts and blocks any positive encryption claim.
-- ✅ English versions under `/en/` for the three pages, with reciprocal `hreflang` (ar, en, x-default → ar). The checker enforces `lang`/`dir` per locale folder and two-way `hreflang`. The privacy policy and landing page are still Arabic only.
-- 🗺️ Still to do: FAQ and business pages, English landing and privacy pages, real screenshots from running apps. Spanish stays out of the website until its pack is natively reviewed.
+- ✅ English versions under `/en/` for how-it-works, AI principles, security and the privacy policy, with reciprocal `hreflang` (ar, en, x-default → ar). The checker enforces `lang`/`dir` per locale folder and two-way `hreflang`. The landing page is still Arabic only.
+- 🗺️ Still to do: FAQ and business pages, English landing page, real screenshots from running apps. Spanish stays out of the website until its pack is natively reviewed.
 
 ## Phase 6 — Family Circles 🗺️ (after 1:1 is stable)
 ## Phase 7 — Wisal Business workspace 🗺️
