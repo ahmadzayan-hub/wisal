@@ -10,6 +10,7 @@ Groq is optional, account-limited and not guaranteed free or unlimited. No paid/
 When enabled, prompt data may include names, relationships, notes, context and style examples.
 
 Pages: /how-it-works (steps), /ai-principles (opt-in AI, limits, what is sent), /security (key storage, backups, safe updates, Wisal Direct status), /privacy.
+English versions: /en/how-it-works, /en/ai-principles, /en/security (the privacy policy is Arabic only).
 Wisal Direct (device-to-device delivery) is under development and is not encrypted messaging yet; no encryption claim is made.
 
 Source: https://github.com/ahmadzayan-hub/wisal
