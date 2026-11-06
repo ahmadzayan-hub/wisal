@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS relay_devices (
   public_key_b64          TEXT NOT NULL,
   registered_at_epoch_sec BIGINT NOT NULL
 );
+ALTER TABLE relay_devices ADD COLUMN IF NOT EXISTS revoked_at_epoch_sec BIGINT;
 CREATE TABLE IF NOT EXISTS relay_envelopes (
   id                  TEXT PRIMARY KEY,
   sender_device_id    TEXT NOT NULL,
@@ -62,7 +63,11 @@ const BUNDLE_COLUMNS = [
 ];
 
 function rowToDevice(r) {
-  return { deviceId: r.device_id, publicKeyB64: r.public_key_b64, registeredAtEpochSec: Number(r.registered_at_epoch_sec) };
+  const device = { deviceId: r.device_id, publicKeyB64: r.public_key_b64, registeredAtEpochSec: Number(r.registered_at_epoch_sec) };
+  if (r.revoked_at_epoch_sec !== null && r.revoked_at_epoch_sec !== undefined) {
+    device.revokedAtEpochSec = Number(r.revoked_at_epoch_sec);
+  }
+  return device;
 }
 function rowToEnvelope(r) {
   return {
@@ -78,7 +83,7 @@ function rowToBundle(r) {
   return out;
 }
 
-// pool: أي حاجة عندها query(text, params) زي pg.Pool. بيتحقن عشان الاختبارات.
+// pool: pg.Pool (أو أي حاجة عندها query وconnect). بيتحقن عشان الاختبارات.
 function createPgStore(pool) {
   let schemaReady = null;
   const ready = () => {
@@ -101,6 +106,30 @@ function createPgStore(pool) {
       );
       const { rows } = await q('SELECT * FROM relay_devices WHERE device_id = $1', [device.deviceId]);
       return rowToDevice(rows[0]);
+    },
+    // كل الخطوات في transaction واحدة: يا تتنفّذ كلها يا ولا واحدة.
+    async revokeDevice(deviceId, nowEpochSec) {
+      await ready();
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const { rowCount } = await client.query(
+          `UPDATE relay_devices SET revoked_at_epoch_sec = $2
+            WHERE device_id = $1 AND revoked_at_epoch_sec IS NULL`,
+          [deviceId, nowEpochSec],
+        );
+        if (rowCount === 1) {
+          await client.query('DELETE FROM relay_prekey_bundles WHERE device_id = $1', [deviceId]);
+          await client.query('DELETE FROM relay_envelopes WHERE recipient_device_id = $1', [deviceId]);
+        }
+        await client.query('COMMIT');
+        return rowCount === 1;
+      } catch (err) {
+        await client.query('ROLLBACK').catch(() => {});
+        throw err;
+      } finally {
+        client.release();
+      }
     },
 
     // ---- المغلفات ----

@@ -27,6 +27,8 @@ async function registerDevice(store, { deviceId, publicKeyB64, signatureB64 }, n
   // مع طلبين متزامنين.
   const stored = await store.putDevice({ deviceId, publicKeyB64, registeredAtEpochSec: nowEpochSec });
   if (stored.publicKeyB64 !== publicKeyB64) return refused('device id already bound to a different key');
+  // معرّف جهاز ملغي محجوز للأبد — حتى بنفس المفتاح.
+  if (stored.revokedAtEpochSec) return refused('device revoked');
   safeLog('device_registered', { deviceId, atEpochSec: nowEpochSec });
   return ok({ deviceId });
 }
@@ -42,6 +44,13 @@ async function submitEnvelope(store, envelope, signatureB64, nowEpochSec) {
 
   const proof = `${senderDeviceId}:${recipientDeviceId}:${ciphertextB64}:${expiresAtEpochSec}`;
   if (!verifySignature(sender.publicKeyB64, proof, signatureB64)) return refused('bad signature');
+  if (sender.revokedAtEpochSec) return refused('device revoked');
+
+  // المستلم لازم يكون مسجّل ومش ملغي — غير كده المغلف عمره ما هيتسحب، وكان
+  // أي حد يقدر يملا التخزين بمغلفات لمعرّفات مش موجودة.
+  const recipient = await store.getDevice(recipientDeviceId);
+  if (!recipient) return refused('recipient not registered');
+  if (recipient.revokedAtEpochSec) return refused('recipient revoked');
 
   if (expiresAtEpochSec <= nowEpochSec) return refused('already expired');
   if (expiresAtEpochSec - nowEpochSec > MAX_ENVELOPE_TTL_SECONDS) return refused('ttl too long');
@@ -65,6 +74,7 @@ async function listInbox(store, { deviceId, timestamp, signatureB64 }, nowEpochS
 
   const proof = `fetch:${deviceId}:${timestamp}`;
   if (!verifySignature(device.publicKeyB64, proof, signatureB64)) return refused('bad signature');
+  if (device.revokedAtEpochSec) return refused('device revoked');
   if (Math.abs(nowEpochSec - Number(timestamp)) > FETCH_CLOCK_SKEW_SECONDS) return refused('stale timestamp');
 
   await store.sweepExpired(nowEpochSec);
@@ -83,6 +93,7 @@ async function ackDelivery(store, { deviceId, envelopeId, signatureB64 }, nowEpo
 
   const proof = `ack:${envelopeId}`;
   if (!verifySignature(device.publicKeyB64, proof, signatureB64)) return refused('bad signature');
+  if (device.revokedAtEpochSec) return refused('device revoked');
 
   const env = await store.getEnvelope(envelopeId);
   if (!env) return refused('not found');

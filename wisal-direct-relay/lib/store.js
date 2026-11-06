@@ -8,7 +8,7 @@
 // plaintext في السكيمة أصلًا (نفس تصميم EncryptedEnvelope في العميل).
 
 function createInMemoryStore() {
-  const devices = new Map();   // deviceId -> { deviceId, publicKeyB64, registeredAtEpochSec }
+  const devices = new Map();   // deviceId -> { deviceId, publicKeyB64, registeredAtEpochSec, revokedAtEpochSec? }
   const envelopes = new Map(); // id -> envelope
   const preKeyBundles = new Map(); // deviceId -> published bundle (public keys only)
   const highestOneTimePreKeyId = new Map(); // deviceId -> highest one-time pre-key id ever published
@@ -23,6 +23,19 @@ function createInMemoryStore() {
     putDevice(device) {
       if (!devices.has(device.deviceId)) devices.set(device.deviceId, device);
       return devices.get(device.deviceId);
+    },
+    // إلغاء جهاز (ذرّي): بيعلّمه ملغي، ويمسح حزمة مفاتيحه والمغلفات اللي
+    // مستنياه. المعرّف بيفضل محجوز عشان محدش يسجّله تاني. بيرجّع false لو
+    // كان ملغي قبل كده.
+    revokeDevice(deviceId, nowEpochSec) {
+      const device = devices.get(deviceId);
+      if (!device || device.revokedAtEpochSec) return false;
+      devices.set(deviceId, { ...device, revokedAtEpochSec: nowEpochSec });
+      preKeyBundles.delete(deviceId);
+      for (const [id, e] of envelopes) {
+        if (e.recipientDeviceId === deviceId) envelopes.delete(id);
+      }
+      return true;
     },
 
     // ---- المغلفات ----
