@@ -38,6 +38,10 @@ private data class SignalSnapshot(
     var highestPreKeyId: Int = 0,
     var highestSignedId: Int = 0,
     var highestKyberId: Int = 0,
+    val outbox: MutableMap<String, QueuedSignalMessage> = mutableMapOf(),
+    val inbox: MutableMap<String, ReceivedSignalMessage> = mutableMapOf(),
+    val receipts: MutableMap<String, String> = mutableMapOf(),
+    val pendingAcks: MutableMap<String, String> = mutableMapOf(),
 )
 
 private fun ByteArray.b64() = Base64.getEncoder().encodeToString(this)
@@ -90,9 +94,11 @@ class SignalStatePersistence(private val read: () -> String?, private val write:
         val result = operation(identity, store)
         val encoded = json.encodeToString(SignalSnapshot.serializer(), snapshot)
         if (encoded != original) {
+            // Capacity rejection is not an ambiguous disk write and must not
+            // block reads of the last durable state for the rest of the process.
+            require(encoded.length <= 8 * 1024 * 1024) { "Signal state capacity reached." }
             blocked = true
             try {
-                require(encoded.length <= 8 * 1024 * 1024)
                 write(encoded)
                 check(read() == encoded)
             } catch (_: Exception) {
@@ -113,8 +119,16 @@ class SignalStatePersistence(private val read: () -> String?, private val write:
  * markers. Sender/group keys are deliberately unsupported by this 1:1 adapter.
  */
 private class SnapshotSignalStore(identity: LibsignalIdentity, private val state: SignalSnapshot) :
-    InMemorySignalProtocolStore(identity.keyPair, identity.registrationId) {
+    InMemorySignalProtocolStore(identity.keyPair, identity.registrationId), SignalDeliveryRecords {
+    override val outbox get() = state.outbox
+    override val inbox get() = state.inbox
+    override val receipts get() = state.receipts
+    override val pendingAcks get() = state.pendingAcks
     init {
+        require(state.outbox.size <= 1000 && state.inbox.size <= 1000 && state.receipts.size <= 10_000)
+        require(state.pendingAcks.all { (id, message) -> state.receipts[id] == message && state.inbox.containsKey(message) })
+        require(state.outbox.all { (id, item) -> id == item.id })
+        require(state.inbox.all { (id, item) -> id == item.id })
         state.peers.forEach { (a, r) -> super.saveIdentity(address(a), IdentityKey(r.bytes())) }
         state.sessions.forEach { (a, r) -> super.storeSession(address(a), SessionRecord(r.bytes())) }
         state.preKeys.forEach { (id, r) -> super.storePreKey(id, PreKeyRecord(r.bytes())) }

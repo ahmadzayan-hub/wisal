@@ -4,9 +4,6 @@ import kotlinx.serialization.json.Json
 import org.signal.libsignal.protocol.SessionBuilder
 import org.signal.libsignal.protocol.SessionCipher
 import org.signal.libsignal.protocol.SignalProtocolAddress
-import org.signal.libsignal.protocol.message.CiphertextMessage
-import org.signal.libsignal.protocol.message.PreKeySignalMessage
-import org.signal.libsignal.protocol.message.SignalMessage
 import org.signal.libsignal.protocol.state.impl.InMemorySignalProtocolStore
 
 // جهاز واحد = رقم "device" ثابت داخل عنونة Signal (SignalProtocolAddress).
@@ -77,20 +74,11 @@ class LibsignalCryptoProvider private constructor(private val access: SignalStor
             // تشفير مخصّص؛ بروتوكول Signal نفسه بيحمل نفس المعلومة دي في نقل
             // Signal الحقيقي كحقل منفصل جنب المحتوى.
             override fun encrypt(plaintext: ByteArray): ByteArray = access.use { _, store ->
-                val ct = SessionCipher(store, address).encrypt(plaintext)
-                byteArrayOf(ct.type.toByte()) + ct.serialize()
+                SignalWireCodec.encrypt(SessionCipher(store, address), plaintext)
             }
 
             override fun decrypt(ciphertext: ByteArray): ByteArray = access.use { _, store ->
-                val cipher = SessionCipher(store, address)
-                require(ciphertext.isNotEmpty()) { "empty ciphertext" }
-                val type = ciphertext[0].toInt()
-                val body = ciphertext.copyOfRange(1, ciphertext.size)
-                when (type) {
-                    CiphertextMessage.PREKEY_TYPE -> cipher.decrypt(PreKeySignalMessage(body))
-                    CiphertextMessage.WHISPER_TYPE -> cipher.decrypt(SignalMessage(body))
-                    else -> throw IllegalArgumentException("unsupported Signal ciphertext type $type")
-                }
+                SignalWireCodec.decrypt(SessionCipher(store, address), ciphertext)
             }
         }
     }
