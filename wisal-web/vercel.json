@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": { "deploymentEnabled": { "fix/fail-closed-device-identity": false } },
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [

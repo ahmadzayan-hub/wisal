@@ -202,7 +202,15 @@ fun PeopleScreen(onBack: () -> Unit) {
                     // دعوة لوصال: بتولّد رابط إقران منتهي الصلاحية (48 ساعة) وتفتح
                     // شيت المشاركة — الإرسال بإيدك دايمًا، ومفيش بيانات غير اسمك ومفتاحك.
                     TextButton(onClick = {
-                        val me = com.wifeassistant.data.crypto.DeviceIdentityStore.getOrCreate(context)
+                        val me = runCatching {
+                            com.wifeassistant.data.crypto.DeviceIdentityStore.getOrCreate(context)
+                        }.getOrElse {
+                            Toast.makeText(context, t(
+                                "تعذّر فتح هوية الجهاز بأمان. لم يتم إنشاء دعوة. لا تمسح بيانات التطبيق؛ افتح قفل الجهاز وأعد تشغيل وصال.",
+                                "Device identity is unavailable. No invitation was created. Keep app data intact; unlock your device and restart Wisal.",
+                            ), Toast.LENGTH_LONG).show()
+                            return@TextButton
+                        }
                         val myName = Settings(context).myName.ifBlank { t("صديقك على وصال", "Your friend on Wisal") }
                         val inv = com.wifeassistant.data.pairing.Pairing.create(
                             inviterDeviceId = me.deviceId,
