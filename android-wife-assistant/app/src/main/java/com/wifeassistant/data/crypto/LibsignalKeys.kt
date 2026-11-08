@@ -1,6 +1,5 @@
 package com.wifeassistant.data.crypto
 
-import kotlinx.serialization.Serializable
 import org.signal.libsignal.protocol.IdentityKey
 import org.signal.libsignal.protocol.IdentityKeyPair
 import org.signal.libsignal.protocol.ecc.ECKeyPair
@@ -33,21 +32,6 @@ data class LibsignalIdentity(val keyPair: IdentityKeyPair, val registrationId: I
 // حزمة المفاتيح المسبقة اللي جهاز بينشرها عشان أي حد يقدر يأسس جلسة معاه
 // (X3DH/PQXDH). المفتاح الفردي (one-time) هنا إلزامي دايمًا في النسخة دي —
 // مسار "من غير one-time prekey" في libsignal ما اتفحصش هنا، فمش مدعوم.
-@Serializable
-data class SignalPreKeyBundleDto(
-    val deviceId: String, // معرّف جهازنا (UUID) — بيبقى SignalProtocolAddress "name"
-    val registrationId: Int,
-    val identityKeyB64: String,
-    val signedPreKeyId: Int,
-    val signedPreKeyPublicB64: String,
-    val signedPreKeySignatureB64: String,
-    val kyberPreKeyId: Int,
-    val kyberPreKeyPublicB64: String,
-    val kyberPreKeySignatureB64: String,
-    val oneTimePreKeyId: Int,
-    val oneTimePreKeyPublicB64: String,
-)
-
 object LibsignalKeys {
     // معرّف تسجيل عشوائي — النطاق زي ما بروتوكول Signal بيتوقعه (14-bit تقريبًا).
     fun generateIdentity(): LibsignalIdentity =
