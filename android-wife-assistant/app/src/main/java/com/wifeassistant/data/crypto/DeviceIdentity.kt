@@ -26,6 +26,7 @@ data class LocalIdentity(
     val privateKeyB64: String,  // PKCS#8 — يتخزن في التخزين المشفّر فقط
 ) {
     val public: PublicIdentity get() = PublicIdentity(deviceId, publicKeyB64)
+    override fun toString() = "LocalIdentity(deviceId=$deviceId, privateKey=[redacted])"
 }
 
 // منطق صرف قابل للاختبار على الـ JVM — الربط بالتخزين الآمن بيتم عند الاستدعاء.

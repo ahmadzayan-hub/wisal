@@ -17,6 +17,11 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class DeviceIdentityPersistenceTest {
+    @Test fun descriptionsNeverIncludePrivateKeyMaterial() {
+        val identity = DeviceIdentityCodec.generate()
+        assertFalse(identity.toString().contains(identity.privateKeyB64))
+        assertTrue(identity.toString().contains("[redacted]"))
+    }
     private fun encode(identity: LocalIdentity) = JsonObject(mapOf(
         "deviceId" to JsonPrimitive(identity.deviceId),
         "publicKeyB64" to JsonPrimitive(identity.publicKeyB64),
