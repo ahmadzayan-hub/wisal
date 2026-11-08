@@ -98,6 +98,40 @@ jobs:
       - name: Unit tests
         run: ./gradlew testDebugUnitTest --stacktrace --no-daemon
 
+      - name: Verify device evidence collector
+        working-directory: ${{ github.workspace }}
+        run: python3 -m unittest discover -s verification/device -p '*Test.py' -v
+
+      - name: Build isolated Android device acceptance kit
+        run: ./gradlew assembleAcceptance assembleAcceptanceAndroidTest --stacktrace --no-daemon
+
+      - name: Verify isolated acceptance packages
+        run: |
+          kit_dir="$RUNNER_TEMP/WisalDeviceAcceptance"
+          mkdir -p "$kit_dir"
+          cp app/build/outputs/apk/acceptance/app-acceptance.apk "$kit_dir/WisalAcceptance.apk"
+          cp app/build/outputs/apk/androidTest/acceptance/app-acceptance-androidTest.apk "$kit_dir/WisalAcceptanceTests.apk"
+          for package_spec in 'WisalAcceptance.apk:com.wisal.app.acceptance' 'WisalAcceptanceTests.apk:com.wisal.app.acceptance.test'; do
+            apk_name="${package_spec%%:*}"
+            package_name="${package_spec#*:}"
+            "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging "$kit_dir/$apk_name" > "$RUNNER_TEMP/AcceptanceMetadata.txt"
+            grep -Fq "package: name='$package_name'" "$RUNNER_TEMP/AcceptanceMetadata.txt"
+            "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify "$kit_dir/$apk_name"
+          done
+          cp ../verification/device/CollectDeviceEvidence.py "$kit_dir/"
+          cp '../docs/Wisal Device Acceptance.md' "$kit_dir/"
+          printf '%s\n' "$GITHUB_SHA" > "$kit_dir/Source Commit.txt"
+          printf '%s\n' 'Isolated test-only debug signing. Not a production upgrade. Device tests NOT_RUN by this build. E2EE acceptance HOLD.' > "$kit_dir/Kit Status.txt"
+          (cd "$kit_dir" && sha256sum WisalAcceptance.apk WisalAcceptanceTests.apk > 'Kit Checksums.txt')
+
+      - name: Upload isolated device acceptance kit
+        uses: actions/upload-artifact@v4
+        with:
+          name: WisalDeviceAcceptance
+          path: ${{ runner.temp }}/WisalDeviceAcceptance/
+          retention-days: 7
+          if-no-files-found: error
+
       - name: Build unsigned release candidate with R8
         if: ${{ github.event_name != 'workflow_dispatch' || !(inputs.publish_release || inputs.signed_review) }}
         env:
