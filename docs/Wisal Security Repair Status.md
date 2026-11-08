@@ -11,7 +11,7 @@ PR 13 was merged as bd83abdb84d5a7c2883141688492eb58ef398881.
 Security CI 42521077776 passed native PostgreSQL and 69 JVM tests without skips.
 Android CI 42521077784 compiled the adapter and passed 233 unit tests without skips.
 The production website was deployed from this merge. Signed Android publication
-is tracked separately and requires the existing certificate to match. Physical
+was attempted in run 42528297701 and stopped before building because KEYSTORE_BASE64 is absent. No replacement signing key was generated; the existing published signing identity must be restored. Physical
 device, anti-rollback, verified pairing UI and durable app-delivery acceptance
 remain open. The sections below preserve the earlier local review evidence.
 Based on PR 11 `824eda74db9faffbca59b7353f4a3b64b34696de` and PR 12
