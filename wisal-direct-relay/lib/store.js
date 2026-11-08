@@ -12,6 +12,7 @@ function createInMemoryStore() {
   const envelopes = new Map(); // id -> envelope
   const preKeyBundles = new Map(); // deviceId -> published bundle (public keys only)
   const highestOneTimePreKeyId = new Map(); // deviceId -> highest one-time pre-key id ever published
+  const active = (id) => devices.has(id) && !devices.get(id).revokedAtEpochSec;
 
   return {
     // ---- الأجهزة ----
@@ -40,7 +41,9 @@ function createInMemoryStore() {
 
     // ---- المغلفات ----
     putEnvelope(envelope) {
+      if (!active(envelope.senderDeviceId) || !active(envelope.recipientDeviceId)) return false;
       envelopes.set(envelope.id, envelope);
+      return true;
     },
     getEnvelope(id) {
       return envelopes.get(id) || null;
@@ -62,6 +65,7 @@ function createInMemoryStore() {
     // بيرجّع false لو معرّف المفتاح الفردي مش أعلى من أي معرّف سابق — الشرط
     // جوه التخزين نفسه عشان نشرين متزامنين ما يعدّوش الفحص الاتنين.
     putPreKeyBundle(deviceId, bundle) {
+      if (!active(deviceId)) return false;
       const prev = highestOneTimePreKeyId.get(deviceId) || 0;
       if (bundle.oneTimePreKeyId <= prev) return false;
       preKeyBundles.set(deviceId, bundle);
@@ -74,7 +78,8 @@ function createInMemoryStore() {
     // بيرجّع الحزمة كاملة ويشيل منها المفتاح الفردي في نفس الخطوة. لو المفتاح
     // الفردي اتسلّم قبل كده بيرجّع null — الحزمة نفسها بتفضل لحد ما الجهاز
     // ينشر حزمة جديدة.
-    claimPreKeyBundle(deviceId) {
+    claimPreKeyBundle(deviceId, requesterDeviceId) {
+      if (!active(deviceId) || !active(requesterDeviceId) || deviceId === requesterDeviceId) return null;
       const bundle = preKeyBundles.get(deviceId);
       if (!bundle || bundle.oneTimePreKeyClaimed) return null;
       preKeyBundles.set(deviceId, { ...bundle, oneTimePreKeyPublicB64: null, oneTimePreKeyClaimed: true });

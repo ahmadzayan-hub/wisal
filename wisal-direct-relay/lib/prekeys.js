@@ -106,7 +106,7 @@ async function claimPreKeyBundle(store, { requesterDeviceId, targetDeviceId, tim
   const target = await store.getDevice(targetDeviceId);
   if (target && target.revokedAtEpochSec) return refused('target revoked');
   if (!(await store.getPreKeyBundle(targetDeviceId))) return refused('no bundle published');
-  const bundle = await store.claimPreKeyBundle(targetDeviceId);
+  const bundle = await store.claimPreKeyBundle(targetDeviceId, requesterDeviceId);
   // مفيش مفتاح فردي متاح: نرفض بدل ما نسلّم حزمة ناقصة أو نعيد استخدام مفتاح.
   // العميل الهدف لازم ينشر حزمة جديدة.
   if (!bundle) return refused('no one-time pre-key available');

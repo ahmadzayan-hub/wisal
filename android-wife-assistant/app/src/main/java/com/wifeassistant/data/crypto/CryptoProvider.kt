@@ -56,18 +56,20 @@ interface PreKeyEstablishingProvider : CryptoProvider {
 object CryptoProviderFactory {
     // isDebugBuild بيتمرر من BuildConfig.DEBUG عند نقطة الاستدعاء —
     // كده الحارس قابل للاختبار على الـ JVM من غير Robolectric.
-    fun create(backend: CryptoBackend, isDebugBuild: Boolean): CryptoProvider = when (backend) {
+    fun create(backend: CryptoBackend, isDebugBuild: Boolean,
+        signalPersistence: SignalStatePersistence? = null): CryptoProvider = when (backend) {
         CryptoBackend.DEMO_ONLY -> {
             check(isDebugBuild) {
                 "DEMO_ONLY transport is forbidden in release builds (ADR-002)"
             }
             DemoOnlyCrypto()
         }
-        // libsignal حقيقي ومتكامل فعليًا (ADR-002 §"Correction 2026-08-14") —
-        // بروتوكول متحقق منه، لكن mayClaimE2ee لسه false لحد ما تكامل الـ
-        // relay وبوابات الإطلاق تكتمل. الهوية بتتولّد جديدة كل استدعاء هنا
-        // عمدًا (التخزين الدائم شريحة لاحقة موثّقة، مش جزء من الشريحة دي).
-        CryptoBackend.SIGNAL -> LibsignalCryptoProvider(LibsignalKeys.generateIdentity())
+        // Release callers must supply durable encrypted persistence. Debug-only
+        // memory construction remains available for existing isolated tests.
+        CryptoBackend.SIGNAL -> if (signalPersistence != null) LibsignalCryptoProvider(signalPersistence) else {
+            check(isDebugBuild) { "Release Signal requires verified encrypted persistent storage." }
+            LibsignalCryptoProvider(LibsignalKeys.generateIdentity())
+        }
         CryptoBackend.VODOZEMAC -> throw NotImplementedError(
             "vodozemac backend lands in Phase 3 (default build variant) — see ADR-002"
         )
