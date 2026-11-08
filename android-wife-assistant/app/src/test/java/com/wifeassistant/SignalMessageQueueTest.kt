@@ -2,6 +2,8 @@ package com.wifeassistant
 
 import com.wifeassistant.data.crypto.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.*
 import org.junit.Test
 import java.util.Base64
@@ -130,6 +132,17 @@ class SignalMessageQueueTest {
         } }.isFailure)
         assertEquals(before, f.b.value)
         assertTrue(SignalMessageQueue(state).inbox().isEmpty())
+    }
+
+    @Test fun legacySnapshotReadDoesNotRequireAnUnrelatedMigrationWrite() {
+        val f = Fixture()
+        val current = Json.parseToJsonElement(checkNotNull(f.b.value)).jsonObject
+        val legacy = JsonObject(current.filterKeys { it !in setOf("inbox", "outbox", "receipts", "pendingAcks") }).toString()
+        var writes = 0
+        val state = SignalStatePersistence({ legacy }, { writes++; error("read-only backend") }, "B")
+        assertFalse(LibsignalCryptoProvider(state).hasSession("A"))
+        assertTrue(SignalMessageQueue(state).inbox().isEmpty())
+        assertEquals(0, writes)
     }
 
     @Test fun objectDescriptionsDoNotExposeMessageContents() {

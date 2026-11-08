@@ -23,6 +23,9 @@ physical-device acceptance or final E2EE release authorization.
   authenticated 'not found' response. The inbox row is never deleted by ACK cleanup.
 * AndroidSignalProvider exposes the queue through the existing SecureStore-backed
   snapshot. No plaintext snapshot file is used by the Android adapter.
+* Reading an older compatible snapshot does not force an unrelated migration
+  write. Only an actual state mutation or first-use identity creation requires
+  a commit; cryptographic operations still withhold output on commit failure.
 * State-capacity rejection is checked before the ambiguous-write latch. An
   oversized operation therefore does not block reads of the last durable state.
 * Signing secrets are no longer job-wide environment variables. Only signing

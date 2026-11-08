@@ -91,9 +91,10 @@ class SignalStatePersistence(private val read: () -> String?, private val write:
         }
         // Native mutations affect this operation's working copy only. A protocol
         // failure discards it, including partial pre-key removals or ratchet updates.
+        val baseline = json.encodeToString(SignalSnapshot.serializer(), snapshot)
         val result = operation(identity, store)
         val encoded = json.encodeToString(SignalSnapshot.serializer(), snapshot)
-        if (encoded != original) {
+        if (original == null || encoded != baseline) {
             // Capacity rejection is not an ambiguous disk write and must not
             // block reads of the last durable state for the rest of the process.
             require(encoded.length <= 8 * 1024 * 1024) { "Signal state capacity reached." }
