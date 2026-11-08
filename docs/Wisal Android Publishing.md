@@ -30,6 +30,24 @@ This identifies the published distribution, not an inspection of a physical
 phone. If the installed app came from a different build, verify its certificate
 and version before updating. Do not uninstall to get around a mismatch.
 
+## Build a signed review package
+
+After configuring the four original signing secrets, run Build Android APK on
+main with signed_review=true and publish_release=false. Supply the verified next
+versionCode and existing certificate fingerprint listed above. The workflow
+builds APK/AAB using the original key, verifies the APK certificate and package
+version, and uploads WisalSignedReview with checksums, source commit and an
+explicit E2EE status. Public android-latest and apk-dist are not replaced.
+Selecting review and public publication together fails preflight.
+
+A review build is not evidence of successful physical-device acceptance. Attach
+the device model/Android version, build SHA/APK checksum, commands or steps,
+expected/actual outcomes and sanitised logs for Keystore failure, backup/restore,
+upgrade preserving identity, two-device delivery/revocation and Signal recovery
+after process death and reboot. A statement that testing occurred does not
+supply those records. Keep mayClaimE2ee=false until the application and device
+gates are independently evidenced.
+
 ## Run the existing publisher
 
 Open Actions > Build Android APK > Run workflow on main. Set publish_release to

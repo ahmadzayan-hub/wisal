@@ -5,6 +5,10 @@ name: Build Android APK
 on:
   workflow_dispatch:
     inputs:
+      signed_review:
+        description: "Build with the original key and upload for review without public distribution"
+        type: boolean
+        default: false
       publish_release:
         description: "Publish with the existing, verified upgrade-compatible signing key"
         type: boolean
@@ -47,6 +51,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate release prerequisites
+        id: signing
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_release || inputs.signed_review) }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          REVIEW_ONLY: ${{ inputs.signed_review }}
+          PUBLISH_PUBLIC: ${{ inputs.publish_release }}
+          RELEASE_CODE: ${{ inputs.release_version_code }}
+          EXPECTED_CERT: ${{ inputs.signing_sha256 }}
+        run: |
+          if [[ "$REVIEW_ONLY" == "true" && "$PUBLISH_PUBLIC" == "true" ]]; then
+            echo "Choose signed review or public publication, not both."
+            exit 1
+          fi
+          for secret_name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            test -n "${!secret_name}" || { echo "Missing original signing credential: $secret_name. Publication stopped."; exit 1; }
+          done
+          [[ "$RELEASE_CODE" =~ ^[1-9][0-9]*$ ]] || { echo "Supply a verified higher versionCode."; exit 1; }
+          cert=$(printf '%s' "$EXPECTED_CERT" | tr -d ': ')
+          [[ "$cert" =~ ^[A-Fa-f0-9]{64}$ ]] || { echo "Supply the existing installed signing certificate SHA-256."; exit 1; }
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -70,7 +99,7 @@ jobs:
         run: ./gradlew testDebugUnitTest --stacktrace --no-daemon
 
       - name: Build unsigned release candidate with R8
-        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.publish_release }}
+        if: ${{ github.event_name != 'workflow_dispatch' || !(inputs.publish_release || inputs.signed_review) }}
         env:
           KEYSTORE_FILE: ""
           VERSION_CODE: "5"
@@ -78,7 +107,7 @@ jobs:
         run: ./gradlew assembleRelease --stacktrace --no-daemon
 
       - name: Verify unsigned candidate and record source
-        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.publish_release }}
+        if: ${{ github.event_name != 'workflow_dispatch' || !(inputs.publish_release || inputs.signed_review) }}
         run: |
           candidate_dir="$RUNNER_TEMP/WisalCandidate"
           mkdir -p "$candidate_dir"
@@ -96,7 +125,7 @@ jobs:
           printf '%s\n' 'UNSIGNED build candidate. Not installable or published. Use the existing signing identity only. E2EE acceptance remains open.' > "Candidate Status.txt"
 
       - name: Upload unsigned review candidate
-        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.publish_release }}
+        if: ${{ github.event_name != 'workflow_dispatch' || !(inputs.publish_release || inputs.signed_review) }}
         uses: actions/upload-artifact@v4
         with:
           name: WisalUnsignedCandidate
@@ -104,33 +133,14 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      - name: Validate release prerequisites
-        id: signing
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release }}
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          RELEASE_CODE: ${{ inputs.release_version_code }}
-          EXPECTED_CERT: ${{ inputs.signing_sha256 }}
-        run: |
-          for secret_name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
-            test -n "${!secret_name}" || { echo "Missing original signing credential: $secret_name. Publication stopped."; exit 1; }
-          done
-          [[ "$RELEASE_CODE" =~ ^[1-9][0-9]*$ ]] || { echo "Supply a verified higher versionCode."; exit 1; }
-          cert=$(printf '%s' "$EXPECTED_CERT" | tr -d ': ')
-          [[ "$cert" =~ ^[A-Fa-f0-9]{64}$ ]] || { echo "Supply the existing installed signing certificate SHA-256."; exit 1; }
-          echo "ready=true" >> "$GITHUB_OUTPUT"
-
       # حالة التوقيع في اللوج بوضوح — عشان تعرف إن كنت هتنشر على Play جاهز ولا لأ.
       - name: Signing status
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release && steps.signing.outputs.ready == 'true' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_release || inputs.signed_review) && steps.signing.outputs.ready == 'true' }}
         run: echo "Original signing credentials passed preflight; certificate verification follows the build."
 
       # Existing signing identity only; absent secrets block release publication.
       - name: Decode keystore (optional signing)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release && steps.signing.outputs.ready == 'true' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_release || inputs.signed_review) && steps.signing.outputs.ready == 'true' }}
         id: keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -141,7 +151,7 @@ jobs:
 
       # 3) بناء نسخة release (APK قابل للتثبيت).
       - name: Build release APK
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release && steps.signing.outputs.ready == 'true' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_release || inputs.signed_review) && steps.signing.outputs.ready == 'true' }}
         env:
           KEYSTORE_FILE: ${{ steps.keystore.outputs.path }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -154,7 +164,7 @@ jobs:
 
       # 4) بناء App Bundle (AAB) للرفع على Google Play.
       - name: Build release AAB (for Google Play)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release && steps.signing.outputs.ready == 'true' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_release || inputs.signed_review) && steps.signing.outputs.ready == 'true' }}
         env:
           KEYSTORE_FILE: ${{ steps.keystore.outputs.path }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -165,20 +175,25 @@ jobs:
         run: ./gradlew bundleRelease --stacktrace --no-daemon
 
       - name: Prepare artifacts (wisal.apk / wisal.aab)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release && steps.signing.outputs.ready == 'true' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_release || inputs.signed_review) && steps.signing.outputs.ready == 'true' }}
         run: |
           cp app/build/outputs/apk/release/app-release.apk ../wisal.apk
           cp app/build/outputs/bundle/release/app-release.aab ../wisal.aab
 
       - name: Verify upgrade signing identity
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release && steps.signing.outputs.ready == 'true' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_release || inputs.signed_review) && steps.signing.outputs.ready == 'true' }}
         env:
           EXPECTED_CERT: ${{ inputs.signing_sha256 }}
+          RELEASE_CODE: ${{ inputs.release_version_code }}
         run: |
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs ../wisal.apk > "$RUNNER_TEMP/wisal-certificate.txt"
           actual=$(awk -F': ' '/certificate SHA-256 digest/ {print $2; exit}' "$RUNNER_TEMP/wisal-certificate.txt" | tr '[:upper:]' '[:lower:]')
           expected=$(printf '%s' "$EXPECTED_CERT" | tr -d ': ' | tr '[:upper:]' '[:lower:]')
           test "$actual" = "$expected" || { echo "Signing identity mismatch. Publication stopped; do not uninstall the installed app."; exit 1; }
+          "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging ../wisal.apk > "$RUNNER_TEMP/SignedPackageMetadata.txt"
+          grep -q "package: name='com.wisal.app' versionCode='$RELEASE_CODE'" "$RUNNER_TEMP/SignedPackageMetadata.txt"
+          printf '%s\n' "$GITHUB_SHA" > "../Source Commit.txt"
+          printf '%s\n' 'Signed maintenance build. E2EE acceptance remains unverified; mayClaimE2ee=false.' > "../Build Status.txt"
           (cd .. && sha256sum wisal.apk wisal.aab > SHA256SUMS.txt)
 
       # قناة توزيع إضافية: فرع apk-dist فيه الـ APK/AAB مباشرة — بيتسحب بالـ git
@@ -202,18 +217,18 @@ jobs:
           git commit -q -m "dist: wisal.apk from ${GITHUB_SHA}"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" apk-dist
 
-      # اختياري: أرشيف الـ CI. مش بيوقف الـ pipeline لو مساحة أرشيف الـ Actions
-      # اتملت — التنزيل الأساسي بيتنشر على release ثابت تحت (android-latest).
-      - name: Upload artifacts
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release && steps.signing.outputs.ready == 'true' }}
-        continue-on-error: true
+      # Required review deliverable: a failed upload must not report a successful review build.
+      - name: Upload signed review artifacts
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_release || inputs.signed_review) && steps.signing.outputs.ready == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: wisal-android
+          name: WisalSignedReview
           path: |
             wisal.apk
             wisal.aab
             SHA256SUMS.txt
+            Source Commit.txt
+            Build Status.txt
           if-no-files-found: error
           retention-days: 5
 
