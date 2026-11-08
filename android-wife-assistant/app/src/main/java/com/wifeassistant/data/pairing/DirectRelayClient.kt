@@ -2,6 +2,7 @@ package com.wifeassistant.data.pairing
 
 import com.wifeassistant.data.crypto.DeviceIdentityCodec
 import com.wifeassistant.data.crypto.LocalIdentity
+import com.wifeassistant.data.crypto.SignalPreKeyBundleDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -25,6 +26,11 @@ class DirectRelayClient(private val baseUrl: String) {
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
+        // Claim consumes a one-time key. Never retry it or forward signed bodies
+        // to a redirect target without an explicit new caller operation.
+        .retryOnConnectionFailure(false)
+        .followRedirects(false)
+        .followSslRedirects(false)
         .build()
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -77,6 +83,41 @@ class DirectRelayClient(private val baseUrl: String) {
         val sig = signB64(identity, DirectRelayProofs.ack(envelopeId))
         val body = json.encodeToString(AckRequest.serializer(), AckRequest(identity.deviceId, envelopeId, sig))
         post(AckResponse.serializer(), "$baseUrl/api/ack", body).map { }
+    }
+
+    suspend fun publishPreKeys(identity: LocalIdentity, bundle: SignalPreKeyBundleDto, nowEpochSec: Long): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext Result.failure(IllegalStateException("relay not configured"))
+        runCatching {
+            require(nowEpochSec > 0 && bundle.deviceId == identity.deviceId && bundle.hasValidWireFields()) { "invalid pre-key publication" }
+            val signature = signB64(identity, DirectRelayProofs.publishPreKeys(bundle, nowEpochSec))
+            val body = json.encodeToString(PublishPreKeysRequest.serializer(), PublishPreKeysRequest(bundle, nowEpochSec, signature))
+            val response = post(PublishPreKeysResponse.serializer(), "${baseUrl.trimEnd('/')}/api/prekeys", body).getOrThrow()
+            check(response.deviceId == identity.deviceId && response.oneTimePreKeyId == bundle.oneTimePreKeyId) { "mismatched publication receipt" }
+        }
+    }
+
+    suspend fun claimPreKeys(identity: LocalIdentity, targetDeviceId: String, nowEpochSec: Long): Result<SignalPreKeyBundleDto> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext Result.failure(IllegalStateException("relay not configured"))
+        runCatching {
+            require(nowEpochSec > 0 && targetDeviceId.isNotBlank() && !targetDeviceId.contains(':') && targetDeviceId != identity.deviceId) { "invalid pre-key target" }
+            val signature = signB64(identity, DirectRelayProofs.claimPreKeys(identity.deviceId, targetDeviceId, nowEpochSec))
+            val body = json.encodeToString(ClaimPreKeysRequest.serializer(), ClaimPreKeysRequest(identity.deviceId, targetDeviceId, nowEpochSec, signature))
+            val response = post(ClaimPreKeysResponse.serializer(), "${baseUrl.trimEnd('/')}/api/prekeys-claim", body).getOrThrow()
+            val bundle = response.bundle ?: error("missing pre-key bundle")
+            check(bundle.deviceId == targetDeviceId && bundle.hasValidWireFields()) { "invalid claimed pre-key bundle" }
+            bundle
+        }
+    }
+
+    suspend fun revokeDevice(identity: LocalIdentity, nowEpochSec: Long): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext Result.failure(IllegalStateException("relay not configured"))
+        runCatching {
+            require(nowEpochSec > 0) { "invalid revocation timestamp" }
+            val signature = signB64(identity, DirectRelayProofs.revoke(identity.deviceId, nowEpochSec))
+            val body = json.encodeToString(RevokeRequest.serializer(), RevokeRequest(identity.deviceId, nowEpochSec, signature))
+            val response = post(RevokeResponse.serializer(), "${baseUrl.trimEnd('/')}/api/revoke", body).getOrThrow()
+            check(response.deviceId == identity.deviceId && response.revoked == true) { "missing revocation receipt" }
+        }
     }
 
     private fun signB64(identity: LocalIdentity, proof: String): String =
@@ -133,3 +174,16 @@ private data class AckResponse(override val ok: Boolean? = null, override val re
 
 @Serializable
 private data class InboxResponse(val ok: Boolean? = null, val reason: String? = null, val items: List<RelayInboxItem>? = null)
+
+@Serializable
+private data class PublishPreKeysRequest(val bundle: SignalPreKeyBundleDto, val timestamp: Long, val signatureB64: String)
+@Serializable
+private data class PublishPreKeysResponse(override val ok: Boolean? = null, override val reason: String? = null, val deviceId: String? = null, val oneTimePreKeyId: Int? = null) : RelayOkResponse
+@Serializable
+private data class ClaimPreKeysRequest(val requesterDeviceId: String, val targetDeviceId: String, val timestamp: Long, val signatureB64: String)
+@Serializable
+private data class ClaimPreKeysResponse(override val ok: Boolean? = null, override val reason: String? = null, val bundle: SignalPreKeyBundleDto? = null) : RelayOkResponse
+@Serializable
+private data class RevokeRequest(val deviceId: String, val timestamp: Long, val signatureB64: String)
+@Serializable
+private data class RevokeResponse(override val ok: Boolean? = null, override val reason: String? = null, val deviceId: String? = null, val revoked: Boolean? = null) : RelayOkResponse

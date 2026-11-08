@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": { "deploymentEnabled": { "fix/fail-closed-device-identity": false, "fix/WisalReleaseSecurity": false } },
   "functions": {
     "api/*.js": { "maxDuration": 15 }
   }
