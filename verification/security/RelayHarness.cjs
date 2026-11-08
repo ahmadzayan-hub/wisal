@@ -8,6 +8,7 @@ const path = require('node:path');
 const relay = path.resolve(__dirname, '../../wisal-direct-relay');
 const handlers = Object.fromEntries(['devices', 'prekeys', 'prekeys-claim', 'envelopes', 'inbox', 'ack', 'revoke']
   .map(name => ['/api/' + name, require(path.join(relay, 'api', name + '.js'))]));
+let dropAck = process.env.WISAL_TEST_DROP_ACK_ONCE === '1';
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://127.0.0.1');
   const handler = handlers[url.pathname];
@@ -19,7 +20,12 @@ const server = http.createServer(async (req, res) => {
   }
   req.body = body; req.query = Object.fromEntries(url.searchParams);
   res.status = code => { res.statusCode = code; return res; };
-  res.json = value => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(value)); };
+  res.json = value => {
+    if (dropAck && url.pathname === '/api/ack' && value.ok === true) {
+      dropAck = false; req.socket.destroy(); return;
+    }
+    res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(value));
+  };
   try { await handler(req, res); } catch { res.status(500).json({ ok: false }); }
 });
 server.listen(0, '127.0.0.1', () => console.log('READY ' + server.address().port));

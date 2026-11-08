@@ -2,6 +2,7 @@ package com.wifeassistant
 
 import com.wifeassistant.data.crypto.*
 import com.wifeassistant.data.pairing.DirectRelayClient
+import com.wifeassistant.data.pairing.DirectSignalDelivery
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.Assert.*
@@ -27,8 +28,12 @@ class SignalRelayIntegrationTest {
             val a = DeviceIdentityCodec.generate(); val b = DeviceIdentityCodec.generate()
             relay.registerDevice(a).getOrThrow(); relay.registerDevice(b).getOrThrow()
             var aDisk: String? = null; var bDisk: String? = null
-            fun openA() = LibsignalCryptoProvider(SignalStatePersistence({ aDisk }, { aDisk = it }))
-            fun openB() = LibsignalCryptoProvider(SignalStatePersistence({ bDisk }, { bDisk = it }))
+            fun aState() = SignalStatePersistence({ aDisk }, { aDisk = it }, a.deviceId)
+            fun bState() = SignalStatePersistence({ bDisk }, { bDisk = it }, b.deviceId)
+            fun openA() = LibsignalCryptoProvider(aState())
+            fun openB() = LibsignalCryptoProvider(bState())
+            val aq = SignalMessageQueue(aState()); val bq = SignalMessageQueue(bState())
+            val ad = DirectSignalDelivery(relay, aq); val bd = DirectSignalDelivery(relay, bq)
             val alice = openA(); val bob = openB()
             val ab = alice.publishableBundle(a.deviceId); val bb = bob.publishableBundle(b.deviceId)
             alice.trustPeer(b.public, bb, SignalPeerBinding.sign(b, bb))
@@ -38,21 +43,21 @@ class SignalRelayIntegrationTest {
             assertTrue(relay.claimPreKeys(a, b.deviceId, now).isFailure)
             alice.establishSession(b.deviceId, Json.encodeToString(SignalPreKeyBundleDto.serializer(), claimed).toByteArray())
             val plain = "اختبار اصطناعي عبر HTTP | synthetic offline message"
-            val ciphertext = alice.session(b.deviceId).encrypt(plain.toByteArray(Charsets.UTF_8))
-            val envelopeId = relay.submitEnvelope(a, b.deviceId, Base64.getEncoder().encodeToString(ciphertext), "SIGNAL", now + 600).getOrThrow()
-            // Bob was offline during submit. Recreate the client from durable prekeys.
-            val inbox = relay.fetchInbox(b, now).getOrThrow(); assertEquals(1, inbox.size)
-            assertEquals(envelopeId, inbox.single().id)
-            assertFalse(inbox.single().ciphertextB64.contains(plain))
-            val received = openB().session(a.deviceId).decrypt(Base64.getDecoder().decode(inbox.single().ciphertextB64))
-            assertEquals(plain, String(received, Charsets.UTF_8))
-            relay.ackDelivery(b, envelopeId).getOrThrow()
+            val outgoing = aq.prepare("first", b.deviceId, plain.toByteArray(Charsets.UTF_8), now, now + 600)
+            val ciphertext = Base64.getDecoder().decode(outgoing.ciphertextB64)
+            assertEquals(1, ad.flushOutbox(a, now).getOrThrow())
+            // Simulate an ambiguous submit: same saved ciphertext under another relay id.
+            relay.submitEnvelope(a, b.deviceId, outgoing.ciphertextB64, "SIGNAL", now + 600).getOrThrow()
+            assertEquals(2, relay.fetchInbox(b, now).getOrThrow().size)
+            assertEquals(2, bd.receiveAndAcknowledge(b, now).getOrThrow())
+            val received = SignalMessageQueue(bState()).inbox().single()
+            assertEquals(plain, String(Base64.getDecoder().decode(received.plaintextB64), Charsets.UTF_8))
             assertTrue(relay.fetchInbox(b, now).getOrThrow().isEmpty())
-            val reply = openB().session(a.deviceId).encrypt("reply after reload".toByteArray())
-            relay.submitEnvelope(b, a.deviceId, Base64.getEncoder().encodeToString(reply), "SIGNAL", now + 600).getOrThrow()
-            val back = relay.fetchInbox(a, now).getOrThrow().single()
-            assertEquals("reply after reload", String(openA().session(b.deviceId).decrypt(Base64.getDecoder().decode(back.ciphertextB64))))
-            relay.ackDelivery(a, back.id).getOrThrow()
+            assertTrue(bq.pendingAcknowledgements().isEmpty())
+            bq.prepare("reply", a.deviceId, "reply after reload".toByteArray(), now, now + 600)
+            assertEquals(1, bd.flushOutbox(b, now).getOrThrow())
+            assertEquals(1, ad.receiveAndAcknowledge(a, now).getOrThrow())
+            assertEquals("reply after reload", String(Base64.getDecoder().decode(aq.inbox().single().plaintextB64)))
             relay.revokeDevice(b, now).getOrThrow()
             assertTrue(relay.claimPreKeys(a, b.deviceId, now).isFailure)
             assertTrue(relay.submitEnvelope(a, b.deviceId, Base64.getEncoder().encodeToString(ciphertext), "SIGNAL", now + 600).isFailure)
@@ -60,4 +65,41 @@ class SignalRelayIntegrationTest {
             assertFalse(openA().mayClaimE2ee)
         } finally { child.destroyForcibly(); child.waitFor() }
     }
+
+    @Test(timeout = 30_000) fun ackResponseLossRecoversWithoutLosingOrDuplicatingTheMessage() = runBlocking {
+        val root = System.getProperty("wisal.repository") ?: generateSequence(Path.of("").toAbsolutePath()) { it.parent }
+            .first { java.nio.file.Files.exists(it.resolve("verification/security/RelayHarness.cjs")) }.toString()
+        val builder = ProcessBuilder("node", Path.of(root, "verification/security/RelayHarness.cjs").toString())
+            .redirectErrorStream(true)
+        builder.environment()["WISAL_TEST_DROP_ACK_ONCE"] = "1"
+        val process = builder.start()
+        try {
+            val ready = process.inputStream.bufferedReader().readLine()
+            check(ready.startsWith("READY "))
+            val relay = DirectRelayClient("http://127.0.0.1:" + ready.substringAfter("READY "))
+            val a = DeviceIdentityCodec.generate(); val b = DeviceIdentityCodec.generate()
+            val now = System.currentTimeMillis() / 1000
+            relay.registerDevice(a).getOrThrow(); relay.registerDevice(b).getOrThrow()
+            var saved: String? = null
+            fun state() = SignalStatePersistence({ saved }, { saved = it }, b.deviceId)
+            val bob = LibsignalCryptoProvider(state())
+            val alice = LibsignalCryptoProvider(LibsignalKeys.generateIdentity())
+            val ab = alice.publishableBundle(a.deviceId); val bb = bob.publishableBundle(b.deviceId)
+            bob.trustPeer(a.public, ab, SignalPeerBinding.sign(a, ab))
+            alice.establishSession(b.deviceId, Json.encodeToString(SignalPreKeyBundleDto.serializer(), bb).toByteArray())
+            val ciphertext = alice.session(b.deviceId).encrypt("durable before ack".toByteArray())
+            relay.submitEnvelope(a, b.deviceId, Base64.getEncoder().encodeToString(ciphertext), "SIGNAL", now + 600).getOrThrow()
+            val first = DirectSignalDelivery(relay, SignalMessageQueue(state())).receiveAndAcknowledge(b, now)
+            assertTrue(first.isFailure)
+            assertEquals(1, SignalMessageQueue(state()).inbox().size)
+            assertEquals(1, SignalMessageQueue(state()).pendingAcknowledgements().size)
+            assertTrue(relay.fetchInbox(b, now).getOrThrow().isEmpty())
+            // The old ACK now returns "not found"; only its local intent is removed.
+            val retry = DirectSignalDelivery(relay, SignalMessageQueue(state())).receiveAndAcknowledge(b, now)
+            assertTrue(retry.isSuccess)
+            assertTrue(SignalMessageQueue(state()).pendingAcknowledgements().isEmpty())
+            assertEquals("durable before ack", String(Base64.getDecoder().decode(SignalMessageQueue(state()).inbox().single().plaintextB64)))
+        } finally { process.destroyForcibly(); process.waitFor() }
+    }
+
 }

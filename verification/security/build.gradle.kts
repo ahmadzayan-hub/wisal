@@ -15,9 +15,12 @@ sourceSets {
             "com/wifeassistant/data/crypto/LibsignalCryptoProvider.kt",
             "com/wifeassistant/data/crypto/SignalPreKeyBundleDto.kt",
             "com/wifeassistant/data/crypto/SignalStatePersistence.kt",
+            "com/wifeassistant/data/crypto/SignalMessageQueue.kt",
+            "com/wifeassistant/data/crypto/SignalWireCodec.kt",
             "com/wifeassistant/data/crypto/SignalPeerBinding.kt",
             "com/wifeassistant/data/pairing/DirectRelayClient.kt",
-            "com/wifeassistant/data/pairing/DirectRelayProofs.kt")
+            "com/wifeassistant/data/pairing/DirectRelayProofs.kt",
+            "com/wifeassistant/data/pairing/DirectSignalDelivery.kt")
     }
     test {
         kotlin.srcDir("../../android-wife-assistant/app/src/test/java")
@@ -28,6 +31,7 @@ sourceSets {
             "com/wifeassistant/CryptoProviderTest.kt",
             "com/wifeassistant/SignalReleaseAcceptanceTest.kt",
             "com/wifeassistant/SignalPersistenceTest.kt",
+            "com/wifeassistant/SignalMessageQueueTest.kt",
             "com/wifeassistant/DirectRelayClientTest.kt",
             "com/wifeassistant/DirectRelayProofsTest.kt",
             "com/wifeassistant/DirectRelayKeyLifecycleTest.kt",

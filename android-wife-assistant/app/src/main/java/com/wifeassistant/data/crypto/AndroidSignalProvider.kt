@@ -8,6 +8,7 @@ import com.wifeassistant.data.SecureStore
  * the application's manual backup or a cloud/OEM transfer.
  */
 object AndroidSignalProvider {
+    private var state: SignalStatePersistence? = null
     private var provider: LibsignalCryptoProvider? = null
 
     @Synchronized
@@ -20,6 +21,14 @@ object AndroidSignalProvider {
             write = { SecureStore.setSecret(app, "signalProtocolState", it) },
             ownerDeviceId = owner,
         )
+        state = persistence
         return LibsignalCryptoProvider(persistence).also { provider = it }
     }
+
+    @Synchronized
+    fun deliveryQueue(context: Context): SignalMessageQueue {
+        get(context)
+        return SignalMessageQueue(checkNotNull(state))
+    }
+
 }
