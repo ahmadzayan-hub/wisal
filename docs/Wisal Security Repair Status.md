@@ -2,7 +2,18 @@
 
 Prepared for Ahmed Zaian. 9 November 2026, Dubai.
 
-Status: HOLD. This is a local review candidate, not a release or merge approval.
+Status: maintenance hardening merged under explicit owner authorization in PR 13.
+E2EE acceptance remains HOLD; this is not a claim that encrypted messaging is live.
+
+## Current evidence after the original review
+
+PR 13 was merged as bd83abdb84d5a7c2883141688492eb58ef398881.
+Security CI 42521077776 passed native PostgreSQL and 69 JVM tests without skips.
+Android CI 42521077784 compiled the adapter and passed 233 unit tests without skips.
+The production website was deployed from this merge. Signed Android publication
+was attempted in run 42528297701 and stopped before building because KEYSTORE_BASE64 is absent. No replacement signing key was generated; the existing published signing identity must be restored. Physical
+device, anti-rollback, verified pairing UI and durable app-delivery acceptance
+remain open. The sections below preserve the earlier local review evidence.
 Based on PR 11 `824eda74db9faffbca59b7353f4a3b64b34696de` and PR 12
 `544270191e176f3e1da30ca3a87ec2e0faddcd71`.
 
@@ -36,7 +47,7 @@ Based on PR 11 `824eda74db9faffbca59b7353f4a3b64b34696de` and PR 12
 5. Complete the application's durable outbox/inbox/ack contract. Persisting the ratchet before returning plaintext does not atomically persist the user's delivered message; a process crash between decrypt commit and app delivery must not lose the message. No such UI/message repository transaction is claimed here.
 6. Prove rejection of older valid snapshots/backup rollback and define explicit identity-loss recovery. The snapshot adapter does not itself provide rollback resistance across a restored valid encrypted snapshot. It supports one Android process only, and is limited to 8 MiB and 1:1 Signal sessions. Group sender-key storage is deliberately rejected.
 7. Define lost-device revocation/recovery and key rotation. Current relay revocation is self-revocation only; it cannot revoke an unavailable stolen device from another trusted device.
-8. Complete an independent security review and present the exact candidate, device results, residual risks and evidence to Ahmed Zaian. No merge, publish, signing or E2EE claim is authorized by this candidate alone.
+8. Complete an independent security review and present device results and residual risks before enabling E2EE. The owner has explicitly authorized maintenance merging and deployment; this does not close the E2EE acceptance gates.
 
 ## Reproduce
 
