@@ -38,6 +38,7 @@ private data class SignalSnapshot(
     var highestPreKeyId: Int = 0,
     var highestSignedId: Int = 0,
     var highestKyberId: Int = 0,
+    var lastSignedKeyRotationEpochSec: Long = 0,
     val outbox: MutableMap<String, QueuedSignalMessage> = mutableMapOf(),
     val inbox: MutableMap<String, ReceivedSignalMessage> = mutableMapOf(),
     val receipts: MutableMap<String, String> = mutableMapOf(),
@@ -115,12 +116,29 @@ class SignalStatePersistence(private val read: () -> String?, private val write:
         require(ownerDeviceId == null || ownerDeviceId == deviceId) { "Signal state belongs to another device identity." }
     }
 
-    internal fun nextPublishableBundle(deviceId: String): SignalPreKeyBundleDto = use { identity, store ->
+    internal fun nextPublishableBundle(
+        deviceId: String,
+        nowEpochSec: Long = System.currentTimeMillis() / 1000,
+    ): SignalPreKeyBundleDto = use { identity, store ->
         requireOwner(deviceId)
         // Read, allocate, generate and commit under the same persistence lock.
         // Counts or the largest remaining key would reuse IDs after consumption.
-        val (signedId, kyberId, oneTimeId) = (store as SnapshotSignalStore).nextPreKeyIds()
-        LibsignalKeys.generateAndStorePublishableBundle(identity, store, deviceId, signedId, kyberId, oneTimeId)
+        val snapshotStore = store as SnapshotSignalStore
+        val (signedId, kyberId, oneTimeId) = snapshotStore.nextPreKeyIds()
+        val bundle = LibsignalKeys.generateAndStorePublishableBundle(identity, store, deviceId, signedId, kyberId, oneTimeId)
+        // A fresh signed pre-key was just generated and committed above:
+        // this is the only place that may legitimately move the rotation
+        // clock forward, so the replenishment policy sees an honest age.
+        snapshotStore.recordSignedKeyRotation(nowEpochSec)
+        bundle
+    }
+
+    /** Read-only snapshot of local pre-key state for [PreKeyReplenishmentPolicy].
+     * Carries no secret material, only counts and a rotation timestamp.
+     */
+    internal fun replenishmentState(deviceId: String): PreKeyReplenishmentState = use { _, store ->
+        requireOwner(deviceId)
+        (store as SnapshotSignalStore).replenishmentState()
     }
 }
 
@@ -139,7 +157,24 @@ private class SnapshotSignalStore(identity: LibsignalIdentity, private val state
         check(ids.all { it in 0 until Int.MAX_VALUE }) { "Pre-key ID space exhausted; no new keys were generated." }
         return Triple(ids[0] + 1, ids[1] + 1, ids[2] + 1)
     }
+
+    /** Records when a signed pre-key was last (re)generated. Never moves the
+     * clock backwards: an out-of-order or repeated call cannot make the
+     * rotation policy believe a key is younger than one already committed.
+     */
+    fun recordSignedKeyRotation(nowEpochSec: Long) {
+        require(nowEpochSec >= 0) { "Rotation timestamp cannot be negative." }
+        if (nowEpochSec > state.lastSignedKeyRotationEpochSec) state.lastSignedKeyRotationEpochSec = nowEpochSec
+    }
+
+    fun replenishmentState(): PreKeyReplenishmentState = PreKeyReplenishmentState(
+        hasPublishedBundle = state.highestSignedId > 0,
+        lastSignedKeyRotationEpochSec = state.lastSignedKeyRotationEpochSec,
+        oneTimePreKeyCount = state.preKeys.size,
+    )
+
     init {
+        require(state.lastSignedKeyRotationEpochSec >= 0)
         require(state.outbox.size <= 1000 && state.inbox.size <= 1000 && state.receipts.size <= 10_000)
         require(state.pendingAcks.all { (id, message) -> state.receipts[id] == message && state.inbox.containsKey(message) })
         require(state.outbox.all { (id, item) -> id == item.id })

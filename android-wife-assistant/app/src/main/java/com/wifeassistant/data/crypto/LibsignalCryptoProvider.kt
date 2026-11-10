@@ -31,13 +31,35 @@ class LibsignalCryptoProvider private constructor(private val access: SignalStor
 
     /** Allocate fresh IDs from durable high-water marks and commit the private
      * keys before releasing a public bundle. Does not publish or schedule work.
-     * Existing keys are retained for messages already in flight.
+     * Existing keys are retained for messages already in flight. Records
+     * [nowEpochSec] as the signed pre-key's new rotation time, so a later
+     * [replenishmentDecision] call reports its true age.
      */
-    fun nextPublishableBundle(myDeviceId: String): SignalPreKeyBundleDto {
+    fun nextPublishableBundle(
+        myDeviceId: String,
+        nowEpochSec: Long = System.currentTimeMillis() / 1000,
+    ): SignalPreKeyBundleDto {
         addressOf(myDeviceId)
         val persistence = access as? SignalStatePersistence
             ?: error("Automatic pre-key allocation requires durable Signal storage.")
-        return persistence.nextPublishableBundle(myDeviceId)
+        return persistence.nextPublishableBundle(myDeviceId, nowEpochSec)
+    }
+
+    /** Ask [policy] whether this device's signed pre-key and/or one-time
+     * pre-key are due for replenishment right now. Pure read: makes no
+     * relay request, generates no keys and starts no scheduler — the caller
+     * decides what, if anything, to do with the answer (typically calling
+     * [nextPublishableBundle] and then publishing the result).
+     */
+    fun replenishmentDecision(
+        myDeviceId: String,
+        nowEpochSec: Long = System.currentTimeMillis() / 1000,
+        policy: PreKeyReplenishmentPolicy = PreKeyReplenishmentPolicy(),
+    ): PreKeyReplenishmentDecision {
+        addressOf(myDeviceId)
+        val persistence = access as? SignalStatePersistence
+            ?: error("Replenishment policy requires durable Signal storage.")
+        return policy.evaluate(persistence.replenishmentState(myDeviceId), nowEpochSec)
     }
 
     // الحزمة اللي الجهاز ده هينشرها على الـ relay (شريحة لاحقة) عشان أي حد
