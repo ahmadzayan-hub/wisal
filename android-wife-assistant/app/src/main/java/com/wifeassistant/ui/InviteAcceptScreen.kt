@@ -25,7 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.wifeassistant.data.Settings
-import com.wifeassistant.data.pairing.PairedPeer
 import com.wifeassistant.data.pairing.Pairing
 import com.wifeassistant.data.pairing.PairingInvitation
 import com.wifeassistant.data.pairing.PairingResult
@@ -40,19 +39,21 @@ import java.time.format.DateTimeFormatter
 fun InviteAcceptScreen(
     invitation: PairingInvitation,
     onClose: () -> Unit,
-    nowEpochSec: Long = System.currentTimeMillis() / 1000,
+    clock: () -> Long = { System.currentTimeMillis() / 1000 },
 ) {
     val context = LocalContext.current
     val settings = remember { Settings(context) }
 
     // الحالة الأولية: منتهية، مستخدمة قبل كده على الجهاز ده، أو معلّقة.
-    var phase by remember {
+    var phase by remember(invitation) {
         mutableStateOf(
-            when {
-                invitation.id in settings.acceptedInvitationIds -> "already"
-                Pairing.isExpired(invitation, nowEpochSec) -> "expired"
-                else -> "pending"
-            }
+            runCatching {
+                when {
+                    invitation.id in settings.acceptedInvitationIds -> "already"
+                    Pairing.accept(invitation, invitation.token, clock()) !is PairingResult.Ok -> "expired"
+                    else -> "pending"
+                }
+            }.getOrDefault("storage_error")
         )
     }
 
@@ -102,22 +103,18 @@ fun InviteAcceptScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                         Button(
                             onClick = {
-                                when (val r = Pairing.accept(invitation, invitation.token, nowEpochSec)) {
-                                    is PairingResult.Ok -> {
-                                        settings.pairedPeers = settings.pairedPeers +
-                                            PairedPeer(
-                                                deviceId = invitation.inviterDeviceId,
-                                                publicKeyB64 = invitation.inviterPublicKeyB64,
-                                                name = invitation.inviterName,
-                                                invitationId = invitation.id,
-                                                pairedAtEpochSec = nowEpochSec,
-                                            )
-                                        settings.acceptedInvitationIds =
-                                            settings.acceptedInvitationIds + invitation.id
-                                        phase = "accepted"
+                                // Time is read when clicked, not when the screen opened.
+                                phase = runCatching {
+                                    when (val result = settings.acceptInvitation(invitation, clock())) {
+                                        is PairingResult.Ok -> "accepted"
+                                        is PairingResult.Refused -> when (result.reason) {
+                                            "already accepted" -> "already"
+                                            "already paired" -> "paired"
+                                            "identity changed" -> "key_changed"
+                                            else -> "expired"
+                                        }
                                     }
-                                    is PairingResult.Refused -> phase = "expired"
-                                }
+                                }.getOrDefault("storage_error")
                             },
                             modifier = Modifier.weight(1f),
                         ) { Text(t("قبول الدعوة", "Accept invitation")) }
@@ -151,6 +148,24 @@ fun InviteAcceptScreen(
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text(t("تمام", "Done")) }
+                }
+
+                "storage_error", "key_changed", "paired" -> {
+                    Text(
+                        when (phase) {
+                            "key_changed" -> t(
+                                "مفتاح الجهاز مختلف عن الإقران المحفوظ. لم يتم استبداله. تحقق من الطرف الآخر قبل إعادة الإقران.",
+                                "This device key differs from the saved pairing. It was not replaced. Verify the other person before pairing again.",
+                            )
+                            "paired" -> t("الجهاز ده مقترن بالفعل.", "This device is already paired.")
+                            else -> t(
+                                "تعذّر تأكيد حفظ الإقران. لا تمسح بيانات التطبيق؛ أعد تشغيل وصال وحاول مرة أخرى.",
+                                "Pairing could not be confirmed saved. Keep app data intact; restart Wisal and try again.",
+                            )
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text(t("إغلاق", "Close")) }
                 }
 
                 else -> {

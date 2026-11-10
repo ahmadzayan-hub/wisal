@@ -14,8 +14,9 @@ import org.junit.Test
 // دعوات الإقران: انتهاء صلاحية، استخدام أحادي (منع replay)، إلغاء — بوقت محقون.
 class PairingTest {
     private val now = 1_800_000_000L
+    private val identity = DeviceIdentityCodec.generate()
     private fun inv(ttl: Long = Pairing.TTL_SECONDS) =
-        Pairing.create("devA", "pubA", "أحمد", nowEpochSec = now, ttlSeconds = ttl)
+        Pairing.create(identity.deviceId, identity.publicKeyB64, "أحمد", nowEpochSec = now, ttlSeconds = ttl)
 
     @Test fun acceptWithinTtlSucceedsOnce() {
         val i = inv()
@@ -41,7 +42,7 @@ class PairingTest {
 
     @Test fun wrongTokenIsRefused() {
         val i = inv()
-        assertTrue(Pairing.accept(i, i.token.dropLast(1) + "x", now + 10) is PairingResult.Refused)
+        assertTrue(Pairing.accept(i, i.token + "x", now + 10) is PairingResult.Refused)
     }
 
     @Test fun revokedInvitationCannotBeAccepted() {

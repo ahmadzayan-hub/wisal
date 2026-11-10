@@ -126,19 +126,16 @@ class Settings(context: Context) {
 
     // ---- الإقران (Wisal Direct) ----
     // بيانات عامة فقط (معرّف + مفتاح عام + اسم) — مفيش أسرار هنا.
-    var pairedPeers: List<com.wifeassistant.data.pairing.PairedPeer>
-        get() {
-            val raw = prefs.getString("pairedPeers", null) ?: return emptyList()
-            return runCatching {
-                json.decodeFromString<List<com.wifeassistant.data.pairing.PairedPeer>>(raw)
-            }.getOrDefault(emptyList())
-        }
-        set(v) = prefs.edit().putString("pairedPeers", json.encodeToString(v)).apply()
+    val pairedPeers: List<com.wifeassistant.data.pairing.PairedPeer>
+        get() = com.wifeassistant.data.pairing.AndroidPairingStore.get(appCtx).snapshot().peers
 
     // معرفات الدعوات المقبولة — منع إعادة استخدام نفس الدعوة على الجهاز ده.
-    var acceptedInvitationIds: Set<String>
-        get() = prefs.getStringSet("acceptedInvitationIds", emptySet()).orEmpty()
-        set(v) = prefs.edit().putStringSet("acceptedInvitationIds", v).apply()
+    val acceptedInvitationIds: Set<String>
+        get() = com.wifeassistant.data.pairing.AndroidPairingStore.get(appCtx).snapshot().acceptedInvitationIds
+
+    fun acceptInvitation(invitation: com.wifeassistant.data.pairing.PairingInvitation, nowEpochSec: Long) =
+        com.wifeassistant.data.pairing.AndroidPairingStore.get(appCtx)
+            .accept(invitation, invitation.token, nowEpochSec)
 
     // ---- الإرسال الجماعي ----
     // كود الدولة الافتراضي (أرقام بس، زي "20") — بيتكمّل للأرقام المستوردة من غير مقدمة.
