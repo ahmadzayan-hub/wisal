@@ -114,6 +114,14 @@ class SignalStatePersistence(private val read: () -> String?, private val write:
     internal fun requireOwner(deviceId: String) {
         require(ownerDeviceId == null || ownerDeviceId == deviceId) { "Signal state belongs to another device identity." }
     }
+
+    internal fun nextPublishableBundle(deviceId: String): SignalPreKeyBundleDto = use { identity, store ->
+        requireOwner(deviceId)
+        // Read, allocate, generate and commit under the same persistence lock.
+        // Counts or the largest remaining key would reuse IDs after consumption.
+        val (signedId, kyberId, oneTimeId) = (store as SnapshotSignalStore).nextPreKeyIds()
+        LibsignalKeys.generateAndStorePublishableBundle(identity, store, deviceId, signedId, kyberId, oneTimeId)
+    }
 }
 
 /** Native record serialization from libsignal 0.86.5, including Kyber replay
@@ -125,6 +133,12 @@ private class SnapshotSignalStore(identity: LibsignalIdentity, private val state
     override val inbox get() = state.inbox
     override val receipts get() = state.receipts
     override val pendingAcks get() = state.pendingAcks
+
+    fun nextPreKeyIds(): Triple<Int, Int, Int> {
+        val ids = listOf(state.highestSignedId, state.highestKyberId, state.highestPreKeyId)
+        check(ids.all { it in 0 until Int.MAX_VALUE }) { "Pre-key ID space exhausted; no new keys were generated." }
+        return Triple(ids[0] + 1, ids[1] + 1, ids[2] + 1)
+    }
     init {
         require(state.outbox.size <= 1000 && state.inbox.size <= 1000 && state.receipts.size <= 10_000)
         require(state.pendingAcks.all { (id, message) -> state.receipts[id] == message && state.inbox.containsKey(message) })
