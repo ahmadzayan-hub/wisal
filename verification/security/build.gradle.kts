@@ -31,6 +31,7 @@ sourceSets {
             "com/wifeassistant/CryptoProviderTest.kt",
             "com/wifeassistant/SignalReleaseAcceptanceTest.kt",
             "com/wifeassistant/SignalPersistenceTest.kt",
+            "com/wifeassistant/SignalPreKeyAllocationTest.kt",
             "com/wifeassistant/SignalMessageQueueTest.kt",
             "com/wifeassistant/DirectRelayClientTest.kt",
             "com/wifeassistant/DirectRelayProofsTest.kt",

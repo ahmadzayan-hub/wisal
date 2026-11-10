@@ -29,6 +29,17 @@ class LibsignalCryptoProvider private constructor(private val access: SignalStor
         return SignalProtocolAddress(recipientDeviceId, LIBSIGNAL_DEVICE_INDEX)
     }
 
+    /** Allocate fresh IDs from durable high-water marks and commit the private
+     * keys before releasing a public bundle. Does not publish or schedule work.
+     * Existing keys are retained for messages already in flight.
+     */
+    fun nextPublishableBundle(myDeviceId: String): SignalPreKeyBundleDto {
+        addressOf(myDeviceId)
+        val persistence = access as? SignalStatePersistence
+            ?: error("Automatic pre-key allocation requires durable Signal storage.")
+        return persistence.nextPublishableBundle(myDeviceId)
+    }
+
     // الحزمة اللي الجهاز ده هينشرها على الـ relay (شريحة لاحقة) عشان أي حد
     // يقدر يأسس جلسة معاه. بتخزّن المفاتيح المولّدة في الـ store المحلي —
     // لازم تتنادى قبل أي establishSession جاي من طرف تاني.
