@@ -1,0 +1,315 @@
+{
+  "author": "Ahmed Zaian",
+  "generatedAtUtc": "2026-11-11T10:43:25.380229+00:00",
+  "repository": "ahmadzayan-hub/wisal",
+  "baseCommit": "a926d6bc7aa9b3fc0530c4e40e4be60cf207161d",
+  "implementationCommit": "8e6facfc78ccf9d9e9817039e2e8fed0df8f98c9",
+  "implementationTree": "c97fff45197f55e82e4ce6936ed9adeb91ebe13b",
+  "localVerification": {
+    "baselineSecurity": {
+      "tests": 102,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "finalSecurity": {
+      "classes": 19,
+      "tests": 149,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classResults": [
+        {
+          "name": "com.wifeassistant.SignalProcessRestartTest",
+          "tests": "1",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:04",
+          "hostname": "10553fb40495",
+          "time": "3.001"
+        },
+        {
+          "name": "com.wifeassistant.DirectRelayProofsTest",
+          "tests": "4",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:00",
+          "hostname": "10553fb40495",
+          "time": "0.001"
+        },
+        {
+          "name": "com.wifeassistant.PreKeyPublicationTransportTest",
+          "tests": "6",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:03",
+          "hostname": "10553fb40495",
+          "time": "0.106"
+        },
+        {
+          "name": "com.wifeassistant.DirectRelayKeyLifecycleTest",
+          "tests": "11",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:00",
+          "hostname": "10553fb40495",
+          "time": "0.117"
+        },
+        {
+          "name": "com.wifeassistant.SignalPersistenceTest",
+          "tests": "9",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:03",
+          "hostname": "10553fb40495",
+          "time": "0.036"
+        },
+        {
+          "name": "com.wifeassistant.DeviceIdentityPersistenceTest",
+          "tests": "9",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:38:59",
+          "hostname": "10553fb40495",
+          "time": "0.079"
+        },
+        {
+          "name": "com.wifeassistant.SignalMessageQueueTest",
+          "tests": "12",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:03",
+          "hostname": "10553fb40495",
+          "time": "0.215"
+        },
+        {
+          "name": "com.wifeassistant.DirectRelayClientTest",
+          "tests": "6",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:38:59",
+          "hostname": "10553fb40495",
+          "time": "0.283"
+        },
+        {
+          "name": "com.wifeassistant.PreKeyMaintenanceHttpTest",
+          "tests": "6",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:00",
+          "hostname": "10553fb40495",
+          "time": "3.057"
+        },
+        {
+          "name": "com.wifeassistant.IdentityStorageIntegrationTest",
+          "tests": "5",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:00",
+          "hostname": "10553fb40495",
+          "time": "0.097"
+        },
+        {
+          "name": "com.wifeassistant.PreKeyReplenishmentPolicyTest",
+          "tests": "12",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:03",
+          "hostname": "10553fb40495",
+          "time": "0.015"
+        },
+        {
+          "name": "com.wifeassistant.SignalPreKeyAllocationTest",
+          "tests": "7",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:03",
+          "hostname": "10553fb40495",
+          "time": "0.036"
+        },
+        {
+          "name": "com.wifeassistant.CryptoProviderTest",
+          "tests": "6",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:38:59",
+          "hostname": "10553fb40495",
+          "time": "0.014"
+        },
+        {
+          "name": "com.wifeassistant.SignalReleaseAcceptanceTest",
+          "tests": "2",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:07",
+          "hostname": "10553fb40495",
+          "time": "0.006"
+        },
+        {
+          "name": "com.wifeassistant.SecretPersistenceTest",
+          "tests": "10",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:03",
+          "hostname": "10553fb40495",
+          "time": "0.005"
+        },
+        {
+          "name": "com.wifeassistant.LibsignalCryptoProviderTest",
+          "tests": "6",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:00",
+          "hostname": "10553fb40495",
+          "time": "0.017"
+        },
+        {
+          "name": "com.wifeassistant.PreKeyPublicationPersistenceTest",
+          "tests": "9",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:03",
+          "hostname": "10553fb40495",
+          "time": "0.044"
+        },
+        {
+          "name": "com.wifeassistant.DirectPreKeyMaintenanceTest",
+          "tests": "26",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:38:58",
+          "hostname": "10553fb40495",
+          "time": "1.525"
+        },
+        {
+          "name": "com.wifeassistant.SignalRelayIntegrationTest",
+          "tests": "2",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:39:07",
+          "hostname": "10553fb40495",
+          "time": "0.298"
+        }
+      ]
+    },
+    "newSecurityTests": 47,
+    "relayClientStandalone": {
+      "classes": 4,
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classResults": [
+        {
+          "name": "com.wifeassistant.DirectRelayProofsTest",
+          "tests": "4",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:41:32",
+          "hostname": "10553fb40495",
+          "time": "0.0"
+        },
+        {
+          "name": "com.wifeassistant.PreKeyPublicationTransportTest",
+          "tests": "6",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:41:32",
+          "hostname": "10553fb40495",
+          "time": "0.142"
+        },
+        {
+          "name": "com.wifeassistant.DirectRelayKeyLifecycleTest",
+          "tests": "11",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:41:32",
+          "hostname": "10553fb40495",
+          "time": "0.155"
+        },
+        {
+          "name": "com.wifeassistant.DirectRelayClientTest",
+          "tests": "6",
+          "skipped": "0",
+          "failures": "0",
+          "errors": "0",
+          "timestamp": "2026-11-11T10:41:31",
+          "hostname": "10553fb40495",
+          "time": "0.438"
+        }
+      ]
+    },
+    "relay": {
+      "exitCode": 0,
+      "database": "Disposable loopback PostgreSQL 17.11",
+      "postgresActuallyExecuted": true,
+      "namedTests": 27,
+      "newNamedTests": 17,
+      "assertionSuites": 6,
+      "failures": 0,
+      "skipped": 0
+    },
+    "pr19Compatibility": {
+      "author": "Ahmed Zaian",
+      "pr19Head": "cea77a1f46d2f1ae2d039db98f5246b984eab9aa",
+      "pr20SourceCommit": "a926d6bc7aa9b3fc0530c4e40e4be60cf207161d",
+      "combinedBaseCommit": "333205a07725a1b7cf856482f7f592c2fd102706",
+      "testedCombinedTree": "7dfa3c37c57486bdcca646484a201b2c919d148b",
+      "rootIntegrationPatchSha256": "189e64332d20b7c4a57927b254fcda6aa0db1110e0866085941bdf1dad60ff37",
+      "matchingNonconfigurationIntegrationFiles": 24,
+      "configurationConflictResolution": "Preserved all PR19 fields and map entries; added review/WisalPreKeyIntegration:false to four Vercel maps.",
+      "pairingIntegration": {
+        "tests": 25,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "securityIntegration": {
+        "tests": 149,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "pairingCoreFilesUnchangedFromPr19": true,
+      "pairingLogicDuplicated": false,
+      "androidSdkAvailable": false,
+      "androidSdkTestsExecuted": false,
+      "externalOrOperationalActions": [],
+      "supersededRun": "SecuritySuperseded.log retains the observed one-fixture failure, corrected using durable state and rerun fresh."
+    }
+  },
+  "limits": {
+    "androidSdkLocal": "NOT_RUN",
+    "androidDevice": "NOT_RUN",
+    "androidKeystore": "NOT_RUN",
+    "backupRestoreRollback": "NOT_RUN",
+    "e2eeAcceptance": "HOLD",
+    "mayClaimE2ee": false,
+    "operationalDeployment": "NOT_REQUESTED",
+    "scheduler": "NOT_ENABLED"
+  },
+  "testCorrections": "One clock fault fixture initially used the number of clock samples. The stronger clock guard added a sample, so the fixture was corrected to react to actual durable pending state. The failed run and final rerun are retained. No production check was weakened.",
+  "countingNote": "Standalone relay-client and combined compatibility runs repeat some security tests. Counts must not be added as unique tests."
+}

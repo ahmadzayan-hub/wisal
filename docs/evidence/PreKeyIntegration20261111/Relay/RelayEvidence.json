@@ -1,0 +1,69 @@
+{
+  "author": "Ahmed Zaian",
+  "generatedAtUtc": "2026-11-11T10:32:36.763312+00:00",
+  "repo": "ahmadzayan-hub/wisal",
+  "baselineSha": "a926d6bc7aa9b3fc0530c4e40e4be60cf207161d",
+  "scope": "Relay publication receipts; synthetic identities; local test databases only",
+  "runs": [
+    {
+      "command": "npm run check",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "database": "absent; pg-store explicitly skipped"
+    },
+    {
+      "command": "python3 RuntimeTools/RunPostgres.py npm test",
+      "exitCode": 0,
+      "database": "isolated PostgreSQL 17.11; REQUIRE_PG=1",
+      "namedNodeTestsPassed": 27,
+      "newNamedTestsPassed": 17,
+      "legacyAssertionSuitesPassed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node RelayTimestampRegression.cjs BaselineWisal",
+      "exitCode": 1,
+      "expected": "RED: original implementation accepted fractional epoch timestamp"
+    },
+    {
+      "command": "node RelayTimestampRegression.cjs Wisal",
+      "exitCode": 0,
+      "expected": "GREEN: invalid timestamp rejected without key write"
+    }
+  ],
+  "limitations": [
+    "No deployed relay or production database touched",
+    "No Android/device/E2EE acceptance claim",
+    "PostgreSQL tested locally at 17.11; CI currently uses 16"
+  ],
+  "files": [
+    {
+      "name": "RelaySyntax.log",
+      "sha256": "9b6f49e2342ec6138590fdf0d857ea854a8174348709efb3dc2948580bb7b795"
+    },
+    {
+      "name": "RelayTests.log",
+      "sha256": "a736cd9ec493a94867a285bd4b75f22a531ecf55dc63ae094b38aef7b8be9008"
+    },
+    {
+      "name": "RelayPostgresTests.log",
+      "sha256": "a8120ef302b01c9c1da9044907074f56a88b7c6ffa8403898595399cfded6a4c"
+    },
+    {
+      "name": "RelayTimestampBefore.log",
+      "sha256": "bfc6c2b8a1a23717299111a84cdcbbda2263ef397acc723e376cfecd5fe4748d"
+    },
+    {
+      "name": "RelayTimestampAfter.log",
+      "sha256": "075fbf02b5bbae1cdd163a48128fc2443499bd9b218bcc6fae554b89eba8a612"
+    },
+    {
+      "name": "RelayTimestampRegression.cjs",
+      "sha256": "37e458db648e66e4474077c6a1166acadd18fb4467d1ec2a11217b5edd1c3476"
+    }
+  ]
+}

@@ -1,0 +1,857 @@
+Initialized native services in: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/native
+Initialized jansi services in: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/native
+Received JVM installation metadata from '/workspace/scratch/cfa9b7d795a6/RuntimeTools/jdk-17.0.21+9': {JAVA_HOME=/workspace/scratch/cfa9b7d795a6/RuntimeTools/jdk-17.0.21+9, JAVA_VERSION=17.0.21, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=17.0.21+9, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=17.0.21+9, VM_VENDOR=Eclipse Adoptium, OS_ARCH=amd64}
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Starting process 'Gradle build daemon'. Working directory: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/daemon/8.9 Command: /workspace/scratch/cfa9b7d795a6/RuntimeTools/jdk-17.0.21+9/bin/java --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED -Xmx1g -Dfile.encoding=UTF-8 -Djavax.net.ssl.trustStore=/workspace/scratch/cfa9b7d795a6/RuntimeTools/RuntimeCacerts -Djavax.net.ssl.trustStorePassword=changeit -Duser.country -Duser.language=en -Duser.variant -cp /workspace/scratch/cfa9b7d795a6/RuntimeTools/gradle-8.9/lib/gradle-daemon-main-8.9.jar -javaagent:/workspace/scratch/cfa9b7d795a6/RuntimeTools/gradle-8.9/lib/agents/gradle-instrumentation-agent-8.9.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.9
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 0.845 secs.
+The client will now receive all logging from the daemon (pid: 45). The daemon log file: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/daemon/8.9/daemon-45.out.log
+Daemon will be stopped at the end of the build 
+Using 2 worker leases.
+Received JVM installation metadata from '/workspace/scratch/cfa9b7d795a6/RuntimeTools/jdk-17.0.21+9': {JAVA_HOME=/workspace/scratch/cfa9b7d795a6/RuntimeTools/jdk-17.0.21+9, JAVA_VERSION=17.0.21, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=17.0.21+9, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=17.0.21+9, VM_VENDOR=Eclipse Adoptium, OS_ARCH=amd64}
+Watching the file system is configured to be enabled if available
+Not watching /workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security since the file system is not supported
+File system watching is active
+Starting Build
+Settings evaluated using settings file '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/settings.gradle.kts'.
+Projects loaded. Root project using build file '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build.gradle.kts'.
+Included projects: [root project 'WisalSecurityContracts']
+
+> Configure project :
+Evaluating root project 'WisalSecurityContracts' using build file '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build.gradle.kts'.
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/jvm/org.jetbrains.kotlin.jvm.gradle.plugin/2.0.21/org.jetbrains.kotlin.jvm.gradle.plugin-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download6612163427517202082bin
+Resource missing. [HTTP HEAD: https://plugins.gradle.org/m2/org/jetbrains/kotlin/jvm/org.jetbrains.kotlin.jvm.gradle.plugin/2.0.21/org.jetbrains.kotlin.jvm.gradle.plugin-2.0.21.jar]
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/plugin/serialization/org.jetbrains.kotlin.plugin.serialization.gradle.plugin/2.0.21/org.jetbrains.kotlin.plugin.serialization.gradle.plugin-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download236562850481078260bin
+Resource missing. [HTTP HEAD: https://plugins.gradle.org/m2/org/jetbrains/kotlin/plugin/serialization/org.jetbrains.kotlin.plugin.serialization.gradle.plugin/2.0.21/org.jetbrains.kotlin.plugin.serialization.gradle.plugin-2.0.21.jar]
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin/2.0.21/kotlin-gradle-plugin-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download2369195858385686368bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugins-bom/2.0.21/kotlin-gradle-plugins-bom-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download16333548547547375444bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugins-bom/2.0.21/kotlin-gradle-plugins-bom-2.0.21.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download8252296313136327864bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin/2.0.21/kotlin-gradle-plugin-2.0.21.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download2790062703501684079bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-serialization/2.0.21/kotlin-serialization-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download14514923498621760091bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-serialization/2.0.21/kotlin-serialization-2.0.21.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download9768298193986600685bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/2.0.21/kotlin-gradle-plugin-api-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download9257683694705634348bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/2.0.21/kotlin-gradle-plugin-api-2.0.21.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download16270148878710133850bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-idea/2.0.21/kotlin-gradle-plugin-idea-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download512541904394169911bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-idea/2.0.21/kotlin-gradle-plugin-idea-2.0.21.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download1510595050864142306bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-idea-proto/2.0.21/kotlin-gradle-plugin-idea-proto-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download9177579092387823327bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-klib-commonizer-api/2.0.21/kotlin-klib-commonizer-api-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download15277387685398256863bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-build-tools-api/2.0.21/kotlin-build-tools-api-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download15771037995215227886bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-build-statistics/2.0.21/kotlin-build-statistics-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download3410281583261768378bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-compiler-runner/2.0.21/kotlin-compiler-runner-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download12197132872595765432bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-util-klib/2.0.21/kotlin-util-klib-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download3396940326131131512bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-compiler-embeddable/2.0.21/kotlin-compiler-embeddable-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download2367686598065798733bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-model/2.0.21/kotlin-gradle-plugin-model-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download686950268772744144bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-model/2.0.21/kotlin-gradle-plugin-model-2.0.21.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download4798068442665564774bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-annotations/2.0.21/kotlin-gradle-plugin-annotations-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download12878758999618712949bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-tooling-core/2.0.21/kotlin-tooling-core-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download17298291447455868313bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-native-utils/2.0.21/kotlin-native-utils-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download3581365101318183160bin
+Downloading https://plugins.gradle.org/m2/com/google/code/gson/gson/2.8.9/gson-2.8.9.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download5449939164131712385bin
+Downloading https://plugins.gradle.org/m2/com/google/code/gson/gson-parent/2.8.9/gson-parent-2.8.9.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download15313505876745651410bin
+Downloading https://plugins.gradle.org/m2/org/sonatype/oss/oss-parent/7/oss-parent-7.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download16394475960928328302bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-daemon-client/2.0.21/kotlin-daemon-client-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download16199551180426203849bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download1286919949433960190bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlinx/kotlinx-coroutines-bom/1.6.4/kotlinx-coroutines-bom-1.6.4.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download4874430576691055895bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download1018530980988136439bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-util-io/2.0.21/kotlin-util-io-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download7423518607965698723bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download13645767508310512908bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-daemon-embeddable/2.0.21/kotlin-daemon-embeddable-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download2178658669388536293bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-serialization/2.0.21/kotlin-serialization-2.0.21-gradle85.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download3096076797450830342bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-model/2.0.21/kotlin-gradle-plugin-model-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download11724875033961748898bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/2.0.21/kotlin-gradle-plugin-api-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download13203791845308115007bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/2.0.21/kotlin-gradle-plugin-api-2.0.21-gradle85.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download17588975619179783019bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin/2.0.21/kotlin-gradle-plugin-2.0.21-gradle85.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download1088639988946196905bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-idea-proto/2.0.21/kotlin-gradle-plugin-idea-proto-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download2029095240309322787bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-idea/2.0.21/kotlin-gradle-plugin-idea-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download4512442268543709384bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-klib-commonizer-api/2.0.21/kotlin-klib-commonizer-api-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download7128202315835897791bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-build-statistics/2.0.21/kotlin-build-statistics-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download1441446684060675543bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-build-tools-api/2.0.21/kotlin-build-tools-api-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download8502250781647681168bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-native-utils/2.0.21/kotlin-native-utils-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download5843414192306209452bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-compiler-runner/2.0.21/kotlin-compiler-runner-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download2206780705567809533bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-util-klib/2.0.21/kotlin-util-klib-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download120665452277816601bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-compiler-embeddable/2.0.21/kotlin-compiler-embeddable-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download6325993400980531175bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-annotations/2.0.21/kotlin-gradle-plugin-annotations-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download6641293339726681094bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-tooling-core/2.0.21/kotlin-tooling-core-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download11585374127554640903bin
+Downloading https://plugins.gradle.org/m2/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download6822771332090248841bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-daemon-client/2.0.21/kotlin-daemon-client-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download13405160082532304002bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download10480034088160151136bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-util-io/2.0.21/kotlin-util-io-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download17452269957484151430bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-daemon-embeddable/2.0.21/kotlin-daemon-embeddable-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download14656889119453974379bin
+Downloading https://plugins.gradle.org/m2/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download1935424427125461827bin
+Transforming kotlin-serialization-2.0.21-gradle85.jar (org.jetbrains.kotlin:kotlin-serialization:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-model-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-model:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-api-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-api:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-api-2.0.21-gradle85.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-api:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-2.0.21-gradle85.jar (org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21) with InstrumentationAnalysisTransform
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-serialization/2.0.21/5a356cfc9d2b31c7885913fdbf842b8fa01f004c/kotlin-serialization-2.0.21-gradle85.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-gradle-plugin-idea-proto-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-idea-proto:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-idea-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-idea:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-klib-commonizer-api-2.0.21.jar (org.jetbrains.kotlin:kotlin-klib-commonizer-api:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-build-statistics-2.0.21.jar (org.jetbrains.kotlin:kotlin-build-statistics:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-build-tools-api-2.0.21.jar (org.jetbrains.kotlin:kotlin-build-tools-api:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-compiler-runner-2.0.21.jar (org.jetbrains.kotlin:kotlin-compiler-runner:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-native-utils-2.0.21.jar (org.jetbrains.kotlin:kotlin-native-utils:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-util-klib-2.0.21.jar (org.jetbrains.kotlin:kotlin-util-klib:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-compiler-embeddable-2.0.21.jar (org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.21) with InstrumentationAnalysisTransform
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-model/2.0.21/3672a6bafb29cdb53c10ca1e13f6c8c75af0f8eb/kotlin-gradle-plugin-model-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-api/2.0.21/2fe6828d39788b439f1a44576c4fd2d98862e77b/kotlin-gradle-plugin-api-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-api/2.0.21/2fe6828d39788b439f1a44576c4fd2d98862e77b/kotlin-gradle-plugin-api-2.0.21-gradle85.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin/2.0.21/ea69d8de091115a98ce7f3901994b2fb3432480b/kotlin-gradle-plugin-2.0.21-gradle85.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-gradle-plugin-annotations-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-annotations:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-tooling-core-2.0.21.jar (org.jetbrains.kotlin:kotlin-tooling-core:2.0.21) with InstrumentationAnalysisTransform
+Transforming gson-2.8.9.jar (com.google.code.gson:gson:2.8.9) with InstrumentationAnalysisTransform
+Transforming kotlin-daemon-client-2.0.21.jar (org.jetbrains.kotlin:kotlin-daemon-client:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlinx-coroutines-core-jvm-1.6.4.jar (org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4) with InstrumentationAnalysisTransform
+Transforming kotlin-util-io-2.0.21.jar (org.jetbrains.kotlin:kotlin-util-io:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-daemon-embeddable-2.0.21.jar (org.jetbrains.kotlin:kotlin-daemon-embeddable:2.0.21) with InstrumentationAnalysisTransform
+Transforming trove4j-1.0.20200330.jar (org.jetbrains.intellij.deps:trove4j:1.0.20200330) with InstrumentationAnalysisTransform
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-idea-proto/2.0.21/7ee6324747edb846bb869955000c513797eaf6d7/kotlin-gradle-plugin-idea-proto-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-idea/2.0.21/dc54973fe68b0bb9b816bd04ef39648ca29526a6/kotlin-gradle-plugin-idea-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-klib-commonizer-api/2.0.21/499b6b114eda7ed8002ce438458f5baf273c5fa/kotlin-klib-commonizer-api-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-build-statistics/2.0.21/b5d6b9bf90684ba3aa5fdd524761bfa51c9cddc8/kotlin-build-statistics-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-build-tools-api/2.0.21/612804301136399c0cc5c93f2366ef33fd0afdc3/kotlin-build-tools-api-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-runner/2.0.21/ea7301e9ee0a6cf310b67619709d578dd57896dc/kotlin-compiler-runner-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-native-utils/2.0.21/ccdbc49a5d23f7ab782fbdff20c9426cf074f2d7/kotlin-native-utils-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-util-klib/2.0.21/cc042c4a50a1ee46695a8f2f928c196223bdd7dc/kotlin-util-klib-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/79346ed53db48b18312a472602eb5c057070c54d/kotlin-compiler-embeddable-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-annotations/2.0.21/585ea547101485df5165acbffc51b760b0bf2728/kotlin-gradle-plugin-annotations-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-tooling-core/2.0.21/952179e9b7f114e78274ca73cea6df8fce3c8b3b/kotlin-tooling-core-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/com.google.code.gson/gson/2.8.9/8a432c1d6825781e21a02db2e2c33c5fde2833b9/gson-2.8.9.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-client/2.0.21/10cbd364d0703452050d9c4925fd24a6fec7e8d9/kotlin-daemon-client-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-util-io/2.0.21/4467ad395771e3d12ca864fd9949e1404920f558/kotlin-util-io-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.0.21/c9e933b23287de9b5a17e2116b4657bb91aea72c/kotlin-daemon-embeddable-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for InstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/3afb14d5f9ceb459d724e907a21145e8ff394f02/trove4j-1.0.20200330.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-serialization-2.0.21-gradle85.jar (org.jetbrains.kotlin:kotlin-serialization:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-serialization-2.0.21-gradle85.jar (org.jetbrains.kotlin:kotlin-serialization:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-model-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-model:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-model-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-model:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-api-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-api:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-api-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-api:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-api-2.0.21-gradle85.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-api:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-api-2.0.21-gradle85.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-api:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-2.0.21-gradle85.jar (org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21) with InstrumentationAnalysisTransform
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/86e75af94785c2c3a0a1712cd3b9af37/transformed/.gradle-instrumented-classpath.marker because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-gradle-plugin-2.0.21-gradle85.jar (org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-idea-proto-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-idea-proto:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-idea-proto-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-idea-proto:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-idea-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-idea:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-idea-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-idea:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-klib-commonizer-api-2.0.21.jar (org.jetbrains.kotlin:kotlin-klib-commonizer-api:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-klib-commonizer-api-2.0.21.jar (org.jetbrains.kotlin:kotlin-klib-commonizer-api:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-build-statistics-2.0.21.jar (org.jetbrains.kotlin:kotlin-build-statistics:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-build-statistics-2.0.21.jar (org.jetbrains.kotlin:kotlin-build-statistics:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-build-tools-api-2.0.21.jar (org.jetbrains.kotlin:kotlin-build-tools-api:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-build-tools-api-2.0.21.jar (org.jetbrains.kotlin:kotlin-build-tools-api:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-compiler-runner-2.0.21.jar (org.jetbrains.kotlin:kotlin-compiler-runner:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-compiler-runner-2.0.21.jar (org.jetbrains.kotlin:kotlin-compiler-runner:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-native-utils-2.0.21.jar (org.jetbrains.kotlin:kotlin-native-utils:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-native-utils-2.0.21.jar (org.jetbrains.kotlin:kotlin-native-utils:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-util-klib-2.0.21.jar (org.jetbrains.kotlin:kotlin-util-klib:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-util-klib-2.0.21.jar (org.jetbrains.kotlin:kotlin-util-klib:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-compiler-embeddable-2.0.21.jar (org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-compiler-embeddable-2.0.21.jar (org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-annotations-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-annotations:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-gradle-plugin-annotations-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-annotations:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-tooling-core-2.0.21.jar (org.jetbrains.kotlin:kotlin-tooling-core:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-tooling-core-2.0.21.jar (org.jetbrains.kotlin:kotlin-tooling-core:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming gson-2.8.9.jar (com.google.code.gson:gson:2.8.9) with InstrumentationAnalysisTransform
+Transforming gson-2.8.9.jar (com.google.code.gson:gson:2.8.9) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-daemon-client-2.0.21.jar (org.jetbrains.kotlin:kotlin-daemon-client:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-daemon-client-2.0.21.jar (org.jetbrains.kotlin:kotlin-daemon-client:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlinx-coroutines-core-jvm-1.6.4.jar (org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4) with InstrumentationAnalysisTransform
+Transforming kotlinx-coroutines-core-jvm-1.6.4.jar (org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-util-io-2.0.21.jar (org.jetbrains.kotlin:kotlin-util-io:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-util-io-2.0.21.jar (org.jetbrains.kotlin:kotlin-util-io:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming kotlin-daemon-embeddable-2.0.21.jar (org.jetbrains.kotlin:kotlin-daemon-embeddable:2.0.21) with InstrumentationAnalysisTransform
+Transforming kotlin-daemon-embeddable-2.0.21.jar (org.jetbrains.kotlin:kotlin-daemon-embeddable:2.0.21) with MergeInstrumentationAnalysisTransform
+Transforming trove4j-1.0.20200330.jar (org.jetbrains.intellij.deps:trove4j:1.0.20200330) with InstrumentationAnalysisTransform
+Transforming trove4j-1.0.20200330.jar (org.jetbrains.intellij.deps:trove4j:1.0.20200330) with MergeInstrumentationAnalysisTransform
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/f96604b88a7508736ab2c14ff5d6088f/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/86e75af94785c2c3a0a1712cd3b9af37/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/f96604b88a7508736ab2c14ff5d6088f/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/86e75af94785c2c3a0a1712cd3b9af37/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-serialization/2.0.21/5a356cfc9d2b31c7885913fdbf842b8fa01f004c/kotlin-serialization-2.0.21-gradle85.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-model/2.0.21/3672a6bafb29cdb53c10ca1e13f6c8c75af0f8eb/kotlin-gradle-plugin-model-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-serialization-2.0.21-gradle85.jar (org.jetbrains.kotlin:kotlin-serialization:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/b3471b91763b80310d64ecb0254f7e87/transformed/.gradle-instrumented-classpath.marker because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-gradle-plugin-model-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-model:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/b3471b91763b80310d64ecb0254f7e87/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/0984edb3e09750ebfd3a015ae3587d35/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-serialization/2.0.21/5a356cfc9d2b31c7885913fdbf842b8fa01f004c/kotlin-serialization-2.0.21-gradle85.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/ba002b2fa8c7d86e237377c65cdd15fe/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-model/2.0.21/3672a6bafb29cdb53c10ca1e13f6c8c75af0f8eb/kotlin-gradle-plugin-model-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/ba002b2fa8c7d86e237377c65cdd15fe/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/77f55892b855a0234c237a83f9ec3a39/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-api/2.0.21/2fe6828d39788b439f1a44576c4fd2d98862e77b/kotlin-gradle-plugin-api-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-gradle-plugin-api-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-api:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/75948da0c10b3c83aac1602faae53d3c/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-api/2.0.21/2fe6828d39788b439f1a44576c4fd2d98862e77b/kotlin-gradle-plugin-api-2.0.21-gradle85.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-gradle-plugin-api-2.0.21-gradle85.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-api:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/e29857ed7eecb218b4505626685f72e0/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-api/2.0.21/2fe6828d39788b439f1a44576c4fd2d98862e77b/kotlin-gradle-plugin-api-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/7f54aa2d2661bcfda1bdd51ffeaefb56/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/7f54aa2d2661bcfda1bdd51ffeaefb56/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-api/2.0.21/2fe6828d39788b439f1a44576c4fd2d98862e77b/kotlin-gradle-plugin-api-2.0.21-gradle85.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/91aab1eb56bd99c94310faf5daf3bbde/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/91aab1eb56bd99c94310faf5daf3bbde/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin/2.0.21/ea69d8de091115a98ce7f3901994b2fb3432480b/kotlin-gradle-plugin-2.0.21-gradle85.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-gradle-plugin-2.0.21-gradle85.jar (org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/359d43ae7172958a65f4467114bd7b20/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-idea-proto/2.0.21/7ee6324747edb846bb869955000c513797eaf6d7/kotlin-gradle-plugin-idea-proto-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-gradle-plugin-idea-proto-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-idea-proto:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/955923b481ca828ccef2e09a7d213d19/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-idea-proto/2.0.21/7ee6324747edb846bb869955000c513797eaf6d7/kotlin-gradle-plugin-idea-proto-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/1ca708e1272a0cb0a6e3bc07ad1e215d/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/1ca708e1272a0cb0a6e3bc07ad1e215d/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-idea/2.0.21/dc54973fe68b0bb9b816bd04ef39648ca29526a6/kotlin-gradle-plugin-idea-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-gradle-plugin-idea-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-idea:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/6dd094d5716de81043f19bcd0cf1f48c/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-idea/2.0.21/dc54973fe68b0bb9b816bd04ef39648ca29526a6/kotlin-gradle-plugin-idea-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/1252ad7d7b724b95aa7c07820cf3ebc8/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/1252ad7d7b724b95aa7c07820cf3ebc8/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-klib-commonizer-api/2.0.21/499b6b114eda7ed8002ce438458f5baf273c5fa/kotlin-klib-commonizer-api-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-klib-commonizer-api-2.0.21.jar (org.jetbrains.kotlin:kotlin-klib-commonizer-api:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/f1ddffca003cf731cf158c06f6f8f607/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-klib-commonizer-api/2.0.21/499b6b114eda7ed8002ce438458f5baf273c5fa/kotlin-klib-commonizer-api-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/5788ec16db2029ef430aa7b65cef9cfc/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/5788ec16db2029ef430aa7b65cef9cfc/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-build-statistics/2.0.21/b5d6b9bf90684ba3aa5fdd524761bfa51c9cddc8/kotlin-build-statistics-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-build-statistics-2.0.21.jar (org.jetbrains.kotlin:kotlin-build-statistics:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/33a32fb8d9e0af1707b854d2ce8aefad/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-build-statistics/2.0.21/b5d6b9bf90684ba3aa5fdd524761bfa51c9cddc8/kotlin-build-statistics-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/a0b217b173c39e15f1f76e3e6b3614ab/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/a0b217b173c39e15f1f76e3e6b3614ab/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-build-tools-api/2.0.21/612804301136399c0cc5c93f2366ef33fd0afdc3/kotlin-build-tools-api-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-build-tools-api-2.0.21.jar (org.jetbrains.kotlin:kotlin-build-tools-api:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/92ce440ae76ecbd1174ba2c32b0e4c56/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-build-tools-api/2.0.21/612804301136399c0cc5c93f2366ef33fd0afdc3/kotlin-build-tools-api-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/a28ed49329eaf5f4d323114966d523a1/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/a28ed49329eaf5f4d323114966d523a1/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-runner/2.0.21/ea7301e9ee0a6cf310b67619709d578dd57896dc/kotlin-compiler-runner-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-compiler-runner-2.0.21.jar (org.jetbrains.kotlin:kotlin-compiler-runner:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/8b2dec4dc36e30891331d9bc00e0d37f/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-runner/2.0.21/ea7301e9ee0a6cf310b67619709d578dd57896dc/kotlin-compiler-runner-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/2f7981b0170380c439917c2418e2308f/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/2f7981b0170380c439917c2418e2308f/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-native-utils/2.0.21/ccdbc49a5d23f7ab782fbdff20c9426cf074f2d7/kotlin-native-utils-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-native-utils-2.0.21.jar (org.jetbrains.kotlin:kotlin-native-utils:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/4cef650eeef88e626ef1b72f6a2e143a/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-native-utils/2.0.21/ccdbc49a5d23f7ab782fbdff20c9426cf074f2d7/kotlin-native-utils-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/b4ebc33dd6d3ef5a13b10f6efe399227/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/b4ebc33dd6d3ef5a13b10f6efe399227/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-util-klib/2.0.21/cc042c4a50a1ee46695a8f2f928c196223bdd7dc/kotlin-util-klib-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-util-klib-2.0.21.jar (org.jetbrains.kotlin:kotlin-util-klib:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/af7e7db39577dfea5fc759d899202460/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-util-klib/2.0.21/cc042c4a50a1ee46695a8f2f928c196223bdd7dc/kotlin-util-klib-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/ac21ef8ebbfad1631feb9880039e7c14/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/ac21ef8ebbfad1631feb9880039e7c14/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/79346ed53db48b18312a472602eb5c057070c54d/kotlin-compiler-embeddable-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-compiler-embeddable-2.0.21.jar (org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/4cc2c67576dd64f020b49dfaf04c0bcb/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin/2.0.21/ea69d8de091115a98ce7f3901994b2fb3432480b/kotlin-gradle-plugin-2.0.21-gradle85.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/478be502a172a8632f453cbc1cd8569b/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-annotations/2.0.21/585ea547101485df5165acbffc51b760b0bf2728/kotlin-gradle-plugin-annotations-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-gradle-plugin-annotations-2.0.21.jar (org.jetbrains.kotlin:kotlin-gradle-plugin-annotations:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/c5a20b78898e1f14172194c57ff90742/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-annotations/2.0.21/585ea547101485df5165acbffc51b760b0bf2728/kotlin-gradle-plugin-annotations-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/d056891000583da9bb4242cbe46e2614/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/d056891000583da9bb4242cbe46e2614/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-tooling-core/2.0.21/952179e9b7f114e78274ca73cea6df8fce3c8b3b/kotlin-tooling-core-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-tooling-core-2.0.21.jar (org.jetbrains.kotlin:kotlin-tooling-core:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/3ce734956636e4b3edaa7b235dc98161/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-tooling-core/2.0.21/952179e9b7f114e78274ca73cea6df8fce3c8b3b/kotlin-tooling-core-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/bdfdadc466ea603517eaf1f6e9170367/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/bdfdadc466ea603517eaf1f6e9170367/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/com.google.code.gson/gson/2.8.9/8a432c1d6825781e21a02db2e2c33c5fde2833b9/gson-2.8.9.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming gson-2.8.9.jar (com.google.code.gson:gson:2.8.9) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/c046bd14bd411e436438fb8163580995/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/com.google.code.gson/gson/2.8.9/8a432c1d6825781e21a02db2e2c33c5fde2833b9/gson-2.8.9.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/b6cd67aec42180718c9f0821ac42b7b0/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/b6cd67aec42180718c9f0821ac42b7b0/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-client/2.0.21/10cbd364d0703452050d9c4925fd24a6fec7e8d9/kotlin-daemon-client-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-daemon-client-2.0.21.jar (org.jetbrains.kotlin:kotlin-daemon-client:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/c927c50033f1eec3c685563d3ad3e545/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-client/2.0.21/10cbd364d0703452050d9c4925fd24a6fec7e8d9/kotlin-daemon-client-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/5118e4e69d3ab91f6affde51c7ef298b/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/5118e4e69d3ab91f6affde51c7ef298b/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlinx-coroutines-core-jvm-1.6.4.jar (org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/a00de92bd6afd422368bda36b18cc168/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/f253812418978a0b18e581d79fb601fa/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/f253812418978a0b18e581d79fb601fa/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-util-io/2.0.21/4467ad395771e3d12ca864fd9949e1404920f558/kotlin-util-io-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-util-io-2.0.21.jar (org.jetbrains.kotlin:kotlin-util-io:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/bcc726c5e335a25bcfeecde459d02a6f/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-util-io/2.0.21/4467ad395771e3d12ca864fd9949e1404920f558/kotlin-util-io-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/48aa8f9a0fd452be178cc4546ce9a025/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/48aa8f9a0fd452be178cc4546ce9a025/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.0.21/c9e933b23287de9b5a17e2116b4657bb91aea72c/kotlin-daemon-embeddable-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming kotlin-daemon-embeddable-2.0.21.jar (org.jetbrains.kotlin:kotlin-daemon-embeddable:2.0.21) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/ef18b91a3aac45ff63be8171c04f0351/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.0.21/c9e933b23287de9b5a17e2116b4657bb91aea72c/kotlin-daemon-embeddable-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/ab1e8ba814d7accf6a4d293c5d8fcd5e/transformed/analysis/instrumentation-hierarchy.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/ab1e8ba814d7accf6a4d293c5d8fcd5e/transformed/analysis/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for MergeInstrumentationAnalysisTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/3afb14d5f9ceb459d724e907a21145e8ff394f02/trove4j-1.0.20200330.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Transforming trove4j-1.0.20200330.jar (org.jetbrains.intellij.deps:trove4j:1.0.20200330) with ExternalDependencyInstrumentingArtifactTransform
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/8.9/transforms/d94d602fcdfb092d642d7b2144b55d92/transformed/merge/instrumentation-dependencies.bin because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/3afb14d5f9ceb459d724e907a21145e8ff394f02/trove4j-1.0.20200330.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/79346ed53db48b18312a472602eb5c057070c54d/kotlin-compiler-embeddable-2.0.21.jar because:
+  Build cache is disabled
+  Caching not enabled.
+Using Kotlin Gradle Plugin gradle85 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+Caching disabled for Kotlin DSL accessors for root project 'WisalSecurityContracts' because:
+  Build cache is disabled
+Cannot use Kotlin build script compile avoidance with /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin/2.0.21/ea69d8de091115a98ce7f3901994b2fb3432480b/kotlin-gradle-plugin-2.0.21-gradle85.jar: class org/jetbrains/kotlin/gradle/dsl/PlatformSourceSetConventionsChecker: inline fun CheckedPlatformInfo(): compile avoidance is not supported with public inline functions
+Cannot use Kotlin build script compile avoidance with /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-idea-proto/2.0.21/7ee6324747edb846bb869955000c513797eaf6d7/kotlin-gradle-plugin-idea-proto-2.0.21.jar: class org/jetbrains/kotlin/gradle/idea/proto/generated/IdeaExtrasProtoKt$Dsl: inline fun setValues(): compile avoidance is not supported with public inline functions
+Cannot use Kotlin build script compile avoidance with /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-idea/2.0.21/dc54973fe68b0bb9b816bd04ef39648ca29526a6/kotlin-gradle-plugin-idea-2.0.21.jar: class org/jetbrains/kotlin/gradle/idea/serialize/IdeaKotlinExtrasSerializer$Companion: inline fun javaIoSerializable(): compile avoidance is not supported with public inline functions
+Cannot use Kotlin build script compile avoidance with /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/79346ed53db48b18312a472602eb5c057070c54d/kotlin-compiler-embeddable-2.0.21.jar: class org/jetbrains/kotlin/konan/file/FileKt: inline fun use(): compile avoidance is not supported with public inline functions
+Cannot use Kotlin build script compile avoidance with /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-tooling-core/2.0.21/952179e9b7f114e78274ca73cea6df8fce3c8b3b/kotlin-tooling-core-2.0.21.jar: class org/jetbrains/kotlin/tooling/core/ClosureKt: inline fun closure(): compile avoidance is not supported with public inline functions
+Cannot use Kotlin build script compile avoidance with /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar: class kotlinx/coroutines/scheduling/CoroutineScheduler: inline fun availableCpuPermits(): compile avoidance is not supported with public inline functions
+Cannot use Kotlin build script compile avoidance with /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-util-io/2.0.21/4467ad395771e3d12ca864fd9949e1404920f558/kotlin-util-io-2.0.21.jar: class org/jetbrains/kotlin/konan/file/FileKt: inline fun use(): compile avoidance is not supported with public inline functions
+Caching disabled for Kotlin DSL script compilation (Project/TopLevel/stage2) because:
+  Build cache is disabled
+All projects evaluated.
+Starting process 'command '/usr/lib/jvm/java-21-openjdk-amd64/bin/java''. Working directory: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/tmp-jvm14374118604192352340probe Command: /usr/lib/jvm/java-21-openjdk-amd64/bin/java -Xmx32m -Xms32m -cp . JavaProbe
+Successfully started process 'command '/usr/lib/jvm/java-21-openjdk-amd64/bin/java''
+Received JVM installation metadata from '/usr/lib/jvm/java-21-openjdk-amd64': {JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64, JAVA_VERSION=21.0.13, JAVA_VENDOR=Debian, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=21.0.13+9-1-deb13u2-Debian, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=21.0.13+9-1-deb13u2-Debian, VM_VENDOR=Debian, OS_ARCH=amd64}
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.0.21/kotlin-stdlib-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download11680306523133767753bin
+Downloading https://repo.maven.apache.org/maven2/org/signal/libsignal-client/0.86.5/libsignal-client-0.86.5.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download16488831496467139798bin
+Downloading https://repo.maven.apache.org/maven2/org/signal/libsignal-client/0.86.5/libsignal-client-0.86.5.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download9876742648955209287bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.0.21/kotlin-stdlib-2.0.21.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download857738295616313610bin
+Downloading https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.12.0/okhttp-4.12.0.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download763164269394534814bin
+Downloading https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.12.0/okhttp-4.12.0.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download14419280256678846892bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.7.3/kotlinx-serialization-json-1.7.3.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download4239367818869799062bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.9.0/kotlinx-coroutines-core-1.9.0.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download193939505803916533bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-bom/1.7.3/kotlinx-serialization-bom-1.7.3.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download14014964973596985336bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-bom/1.9.0/kotlinx-coroutines-bom-1.9.0.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download16626470153717376476bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.9.0/kotlinx-coroutines-core-1.9.0.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download9830732086652121394bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.7.3/kotlinx-serialization-json-1.7.3.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download11014141628399173564bin
+Downloading https://repo.maven.apache.org/maven2/junit/junit/4.13.2/junit-4.13.2.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download18402670173700642880bin
+Downloading https://repo.maven.apache.org/maven2/com/squareup/okhttp3/mockwebserver/4.12.0/mockwebserver-4.12.0.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download10382207591601139993bin
+Downloading https://repo.maven.apache.org/maven2/com/squareup/okhttp3/mockwebserver/4.12.0/mockwebserver-4.12.0.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download17649374622367879868bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download10243960957708419044bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.10.2/kotlinx-coroutines-core-1.10.2.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download3856460938980079571bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-bom/1.10.2/kotlinx-coroutines-bom-1.10.2.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download5014386951704445708bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.10.2/kotlinx-coroutines-core-1.10.2.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download363944723415515488bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.0/kotlin-stdlib-2.1.0.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download13318927381959907523bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.0/kotlin-stdlib-2.1.0.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download11984819029532862297bin
+Downloading https://repo.maven.apache.org/maven2/com/squareup/okio/okio/3.6.0/okio-3.6.0.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download5152204300521509162bin
+Downloading https://repo.maven.apache.org/maven2/com/squareup/okio/okio/3.6.0/okio-3.6.0.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download1202835125834436466bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.7.3/kotlinx-serialization-json-jvm-1.7.3.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download1198720769855387295bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.7.3/kotlinx-serialization-json-jvm-1.7.3.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download516886484754833938bin
+Downloading https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download4935148125758491945bin
+Downloading https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-parent/1.3/hamcrest-parent-1.3.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download16856452080348409351bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.8.21/kotlin-stdlib-jdk8-1.8.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download9601873926537235054bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.10.2/kotlinx-coroutines-core-jvm-1.10.2.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download11503156130875799277bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.10.2/kotlinx-coroutines-core-jvm-1.10.2.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download10963939590925502633bin
+Downloading https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.6.0/okio-jvm-3.6.0.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download5545516560071451202bin
+Downloading https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.6.0/okio-jvm-3.6.0.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download2255402896203373646bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.7.3/kotlinx-serialization-core-1.7.3.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download12801292004077375765bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.7.3/kotlinx-serialization-core-1.7.3.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download8542460555796733758bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/annotations/23.0.0/annotations-23.0.0.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download11584938962082103684bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.10/kotlin-stdlib-jdk8-1.9.10.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download2430060431584521210bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/2.1.0/kotlin-stdlib-common-2.1.0.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download5422648447044709157bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.8.0/kotlin-stdlib-jdk7-1.8.0.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download4195103445977656661bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/2.1.0/kotlin-stdlib-common-2.1.0.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download10264765825786723827bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.7.3/kotlinx-serialization-core-jvm-1.7.3.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download10269189086875453356bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.7.3/kotlinx-serialization-core-jvm-1.7.3.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download15668715567870159405bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.9.10/kotlin-stdlib-jdk7-1.9.10.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download12238422000099187659bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.7.3/kotlinx-serialization-core-jvm-1.7.3.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download2679372249739548707bin
+Downloading https://repo.maven.apache.org/maven2/org/signal/libsignal-client/0.86.5/libsignal-client-0.86.5.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download11266265723818031325bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.7.3/kotlinx-serialization-json-jvm-1.7.3.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download7651000512600430784bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.10.2/kotlinx-coroutines-core-jvm-1.10.2.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download6731077485197707325bin
+Downloading https://repo.maven.apache.org/maven2/com/squareup/okhttp3/mockwebserver/4.12.0/mockwebserver-4.12.0.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download732981506597508590bin
+Downloading https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.12.0/okhttp-4.12.0.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download15091039110110545346bin
+Downloading https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.6.0/okio-jvm-3.6.0.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download4222143738670395654bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.10/kotlin-stdlib-jdk8-1.9.10.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download2542587902674983702bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.9.10/kotlin-stdlib-jdk7-1.9.10.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download4956435586219069467bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.0/kotlin-stdlib-2.1.0.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download5643469983365907507bin
+Downloading https://repo.maven.apache.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download1693796378036658976bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/annotations/23.0.0/annotations-23.0.0.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download709973193043628041bin
+Downloading https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download7377332552325826791bin
+Task name matched 'test'
+Selected primary task 'test' from project :
+Tasks to be executed: [task ':checkKotlinGradlePluginConfigurationErrors', task ':compileKotlin', task ':compileJava', task ':processResources', task ':classes', task ':jar', task ':compileTestKotlin', task ':compileTestJava', task ':processTestResources', task ':testClasses', task ':test']
+Tasks that were excluded: []
+Resolve mutations for :checkKotlinGradlePluginConfigurationErrors (Thread[included builds,5,main]) started.
+:checkKotlinGradlePluginConfigurationErrors (Thread[included builds,5,main]) started.
+
+> Task :checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :compileKotlin (Thread[included builds,5,main]) started.
+:compileKotlin (Thread[included builds,5,main]) started.
+
+> Task :compileKotlin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.9.0/kotlinx-coroutines-core-jvm-1.9.0.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download4896148411302544520bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.9.0/kotlinx-coroutines-core-jvm-1.9.0.module to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download87617072914815599bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.9.0/kotlinx-coroutines-core-jvm-1.9.0.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download10602279599321596734bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/2.0.21/kotlin-build-tools-impl-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download3120141857433675670bin
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/2.0.21/kotlin-build-tools-api-2.0.21.pom, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-build-tools-api/2.0.21/a05605763587c0b665544769abcefa4fc497cb6d/kotlin-build-tools-api-2.0.21.pom]
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-runner/2.0.21/kotlin-compiler-runner-2.0.21.pom, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-runner/2.0.21/ef298f23f23f2a8c275e2b5aa052ac427a1cd7dc/kotlin-compiler-runner-2.0.21.pom]
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/2.0.21/kotlin-scripting-compiler-embeddable-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download6228128894629219745bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/2.0.21/kotlin-scripting-compiler-impl-embeddable-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download10863552422495503032bin
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/2.0.21/kotlin-compiler-embeddable-2.0.21.pom, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/9512dbadfdeffb95bbfc1456caac2118d8def75d/kotlin-compiler-embeddable-2.0.21.pom]
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-script-runtime/2.0.21/kotlin-script-runtime-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download10515887382838851383bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-reflect/1.6.10/kotlin-reflect-1.6.10.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download13433170644257894625bin
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.pom, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/c1f38f72d4dfc6efd773b0448a7aae08f8d5025f/trove4j-1.0.20200330.pom]
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-daemon-embeddable/2.0.21/kotlin-daemon-embeddable-2.0.21.pom, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.0.21/33b79d49b61b78a8718bd27095f7d522a4fc0086/kotlin-daemon-embeddable-2.0.21.pom]
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.pom, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/b7c09a7e50e8d075a6f93bd0ef876cee77f5b158/kotlinx-coroutines-core-jvm-1.6.4.pom]
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-bom/1.6.4/kotlinx-coroutines-bom-1.6.4.pom, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-bom/1.6.4/88f782b09538e0bda7fa5ee6926f102564009bb6/kotlinx-coroutines-bom-1.6.4.pom]
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.module, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/ba90650d460262c3a1cf001e55b10317a394b174/kotlinx-coroutines-core-jvm-1.6.4.module]
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-daemon-client/2.0.21/kotlin-daemon-client-2.0.21.pom, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-client/2.0.21/7aec5cac53253fb91eb5f9866199c2de250f4e52/kotlin-daemon-client-2.0.21.pom]
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-common/2.0.21/kotlin-build-common-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download11113655083101148252bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-jvm/2.0.21/kotlin-scripting-jvm-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download9772596131205440638bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-common/2.0.21/kotlin-scripting-common-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download5314354502419212489bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/2.0.21/kotlin-build-tools-impl-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download11156923423349308653bin
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/2.0.21/kotlin-build-tools-api-2.0.21.jar, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-build-tools-api/2.0.21/612804301136399c0cc5c93f2366ef33fd0afdc3/kotlin-build-tools-api-2.0.21.jar]
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-runner/2.0.21/kotlin-compiler-runner-2.0.21.jar, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-runner/2.0.21/ea7301e9ee0a6cf310b67619709d578dd57896dc/kotlin-compiler-runner-2.0.21.jar]
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/2.0.21/kotlin-scripting-compiler-embeddable-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download3600519779690912578bin
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/2.0.21/kotlin-compiler-embeddable-2.0.21.jar, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/79346ed53db48b18312a472602eb5c057070c54d/kotlin-compiler-embeddable-2.0.21.jar]
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/2.0.21/kotlin-scripting-compiler-impl-embeddable-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download12101196522014804397bin
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-daemon-client/2.0.21/kotlin-daemon-client-2.0.21.jar, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-client/2.0.21/10cbd364d0703452050d9c4925fd24a6fec7e8d9/kotlin-daemon-client-2.0.21.jar]
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-jvm/2.0.21/kotlin-scripting-jvm-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download927896268943393736bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-common/2.0.21/kotlin-scripting-common-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download113086766525578726bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.0.21/kotlin-stdlib-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download16788445204312675356bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-script-runtime/2.0.21/kotlin-script-runtime-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download5734336089444449099bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download13874419197197818150bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-reflect/1.6.10/kotlin-reflect-1.6.10.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download10731970345590141861bin
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-daemon-embeddable/2.0.21/kotlin-daemon-embeddable-2.0.21.jar, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.0.21/c9e933b23287de9b5a17e2116b4657bb91aea72c/kotlin-daemon-embeddable-2.0.21.jar]
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/3afb14d5f9ceb459d724e907a21145e8ff394f02/trove4j-1.0.20200330.jar]
+Found locally available resource with matching checksum: [https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar, /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar]
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-common/2.0.21/kotlin-build-common-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download14790601016042515644bin
+Transforming libsignal-client-0.86.5.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming kotlinx-serialization-core-jvm-1.7.3.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming kotlinx-serialization-json-jvm-1.7.3.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming kotlinx-coroutines-core-jvm-1.9.0.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming okhttp-4.12.0.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming okio-jvm-3.6.0.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming kotlin-stdlib-jdk8-1.9.10.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming kotlin-stdlib-jdk7-1.9.10.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming kotlin-stdlib-2.1.0.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming annotations-23.0.0.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-serialization-core-jvm/1.7.3/1f226780b845ff9206474c05159245d861556249/kotlinx-serialization-core-jvm-1.7.3.jar because:
+  Build cache is disabled
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-serialization-json-jvm/1.7.3/6701e8c68d9e82387ce72ee96e8ddf058208d58f/kotlinx-serialization-json-jvm-1.7.3.jar because:
+  Build cache is disabled
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.9.0/9beade4c1c1569e4f36cbd2c37e02e3e41502601/kotlinx-coroutines-core-jvm-1.9.0.jar because:
+  Build cache is disabled
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/com.squareup.okhttp3/okhttp/4.12.0/2f4525d4a200e97e1b87449c2cd9bd2e25b7e8cd/okhttp-4.12.0.jar because:
+  Build cache is disabled
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/com.squareup.okio/okio-jvm/3.6.0/5600569133b7bdefe1daf9ec7f4abeb6d13e1786/okio-jvm-3.6.0.jar because:
+  Build cache is disabled
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk8/1.9.10/c7510d64a83411a649c76f2778304ddf71d7437b/kotlin-stdlib-jdk8-1.9.10.jar because:
+  Build cache is disabled
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/1.9.10/bc5bfc2690338defd5195b05c57562f2194eeb10/kotlin-stdlib-jdk7-1.9.10.jar because:
+  Build cache is disabled
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.1.0/85f8b81009cda5890e54ba67d64b5e599c645020/kotlin-stdlib-2.1.0.jar because:
+  Build cache is disabled
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains/annotations/23.0.0/8cc20c07506ec18e0834947b84a864bfc094484e/annotations-23.0.0.jar because:
+  Build cache is disabled
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.signal/libsignal-client/0.86.5/ca892fdbfd9f6f2632a8a4bae5a68a495692c174/libsignal-client-0.86.5.jar because:
+  Build cache is disabled
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-serialization-compiler-plugin-embeddable/2.0.21/kotlin-serialization-compiler-plugin-embeddable-2.0.21.pom to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download16199820112681697973bin
+Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-serialization-compiler-plugin-embeddable/2.0.21/kotlin-serialization-compiler-plugin-embeddable-2.0.21.jar to /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle_download6141112064717322192bin
+Caching disabled for task ':compileKotlin' because:
+  Build cache is disabled
+Task ':compileKotlin' is not up-to-date because:
+  No history is available.
+The input changes require a full rebuild for incremental task ':compileKotlin'.
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/main/kotlin', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/main/java', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/main/kotlin', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/main/java', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/main/kotlin', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/main/java', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/main/kotlin', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/main/java', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/main/kotlin', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/main/java', not found
+Kotlin source files: /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectSignalDelivery.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectRelayProofs.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectRelayClient.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/CryptoProvider.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/SignalPeerBinding.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/DeviceIdentity.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/LibsignalCryptoProvider.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/SignalMessageQueue.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/SignalStatePersistence.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/LibsignalKeys.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/SignalWireCodec.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/SignalPreKeyBundleDto.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/PreKeyReplenishmentPolicy.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/DeviceIdentityPersistence.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/main/java/com/wifeassistant/data/SecretPersistence.kt
+Java source files: 
+Script source files: 
+Script file extensions: 
+Using Kotlin/JVM incremental compilation
+[KOTLIN] Kotlin compilation 'jdkHome' argument: /workspace/scratch/cfa9b7d795a6/RuntimeTools/jdk-17.0.21+9
+
+Resolve mutations for :processResources (Thread[Execution worker,5,main]) started.
+:processResources (Thread[Execution worker,5,main]) started.
+
+> Task :processResources NO-SOURCE
+Skipping task ':processResources' as it has no source files and no previous output files.
+Resolve mutations for :processTestResources (Thread[Execution worker,5,main]) started.
+:processTestResources (Thread[Execution worker,5,main]) started.
+
+> Task :processTestResources NO-SOURCE
+Skipping task ':processTestResources' as it has no source files and no previous output files.
+
+> Task :compileKotlin
+i: starting the daemon as: /workspace/scratch/cfa9b7d795a6/RuntimeTools/jdk-17.0.21+9/bin/java -cp /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/79346ed53db48b18312a472602eb5c057070c54d/kotlin-compiler-embeddable-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.0.21/618b539767b4899b4660a83006e052b63f1db551/kotlin-stdlib-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-script-runtime/2.0.21/c9b044380ad41f89aa89aa896c2d32a8c0b2129d/kotlin-script-runtime-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-reflect/1.6.10/1cbe9c92c12a94eea200d23c2bbaedaf3daf5132/kotlin-reflect-1.6.10.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.0.21/c9e933b23287de9b5a17e2116b4657bb91aea72c/kotlin-daemon-embeddable-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/3afb14d5f9ceb459d724e907a21145e8ff394f02/trove4j-1.0.20200330.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar -Djava.awt.headless=true -Djava.rmi.server.hostname=127.0.0.1 -Xmx1g -XX:ReservedCodeCacheSize=320m -Dkotlin.environment.keepalive -ea -XX:+UseCodeCacheFlushing -XX:+UseParallelGC --add-exports java.base/sun.nio.ch=ALL-UNNAMED org.jetbrains.kotlin.daemon.KotlinCompileDaemon --daemon-runFilesPath /home/agent/.local/share/kotlin/daemon --daemon-autoshutdownIdleSeconds=7200 --daemon-compilerClasspath /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/79346ed53db48b18312a472602eb5c057070c54d/kotlin-compiler-embeddable-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.0.21/618b539767b4899b4660a83006e052b63f1db551/kotlin-stdlib-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-script-runtime/2.0.21/c9b044380ad41f89aa89aa896c2d32a8c0b2129d/kotlin-script-runtime-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-reflect/1.6.10/1cbe9c92c12a94eea200d23c2bbaedaf3daf5132/kotlin-reflect-1.6.10.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.0.21/c9e933b23287de9b5a17e2116b4657bb91aea72c/kotlin-daemon-embeddable-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/3afb14d5f9ceb459d724e907a21145e8ff394f02/trove4j-1.0.20200330.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar
+e: The daemon has terminated unexpectedly on startup attempt #1 with error code: 0. The daemon process output:
+    1. Kotlin compile daemon is ready
+i: #1 retrying connecting to the daemon 
+i: starting the daemon as: /workspace/scratch/cfa9b7d795a6/RuntimeTools/jdk-17.0.21+9/bin/java -cp /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/79346ed53db48b18312a472602eb5c057070c54d/kotlin-compiler-embeddable-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.0.21/618b539767b4899b4660a83006e052b63f1db551/kotlin-stdlib-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-script-runtime/2.0.21/c9b044380ad41f89aa89aa896c2d32a8c0b2129d/kotlin-script-runtime-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-reflect/1.6.10/1cbe9c92c12a94eea200d23c2bbaedaf3daf5132/kotlin-reflect-1.6.10.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.0.21/c9e933b23287de9b5a17e2116b4657bb91aea72c/kotlin-daemon-embeddable-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/3afb14d5f9ceb459d724e907a21145e8ff394f02/trove4j-1.0.20200330.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar -Djava.awt.headless=true -Djava.rmi.server.hostname=127.0.0.1 -Xmx1g -XX:ReservedCodeCacheSize=320m -Dkotlin.environment.keepalive -ea -XX:+UseCodeCacheFlushing -XX:+UseParallelGC --add-exports java.base/sun.nio.ch=ALL-UNNAMED org.jetbrains.kotlin.daemon.KotlinCompileDaemon --daemon-runFilesPath /home/agent/.local/share/kotlin/daemon --daemon-autoshutdownIdleSeconds=7200 --daemon-compilerClasspath /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/79346ed53db48b18312a472602eb5c057070c54d/kotlin-compiler-embeddable-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.0.21/618b539767b4899b4660a83006e052b63f1db551/kotlin-stdlib-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-script-runtime/2.0.21/c9b044380ad41f89aa89aa896c2d32a8c0b2129d/kotlin-script-runtime-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-reflect/1.6.10/1cbe9c92c12a94eea200d23c2bbaedaf3daf5132/kotlin-reflect-1.6.10.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.0.21/c9e933b23287de9b5a17e2116b4657bb91aea72c/kotlin-daemon-embeddable-2.0.21.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.intellij.deps/trove4j/1.0.20200330/3afb14d5f9ceb459d724e907a21145e8ff394f02/trove4j-1.0.20200330.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar
+i: #2 retrying connecting to the daemon 
+Options for KOTLIN DAEMON: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), areFileChangesKnown=false, modifiedFiles=null, deletedFiles=null, classpathChanges=NotAvailableForNonIncrementalRun, workingDir=/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/kotlin/compileKotlin/cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/kotlin/compileKotlin/local-state/build-history.bin, useModuleDetection=false), usePreciseJavaTracking=true, icFeatures=IncrementalCompilationFeatures(withAbiSnapshot=false, preciseCompilationResultsBackup=true, keepIncrementalCompilationCachesInMemory=true, enableUnsafeIncrementalCompilationForMultiplatform=false), outputFiles=[/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/classes/kotlin/main, /workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/kotlin/compileKotlin/cacheable, /workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/kotlin/compileKotlin/local-state])
+Finished executing kotlin compiler using DAEMON strategy
+Resolve mutations for :compileJava (Thread[included builds,5,main]) started.
+:compileJava (Thread[included builds,5,main]) started.
+
+> Task :compileJava NO-SOURCE
+Skipping task ':compileJava' as it has no source files and no previous output files.
+Resolve mutations for :classes (Thread[included builds,5,main]) started.
+:classes (Thread[included builds,5,main]) started.
+
+> Task :classes UP-TO-DATE
+Skipping task ':classes' as it has no actions.
+Resolve mutations for :jar (Thread[included builds,5,main]) started.
+:jar (Thread[included builds,5,main]) started.
+
+> Task :jar
+Caching disabled for task ':jar' because:
+  Build cache is disabled
+  Not worth caching
+Task ':jar' is not up-to-date because:
+  No history is available.
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/classes/java/main', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/resources/main', not found
+Resolve mutations for :compileTestKotlin (Thread[included builds,5,main]) started.
+:compileTestKotlin (Thread[included builds,5,main]) started.
+
+> Task :compileTestKotlin
+Transforming main with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming libsignal-client-0.86.5.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming kotlinx-serialization-core-jvm-1.7.3.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming kotlinx-serialization-json-jvm-1.7.3.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming kotlinx-coroutines-core-jvm-1.9.0.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming mockwebserver-4.12.0.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming okhttp-4.12.0.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming okio-jvm-3.6.0.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming kotlin-stdlib-jdk8-1.9.10.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming kotlin-stdlib-jdk7-1.9.10.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming kotlin-stdlib-2.1.0.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming junit-4.13.2.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/classes/kotlin/main because:
+  Build cache is disabled
+Transforming annotations-23.0.0.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Transforming hamcrest-core-1.3.jar with BuildToolsApiClasspathEntrySnapshotTransform
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/com.squareup.okhttp3/mockwebserver/4.12.0/3bc54cc5c87cd632031d0881f3c313d3799a1476/mockwebserver-4.12.0.jar because:
+  Build cache is disabled
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/junit/junit/4.13.2/8ac9e16d933b6fb43bc7f576336b8f4d7eb5ba12/junit-4.13.2.jar because:
+  Build cache is disabled
+Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: /workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar because:
+  Build cache is disabled
+Caching disabled for task ':compileTestKotlin' because:
+  Build cache is disabled
+Task ':compileTestKotlin' is not up-to-date because:
+  No history is available.
+The input changes require a full rebuild for incremental task ':compileTestKotlin'.
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/test/java', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/test/java', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/test/java', not found
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/test/java', not found
+Kotlin source files: /workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/test/kotlin/com/wifeassistant/SignalProcessRestartTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/src/test/kotlin/com/wifeassistant/SignalRelayIntegrationTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/SignalReleaseAcceptanceTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/DirectRelayKeyLifecycleTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/DeviceIdentityPersistenceTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/DirectRelayClientTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/SignalMessageQueueTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/DirectRelayProofsTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/SignalPreKeyAllocationTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/SignalPersistenceTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/SecretPersistenceTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/PreKeyReplenishmentPolicyTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/CryptoProviderTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/IdentityStorageIntegrationTest.kt, /workspace/scratch/cfa9b7d795a6/BaselineWisal/android-wife-assistant/app/src/test/java/com/wifeassistant/LibsignalCryptoProviderTest.kt
+Java source files: 
+Script source files: 
+Script file extensions: 
+Using Kotlin/JVM incremental compilation
+[KOTLIN] Kotlin compilation 'jdkHome' argument: /workspace/scratch/cfa9b7d795a6/RuntimeTools/jdk-17.0.21+9
+Options for KOTLIN DAEMON: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), areFileChangesKnown=false, modifiedFiles=null, deletedFiles=null, classpathChanges=NotAvailableForNonIncrementalRun, workingDir=/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/kotlin/compileTestKotlin/cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/kotlin/compileTestKotlin/local-state/build-history.bin, useModuleDetection=false), usePreciseJavaTracking=true, icFeatures=IncrementalCompilationFeatures(withAbiSnapshot=false, preciseCompilationResultsBackup=true, keepIncrementalCompilationCachesInMemory=true, enableUnsafeIncrementalCompilationForMultiplatform=false), outputFiles=[/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/classes/kotlin/test, /workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/kotlin/compileTestKotlin/cacheable, /workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/kotlin/compileTestKotlin/local-state])
+Finished executing kotlin compiler using DAEMON strategy
+Resolve mutations for :compileTestJava (Thread[included builds,5,main]) started.
+:compileTestJava (Thread[included builds,5,main]) started.
+
+> Task :compileTestJava NO-SOURCE
+Skipping task ':compileTestJava' as it has no source files and no previous output files.
+Resolve mutations for :testClasses (Thread[included builds,5,main]) started.
+:testClasses (Thread[included builds,5,main]) started.
+
+> Task :testClasses UP-TO-DATE
+Skipping task ':testClasses' as it has no actions.
+Resolve mutations for :test (Thread[included builds,5,main]) started.
+:test (Thread[included builds,5,main]) started.
+
+> Task :test
+Caching disabled for task ':test' because:
+  Build cache is disabled
+Task ':test' is not up-to-date because:
+  No history is available.
+file or directory '/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/classes/java/test', not found
+Starting process 'Gradle Test Executor 1'. Working directory: /workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security Command: /workspace/scratch/cfa9b7d795a6/RuntimeTools/jdk-17.0.21+9/bin/java -Dorg.gradle.internal.worker.tmpdir=/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/tmp/test/work -Dwisal.childClasspath=/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/classes/java/test:/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/classes/kotlin/test:/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/resources/test:/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/classes/java/main:/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/classes/kotlin/main:/workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/resources/main:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.signal/libsignal-client/0.86.5/ca892fdbfd9f6f2632a8a4bae5a68a495692c174/libsignal-client-0.86.5.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-serialization-core-jvm/1.7.3/1f226780b845ff9206474c05159245d861556249/kotlinx-serialization-core-jvm-1.7.3.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-serialization-json-jvm/1.7.3/6701e8c68d9e82387ce72ee96e8ddf058208d58f/kotlinx-serialization-json-jvm-1.7.3.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.10.2/4a9f78ef49483748e2c129f3d124b8fa249dafbf/kotlinx-coroutines-core-jvm-1.10.2.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/com.squareup.okhttp3/mockwebserver/4.12.0/3bc54cc5c87cd632031d0881f3c313d3799a1476/mockwebserver-4.12.0.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/com.squareup.okhttp3/okhttp/4.12.0/2f4525d4a200e97e1b87449c2cd9bd2e25b7e8cd/okhttp-4.12.0.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/com.squareup.okio/okio-jvm/3.6.0/5600569133b7bdefe1daf9ec7f4abeb6d13e1786/okio-jvm-3.6.0.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk8/1.9.10/c7510d64a83411a649c76f2778304ddf71d7437b/kotlin-stdlib-jdk8-1.9.10.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/1.9.10/bc5bfc2690338defd5195b05c57562f2194eeb10/kotlin-stdlib-jdk7-1.9.10.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.1.0/85f8b81009cda5890e54ba67d64b5e599c645020/kotlin-stdlib-2.1.0.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/junit/junit/4.13.2/8ac9e16d933b6fb43bc7f576336b8f4d7eb5ba12/junit-4.13.2.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.jetbrains/annotations/23.0.0/8cc20c07506ec18e0834947b84a864bfc094484e/annotations-23.0.0.jar:/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar -Dwisal.repository=/workspace/scratch/cfa9b7d795a6/BaselineWisal @/workspace/scratch/cfa9b7d795a6/RuntimeTools/GradleUser/.tmp/gradle-worker-classpath13174348976093242923txt -Xmx512m -Dfile.encoding=UTF-8 -Duser.country -Duser.language=en -Duser.variant -ea worker.org.gradle.process.internal.worker.GradleWorkerMain 'Gradle Test Executor 1'
+Successfully started process 'Gradle Test Executor 1'
+
+Gradle Test Executor 1 started executing tests.
+Gradle Test Executor 1 finished executing tests.
+
+> Task :test
+Finished generating test XML results (0.019 secs) into: /workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/test-results/test
+Generating HTML test report...
+Finished generating test html results (0.023 secs) into: /workspace/scratch/cfa9b7d795a6/BaselineWisal/verification/security/build/reports/tests/test
+
+BUILD SUCCESSFUL in 2m 32s
+4 actionable tasks: 4 executed
+Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching. The relevant state was discarded to ensure changes to these locations are properly detected. You can override this by explicitly enabling file system watching.

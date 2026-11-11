@@ -1,0 +1,442 @@
+{
+  "author": "Ahmed Zaian",
+  "algorithm": "SHA256",
+  "excludedSelf": "EvidenceManifest.json",
+  "files": [
+    {
+      "path": "Baseline/BaselineJvmTestsLiveProxy.log",
+      "bytes": 129708,
+      "sha256": "0a5b64fd7ad1441fea80ce0f671d8ac5c90b89bc32007abd0424458b665933a0"
+    },
+    {
+      "path": "Baseline/BaselinePostgresTests.log",
+      "bytes": 2501,
+      "sha256": "d409b7dd39f7bba7b07ef91826fab9e8eded65d31ce20f38f4112ee2ae0d639e"
+    },
+    {
+      "path": "Baseline/BaselineRelayTests.log",
+      "bytes": 11661,
+      "sha256": "fcc0de74b6f76f06ec595ffc7f3a616b21bb5aae97a46a9b75e6ee7dbfd89a66"
+    },
+    {
+      "path": "Baseline/BaselineResults.json",
+      "bytes": 3046,
+      "sha256": "008e0000d6180e952c2bb16d29d8d610a8de087115a0ded937d99e3085859e21"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.CryptoProviderTest.xml",
+      "bytes": 1038,
+      "sha256": "98ced7f5170df077080f93f68b4551ada4ccfb16b7a6025c951eb26c9513f943"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.DeviceIdentityPersistenceTest.xml",
+      "bytes": 1634,
+      "sha256": "936e5a3d527971477aa5e9ded65ff278c3d5425f7522cbe4c8e668bb8a68f684"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.DirectRelayClientTest.xml",
+      "bytes": 1064,
+      "sha256": "f007446e957dc30ed62bd6797020a29c8424b5450edf87b7e7721dc84f0039b4"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.DirectRelayKeyLifecycleTest.xml",
+      "bytes": 1877,
+      "sha256": "8d4fcc34551c015c499998caac0242b0d984700854c3c8cf6db221184632bdc4"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.DirectRelayProofsTest.xml",
+      "bytes": 762,
+      "sha256": "13e62857c714e23b3baf6b2f0a81f5e3fdd4094e370ddb4e1880d27f77d0dc52"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.IdentityStorageIntegrationTest.xml",
+      "bytes": 1081,
+      "sha256": "28f14b3d78e689dd2a16164e0993c32d51a9edcc2a7b4e0e6bad183d595e3eff"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.LibsignalCryptoProviderTest.xml",
+      "bytes": 1104,
+      "sha256": "651ca30efe5cd4777cd935a21ba668772c8dfd8b26722966a0bf0c65e430e276"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.PreKeyReplenishmentPolicyTest.xml",
+      "bytes": 1979,
+      "sha256": "82822b8985a38a1182700f1d6f7ac848d19d81c5bca645beb676bb0511eaf237"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.SecretPersistenceTest.xml",
+      "bytes": 1691,
+      "sha256": "107fb4f9ca114c27ca7b8ff77dba0344ac3a1598426a070e887ca2e9ee2bbc5a"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.SignalMessageQueueTest.xml",
+      "bytes": 2036,
+      "sha256": "0c485803f0efd5c1289ccaafb44a363586d6ec621a4632216463cbc9313f2dca"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.SignalPersistenceTest.xml",
+      "bytes": 1562,
+      "sha256": "400e0c5e8ec03751e4d915a7fd43fc7ffe98f7db1d3f367cd13d6c35a0e1a373"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.SignalPreKeyAllocationTest.xml",
+      "bytes": 1307,
+      "sha256": "b27568e8b02e05586c576fe9ccca1167598c8c0f3b7af9b1231b3f06ad92bc88"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.SignalProcessRestartTest.xml",
+      "bytes": 471,
+      "sha256": "47d1a19e7fa3c32e5636e0bd337446094ba3df6db5f5334a1523e8918a81c071"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.SignalRelayIntegrationTest.xml",
+      "bytes": 633,
+      "sha256": "d6524d444f05d513214c079237f089962ebc4d9dafbdd62843b626987d710679"
+    },
+    {
+      "path": "Baseline/JvmXml/TEST-com.wifeassistant.SignalReleaseAcceptanceTest.xml",
+      "bytes": 643,
+      "sha256": "ff8860b147a16b9f0c9c0c701d3bc1451dcdc09cdbb8a0392561ba25dcabc7d8"
+    },
+    {
+      "path": "Baseline/RuntimeChecksums.json",
+      "bytes": 426,
+      "sha256": "1022d4d455f47881bf62cb93c759c08d4c1b617314d8361e856ceb1a15a9f6a0"
+    },
+    {
+      "path": "Compatibility/AndroidSdkInspection.json",
+      "bytes": 660,
+      "sha256": "e9d418d66c61c952da1698733b0b8aaabfff9a2b250c43bb5c2a13ce34fc60e9"
+    },
+    {
+      "path": "Compatibility/AppliedIntegration.patch",
+      "bytes": 123846,
+      "sha256": "189e64332d20b7c4a57927b254fcda6aa0db1110e0866085941bdf1dad60ff37"
+    },
+    {
+      "path": "Compatibility/CombinedReview.patch",
+      "bytes": 123215,
+      "sha256": "33862890b372dc678408d0e5863b9bd294d18185e765dc12e9411ca2654ab6ea"
+    },
+    {
+      "path": "Compatibility/FinalCompatibilityResults.json",
+      "bytes": 1110,
+      "sha256": "72070b32fe6047dcb5bb7efe061dc8b983357febf7e27c776967c99ddace0c57"
+    },
+    {
+      "path": "Compatibility/IntegrationApplyProvenance.json",
+      "bytes": 8737,
+      "sha256": "e02ff733c9c5e73efbadda71ba0305e2dd4a6c7545d0067ee9628912ac4687e7"
+    },
+    {
+      "path": "Compatibility/PairingIntegration.log",
+      "bytes": 787,
+      "sha256": "c21e9591be88b2adf8050fc4126700df0a30957f680023303fec48c7d3b668cd"
+    },
+    {
+      "path": "Compatibility/PairingJvmXml/TEST-com.wifeassistant.PairingAcceptanceStoreTest.xml",
+      "bytes": 1668,
+      "sha256": "5c607817d1246c7c14f781765fb0d0278b278acc16012055b9458c6ae86a2c1e"
+    },
+    {
+      "path": "Compatibility/PairingJvmXml/TEST-com.wifeassistant.PairingTest.xml",
+      "bytes": 1254,
+      "sha256": "bd8a1da7221ca2c2960ca18290110ac513cc142178e1597abbf28b24ee6c49d7"
+    },
+    {
+      "path": "Compatibility/PairingJvmXml/TEST-com.wifeassistant.PairingValidationTest.xml",
+      "bytes": 1093,
+      "sha256": "aadb2da2115f45cd6c73e8ea2ed41f6e39f4e0cf9f586b42779c9c95923b8b60"
+    },
+    {
+      "path": "Compatibility/SecurityIntegration.log",
+      "bytes": 663,
+      "sha256": "48295ab71715b73c0e6abff6d5e829a82525d3c6a6e6d39d3bf64b857c37bdf6"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.CryptoProviderTest.xml",
+      "bytes": 1033,
+      "sha256": "7c98745ae7b48ab69cba980a595b9ee755d5b62879f78237f222e90e79f0fd53"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.DeviceIdentityPersistenceTest.xml",
+      "bytes": 1632,
+      "sha256": "f19b1e67ac7ad4fd6fe965be52a5dfe5d1d9a79d110d6cd76d0e206588fbd1e8"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.DirectPreKeyMaintenanceTest.xml",
+      "bytes": 4376,
+      "sha256": "5b85dbb2d42031bac95bd26d976fe0d1e99a14b96cc7c7a288e3ef53c1d87c80"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.DirectRelayClientTest.xml",
+      "bytes": 1065,
+      "sha256": "272abe85528effcb3d4d5306edb13a9b6bc25d052da0701b9b6d5767cc9030aa"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.DirectRelayKeyLifecycleTest.xml",
+      "bytes": 1877,
+      "sha256": "90ea832ebfef34bb3623fc965a28aabd06ef998e220ee4389a1059b6607b2d6d"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.DirectRelayProofsTest.xml",
+      "bytes": 758,
+      "sha256": "b5a2de0755c09767c54558ec46eb8cdfcba853597020999ac143a6a2feeab9b0"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.IdentityStorageIntegrationTest.xml",
+      "bytes": 1081,
+      "sha256": "9ce3ec09c01d12213c5a4c218464f85bf5f8b7ec4d1f1abb0fbc797f0465a230"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.LibsignalCryptoProviderTest.xml",
+      "bytes": 1102,
+      "sha256": "c1c3072c79f3d8ba76bb80dc28a3e6875f66e37a327a0d5634bd94bc985ec96e"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.PreKeyMaintenanceHttpTest.xml",
+      "bytes": 1254,
+      "sha256": "029d4fb1bbd9f7183240398c8a0b38d80e2c010e33213e9102fe83c1ebba9756"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.PreKeyPublicationPersistenceTest.xml",
+      "bytes": 1763,
+      "sha256": "2c9b429aed8d3bcefb8efb20ac176bfd2c511a9aafff12ab449a1a2c8dde0479"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.PreKeyPublicationTransportTest.xml",
+      "bytes": 1403,
+      "sha256": "6fedea98cee84d5293329ea315d9b4602b28bfc988fe5524071bfc7cc9be6c47"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.PreKeyReplenishmentPolicyTest.xml",
+      "bytes": 1981,
+      "sha256": "0b520843d36b9bf3e02eb3e9772894a70fe2331902455aa953955b28fe725b96"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.SecretPersistenceTest.xml",
+      "bytes": 1695,
+      "sha256": "3e055d446a9e22c1ceab6dc70783b819b5f00fe4adc863de633e72a3462f869b"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.SignalMessageQueueTest.xml",
+      "bytes": 2035,
+      "sha256": "45497f28a0ce7ee68a614d5f1be818e5ac9ab8564d3447e0bf7d3543f5b4ae14"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.SignalPersistenceTest.xml",
+      "bytes": 1565,
+      "sha256": "c7413d442ef9eb49f2a085246fcf5b39b6a7c50ea165e192bc171626611d6612"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.SignalPreKeyAllocationTest.xml",
+      "bytes": 1311,
+      "sha256": "750a96c10714eba256067e99ebe6d3368675ac79a3c4ba91213cc9e818233fb3"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.SignalProcessRestartTest.xml",
+      "bytes": 471,
+      "sha256": "40adc29f0228f94321a43bdac40e642401feabb165beb830f9ae8dea14f57488"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.SignalRelayIntegrationTest.xml",
+      "bytes": 635,
+      "sha256": "c8249ac015c591939a3eeafacb8f838005b93a1d4c6bd5c18c5799fc08b532bd"
+    },
+    {
+      "path": "Compatibility/SecurityJvmXml/TEST-com.wifeassistant.SignalReleaseAcceptanceTest.xml",
+      "bytes": 643,
+      "sha256": "7f85b7296b9938584768c29badd7b139fd6d7810483c88a67bd2acd894658286"
+    },
+    {
+      "path": "Compatibility/SecuritySuperseded.log",
+      "bytes": 1311,
+      "sha256": "7ce84ba5dc2e53eac081f0bf5312a7d69114ad75cddbfc34fd6b392df1a87d31"
+    },
+    {
+      "path": "FinalRelayClientJvm.log",
+      "bytes": 789,
+      "sha256": "892e2ef934a2b71b855e1c7e17f8a5d1384c0bf8b5ee2a6a21ce076b6982b508"
+    },
+    {
+      "path": "FinalRelayPostgres.log",
+      "bytes": 21403,
+      "sha256": "ce4404fb6894fcb2333d7a039c3ef30b22c2a14dccffdd0620629eeeaf6682ff"
+    },
+    {
+      "path": "FinalSecurityJvm.log",
+      "bytes": 699,
+      "sha256": "d6de1421ded0568bd027aedac03f5a1d206c0a8ed8701af18f53ec02a08a8212"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2037,
+      "sha256": "9cfdc191b47bfa6511e82be18aa464657a7142177a0b786cea8a591e055dbb22"
+    },
+    {
+      "path": "Relay/RelayEvidence.json",
+      "bytes": 2148,
+      "sha256": "b6df4cfb14ac003978af6177a1661997d6b318a1b80539cfe71208f2563c4950"
+    },
+    {
+      "path": "Relay/RelayPostgresTests.log",
+      "bytes": 21399,
+      "sha256": "a8120ef302b01c9c1da9044907074f56a88b7c6ffa8403898595399cfded6a4c"
+    },
+    {
+      "path": "Relay/RelaySyntax.log",
+      "bytes": 1117,
+      "sha256": "9b6f49e2342ec6138590fdf0d857ea854a8174348709efb3dc2948580bb7b795"
+    },
+    {
+      "path": "Relay/RelayTests.log",
+      "bytes": 18807,
+      "sha256": "a736cd9ec493a94867a285bd4b75f22a531ecf55dc63ae094b38aef7b8be9008"
+    },
+    {
+      "path": "Relay/RelayTimestampAfter.log",
+      "bytes": 117,
+      "sha256": "075fbf02b5bbae1cdd163a48128fc2443499bd9b218bcc6fae554b89eba8a612"
+    },
+    {
+      "path": "Relay/RelayTimestampBefore.log",
+      "bytes": 261,
+      "sha256": "bfc6c2b8a1a23717299111a84cdcbbda2263ef397acc723e376cfecd5fe4748d"
+    },
+    {
+      "path": "Relay/RelayTimestampRegression.cjs",
+      "bytes": 1683,
+      "sha256": "37e458db648e66e4474077c6a1166acadd18fb4467d1ec2a11217b5edd1c3476"
+    },
+    {
+      "path": "RelayClientJvmXml/TEST-com.wifeassistant.DirectRelayClientTest.xml",
+      "bytes": 1065,
+      "sha256": "a05bbe895eb69ffb463f3da7e443bc5a633466d68962427513477bec0cad5e80"
+    },
+    {
+      "path": "RelayClientJvmXml/TEST-com.wifeassistant.DirectRelayKeyLifecycleTest.xml",
+      "bytes": 1878,
+      "sha256": "c9a7723cf70f220c59ec6f33b2d37e7068f63bf2944810dc810d3e4a8758cd54"
+    },
+    {
+      "path": "RelayClientJvmXml/TEST-com.wifeassistant.DirectRelayProofsTest.xml",
+      "bytes": 758,
+      "sha256": "083638e08c19d8b82c46564d5941fbf5fb73659442c73d8f3c6181207dd51ea7"
+    },
+    {
+      "path": "RelayClientJvmXml/TEST-com.wifeassistant.PreKeyPublicationTransportTest.xml",
+      "bytes": 1408,
+      "sha256": "128d7b180c530c6115112927dc8a465e194bee7edc70c05d8df8f2a042b3eb66"
+    },
+    {
+      "path": "SecurityBeforeTestFixtureCorrection.log",
+      "bytes": 1172,
+      "sha256": "b09792413694514378cc829f754945d70d86655a08262ed849b37f9ed255b481"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.CryptoProviderTest.xml",
+      "bytes": 1031,
+      "sha256": "bd63a27e75777f39f1cd5c8bb992aa66b76dc6a4f06d827fe858edfee75824c1"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.DeviceIdentityPersistenceTest.xml",
+      "bytes": 1632,
+      "sha256": "a1357a1f3bfcbe8437b9f270190a3ec14ee5bab78eea6da8f7a5e9a5b2417cc6"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.DirectPreKeyMaintenanceTest.xml",
+      "bytes": 4378,
+      "sha256": "446018bd53facaa063be1a83023391b23cf7e377df0c48aaf377b801290e77c0"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.DirectRelayClientTest.xml",
+      "bytes": 1065,
+      "sha256": "4c6374b01448e923c92afde81a567d7b5fa9a3dab66d6fc394427ee5dffbf6c3"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.DirectRelayKeyLifecycleTest.xml",
+      "bytes": 1878,
+      "sha256": "710897f2c129e495049127b71d0a92476a40b923a6ab42e427f02ae8420751b7"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.DirectRelayProofsTest.xml",
+      "bytes": 762,
+      "sha256": "e89cdb376f49f4deee392fb58c7aaff5831bf02b6cbaff0e16d1069677efb6de"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.IdentityStorageIntegrationTest.xml",
+      "bytes": 1081,
+      "sha256": "b8838c9b90cde16aea838b02b54133bcb71cc8ef30d5afbd13b6011970f48217"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.LibsignalCryptoProviderTest.xml",
+      "bytes": 1104,
+      "sha256": "8849b97d9400100395a00189896a4e6fb1b65de386d7c1eaafe9d14d4e8b1ab6"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.PreKeyMaintenanceHttpTest.xml",
+      "bytes": 1254,
+      "sha256": "065f66f95c8f66e4a767add7d80c472f9b739854e76e2b5fdd2ce15caa1e44f6"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.PreKeyPublicationPersistenceTest.xml",
+      "bytes": 1762,
+      "sha256": "a8e05c144272393e3c2b2d2f0f51ea0fd72e6f129de5cabdb60e2bc1c75b2e38"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.PreKeyPublicationTransportTest.xml",
+      "bytes": 1407,
+      "sha256": "7f3affb37456553d1f12f12ba27032ef0e6a3e934dbb7b5eea9c05e473063e7a"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.PreKeyReplenishmentPolicyTest.xml",
+      "bytes": 1977,
+      "sha256": "2ec71fb5679dedb1316b29556c84e9324bc56750267d281b229d5e5fea06e437"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.SecretPersistenceTest.xml",
+      "bytes": 1693,
+      "sha256": "6bfde8eba28e259ef78c0ab91e9994efaaa53cad64d17e7de143493863d11545"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.SignalMessageQueueTest.xml",
+      "bytes": 2037,
+      "sha256": "90774838da67f3c3b4f01ce6d7736337a9de814c0e837671fe5d68d82efdf2eb"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.SignalPersistenceTest.xml",
+      "bytes": 1565,
+      "sha256": "f074b2132eb70c5a56dc7d2036c0bdd9553ab1492a9ef55fd9bff6561daf79fc"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.SignalPreKeyAllocationTest.xml",
+      "bytes": 1308,
+      "sha256": "7a1238e0b1ad9213d7dfdbe8720ec804a8577bb2e4aaea319650fbab53bdf5cc"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.SignalProcessRestartTest.xml",
+      "bytes": 471,
+      "sha256": "479689e11a550aea5e4eaad5a68f6e9d91bd2365bd1409abd0e24d693bbf81c6"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.SignalRelayIntegrationTest.xml",
+      "bytes": 635,
+      "sha256": "eeb8bf7612e6c3fafa84bf9c3f922b79249f8c7a839ca866a0b3b311d12865d4"
+    },
+    {
+      "path": "SecurityJvmXml/TEST-com.wifeassistant.SignalReleaseAcceptanceTest.xml",
+      "bytes": 643,
+      "sha256": "626c2dfb3c8004ff9724fddb27762aed16bdef71c9f650b7f5a9dde5cf6e66fa"
+    },
+    {
+      "path": "SourceManifest.json",
+      "bytes": 5557,
+      "sha256": "72c10a6821698dc6eaf8ead32944c2e107958ddc53c976eb1e102d60a0b0d089"
+    },
+    {
+      "path": "VerificationSummary.json",
+      "bytes": 9915,
+      "sha256": "97c82964665db03573b6df08053643dfe96e656a6f503cfa6029c6e8822e5794"
+    }
+  ]
+}

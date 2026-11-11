@@ -1,0 +1,137 @@
+{
+  "baselineCommit": "a926d6bc7aa9b3fc0530c4e40e4be60cf207161d",
+  "jvmExitCode": 0,
+  "jvm": {
+    "tests": 102,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "classes": [
+    {
+      "name": "com.wifeassistant.CryptoProviderTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.088"
+    },
+    {
+      "name": "com.wifeassistant.DeviceIdentityPersistenceTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.181"
+    },
+    {
+      "name": "com.wifeassistant.DirectRelayClientTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.298"
+    },
+    {
+      "name": "com.wifeassistant.DirectRelayKeyLifecycleTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.146"
+    },
+    {
+      "name": "com.wifeassistant.DirectRelayProofsTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.001"
+    },
+    {
+      "name": "com.wifeassistant.IdentityStorageIntegrationTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.114"
+    },
+    {
+      "name": "com.wifeassistant.LibsignalCryptoProviderTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.055"
+    },
+    {
+      "name": "com.wifeassistant.PreKeyReplenishmentPolicyTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.041"
+    },
+    {
+      "name": "com.wifeassistant.SecretPersistenceTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.004"
+    },
+    {
+      "name": "com.wifeassistant.SignalMessageQueueTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.291"
+    },
+    {
+      "name": "com.wifeassistant.SignalPersistenceTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.032"
+    },
+    {
+      "name": "com.wifeassistant.SignalPreKeyAllocationTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.037"
+    },
+    {
+      "name": "com.wifeassistant.SignalProcessRestartTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.738"
+    },
+    {
+      "name": "com.wifeassistant.SignalRelayIntegrationTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.412"
+    },
+    {
+      "name": "com.wifeassistant.SignalReleaseAcceptanceTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.008"
+    }
+  ],
+  "relayExitCode": 0,
+  "relayTapTests": 10,
+  "relayTapFailures": 0,
+  "realPostgresExitCode": 0,
+  "androidSdkRun": false
+}

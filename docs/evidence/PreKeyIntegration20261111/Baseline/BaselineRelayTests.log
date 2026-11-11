@@ -1,0 +1,191 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> wisal-direct-relay@0.1.0 test
+> node test/relay.test.js && node test/plaintext-leak.test.js && node test/prekeys.test.js && node test/revocation.test.js && node test/fail-closed.test.js && node test/pg-store.test.js && node --test --test-reporter=tap test/ReleaseSecurityAcceptance.test.js
+
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000001}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:7s8jyvdo","backend":"VODOZEMAC","atEpochSec":1800000000}
+{"event":"envelope_delivered","deviceId":"devB","envelopeId":"devA:1800000000:7s8jyvdo","atEpochSec":1800000010}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:0nh4g4ra","backend":"VODOZEMAC","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:3di91lqn","backend":"VODOZEMAC","atEpochSec":1800000000}
+relay.test.js: all assertions passed ✅
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:0dz3e7e4","backend":"VODOZEMAC","atEpochSec":1800000000}
+{"event":"envelope_delivered","deviceId":"devB","envelopeId":"devA:1800000000:0dz3e7e4","atEpochSec":1800000002}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:w124v474","backend":"VODOZEMAC","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:w124v474","atEpochSec":1800000000}
+plaintext-leak.test.js: all assertions passed ✅
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_claimed","deviceId":"devA","targetDeviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_claimed","deviceId":"devA","targetDeviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_claimed","deviceId":"devA","targetDeviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_claimed","deviceId":"devA","targetDeviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_claimed","deviceId":"devA","targetDeviceId":"devB","atEpochSec":1800000000}
+prekeys.test.js: all assertions passed ✅
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:v2p6tirj","backend":"SIGNAL","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devB","recipientDeviceId":"devC","envelopeId":"devB:1800000000:m58t3c6x","backend":"SIGNAL","atEpochSec":1800000000}
+{"event":"device_revoked","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devB","recipientDeviceId":"devA","envelopeId":"devB:1800000000:okqamer6","backend":"SIGNAL","atEpochSec":1800000000}
+{"event":"device_revoked","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_revoked","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC","atEpochSec":1800000000}
+revocation.test.js: all assertions passed ✅
+{"event":"storage_error","reason":"storage not configured"}
+{"event":"storage_error","reason":"storage not configured"}
+{"event":"storage_error","reason":"storage not configured"}
+{"event":"storage_error","reason":"storage not configured"}
+{"event":"storage_error","reason":"storage not configured"}
+{"event":"storage_error","reason":"storage not configured"}
+fail-closed.test.js: all assertions passed ✅
+pg-store.test.js: SKIPPED (set RELAY_TEST_DATABASE_URL to run against PostgreSQL)
+TAP version 13
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_claimed","deviceId":"A","targetDeviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_claimed","deviceId":"A","targetDeviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_revoked","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_revoked","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_revoked","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_revoked","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_revoked","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# Subtest: R01 concurrent claims deliver exactly one one-time key
+ok 1 - R01 concurrent claims deliver exactly one one-time key
+  ---
+  duration_ms: 16.116945
+  type: 'test'
+  ...
+# Subtest: R02 consumed key cannot be restored by publication replay
+ok 2 - R02 consumed key cannot be restored by publication replay
+  ---
+  duration_ms: 2.990197
+  type: 'test'
+  ...
+# Subtest: R03 ordinary post-revocation publication and claims are refused
+ok 3 - R03 ordinary post-revocation publication and claims are refused
+  ---
+  duration_ms: 4.482513
+  type: 'test'
+  ...
+# Subtest: R04 revocation removes publication already in flight before its write
+ok 4 - R04 revocation removes publication already in flight before its write
+  ---
+  duration_ms: 2.108097
+  type: 'test'
+  ...
+# Subtest: R05 requester revocation prevents an in-flight claim consuming a key
+ok 5 - R05 requester revocation prevents an in-flight claim consuming a key
+  ---
+  duration_ms: 2.14337
+  type: 'test'
+  ...
+# Subtest: R06 revoked recipient cannot regain an envelope through an in-flight submit
+ok 6 - R06 revoked recipient cannot regain an envelope through an in-flight submit
+  ---
+  duration_ms: 1.911547
+  type: 'test'
+  ...
+# Subtest: R07 stale signed claim is refused without consumption
+ok 7 - R07 stale signed claim is refused without consumption
+  ---
+  duration_ms: 1.723871
+  type: 'test'
+  ...
+# Subtest: R08 signature for a different target cannot consume the bundle
+ok 8 - R08 signature for a different target cannot consume the bundle
+  ---
+  duration_ms: 1.721625
+  type: 'test'
+  ...
+# Subtest: R09 repeated self-revocation remains safe and cannot restore a bundle
+ok 9 - R09 repeated self-revocation remains safe and cannot restore a bundle
+  ---
+  duration_ms: 1.881914
+  type: 'test'
+  ...
+# Subtest: R10 concurrent different bundles sharing one id cannot both publish
+ok 10 - R10 concurrent different bundles sharing one id cannot both publish
+  ---
+  duration_ms: 2.177586
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 153.848764

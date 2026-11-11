@@ -1,0 +1,132 @@
+{
+  "author": "Ahmed Zaian",
+  "baseline": "a926d6bc7aa9b3fc0530c4e40e4be60cf207161d",
+  "implementationCommit": "8e6facfc78ccf9d9e9817039e2e8fed0df8f98c9",
+  "implementationTree": "c97fff45197f55e82e4ce6936ed9adeb91ebe13b",
+  "files": [
+    {
+      "path": "android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/LibsignalCryptoProvider.kt",
+      "sha256": "49c7a92d5f2d3e34e029bbdda1905b833cc39ad9a11caddc225060850c1bf27d"
+    },
+    {
+      "path": "android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/PreKeyPublication.kt",
+      "sha256": "35e2e7f78b43af0bc00792af5dec9a66651c4e1a52d7b47a06c463ac8fbaa83f"
+    },
+    {
+      "path": "android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/PreKeyReplenishmentPolicy.kt",
+      "sha256": "31debe5573d0c25865ac5295dff2f32b8065d9bbb12e991a3cd65059c25ce6a2"
+    },
+    {
+      "path": "android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/SignalStatePersistence.kt",
+      "sha256": "857beaed97bb44c98c1a24b695d00650e4813c0c7afd659dc30a6ed2f6f631b3"
+    },
+    {
+      "path": "android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectPreKeyMaintenance.kt",
+      "sha256": "51489e9995e212b1bd0941cb1e139a2995d9eb1292ea0c415b840d634f554b93"
+    },
+    {
+      "path": "android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectRelayClient.kt",
+      "sha256": "04484454722a7e441614d1065f633fc89e6d0210fae03f36644d63fc24524546"
+    },
+    {
+      "path": "android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectRelayProofs.kt",
+      "sha256": "081cf8bb679cf4e1c07a5f147a4f18b9f3165d740ac03e344490ca7077d041dd"
+    },
+    {
+      "path": "android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/PreKeyPublicationTransport.kt",
+      "sha256": "dd7ce1c001bfa374404355049e91e0e16e386fd85426a1a2c68f91bcd264a484"
+    },
+    {
+      "path": "android-wife-assistant/app/src/test/java/com/wifeassistant/DirectPreKeyMaintenanceTest.kt",
+      "sha256": "79527b8e71364a0ee2e5e456972a99742c97c2c8592de6ad80a9d927e2286c8d"
+    },
+    {
+      "path": "android-wife-assistant/app/src/test/java/com/wifeassistant/PreKeyPublicationPersistenceTest.kt",
+      "sha256": "4ddb4c686b6089879448999bf5a6d62d468dbcd28aeb4902b50c94892a9b8806"
+    },
+    {
+      "path": "android-wife-assistant/app/src/test/java/com/wifeassistant/PreKeyPublicationTransportTest.kt",
+      "sha256": "bf0cba3b2cd52d26523d0f0f7865f2dd3047b89f598bb686e05c55a0b565c218"
+    },
+    {
+      "path": "docs/WisalPreKeyIntegrationReview.md",
+      "sha256": "6d1dfba10be1b4069de4b17f00b7673abe4ecc6fd7e2644b8bdb45d8364a682b"
+    },
+    {
+      "path": "docs/direct-relay-client-lifecycle.md",
+      "sha256": "fd6d5f3e917cc0fd044dad184a5f1952299a5072d78632024e25c7fb35eb582c"
+    },
+    {
+      "path": "docs/durable-prekey-allocation.md",
+      "sha256": "a4fd5275ed91023f62dacfebad634c1a015380eb4632ee1100afc208d889118e"
+    },
+    {
+      "path": "vercel.json",
+      "sha256": "90b7a7df47b776cd497fa686e9a7ad03541dcc7e725f55fa0b4039f07eb7e136"
+    },
+    {
+      "path": "verification/relay-client/build.gradle.kts",
+      "sha256": "f7f75726b5a7bf8851e8da8994c28c86d94a71c896173b450e85ed8d2b5c1c87"
+    },
+    {
+      "path": "verification/security/RelayHarness.cjs",
+      "sha256": "8d275fbf701b6f72db34fdd2928ab2fa48fa13ecf61c30cbc0d4c3a0ae979c4f"
+    },
+    {
+      "path": "verification/security/build.gradle.kts",
+      "sha256": "aef67756f545f29ff0f31ba75302b0f48b32245ca2729f4b6421c65f1a72e424"
+    },
+    {
+      "path": "verification/security/src/test/kotlin/com/wifeassistant/PreKeyMaintenanceHttpTest.kt",
+      "sha256": "c7c4b3d6d8811c5164c1f6e95e41c65a70e647ce57c114fbaa0d2ea37c33920d"
+    },
+    {
+      "path": "wisal-cloud-api/vercel.json",
+      "sha256": "218511cad8c55ee0b41273af4cc5ff77adb80c721b6ba930c9d66a88fbc48db0"
+    },
+    {
+      "path": "wisal-direct-relay/README.md",
+      "sha256": "4141ea91f99b36b24123d9027effee61f6737bee6e171d320e11b4a9d8c37012"
+    },
+    {
+      "path": "wisal-direct-relay/api/prekeys-status.js",
+      "sha256": "eadea5e8caaa97e1f8172d26dfa4302bff3e329e3a25c3c82f901de00e447f92"
+    },
+    {
+      "path": "wisal-direct-relay/lib/pgStore.js",
+      "sha256": "d46cf5c956573d3b66155d159c1f3c3881aca50d8691c530b53533c8e3ab6abc"
+    },
+    {
+      "path": "wisal-direct-relay/lib/prekeys.js",
+      "sha256": "bfcd991808261bb3c0bf788369c7452aa76f246cd3bdd8984d178576506f66c7"
+    },
+    {
+      "path": "wisal-direct-relay/lib/prekeysStatus.js",
+      "sha256": "74e07e13846235a0b996b91b0c5a9e922328b240a3f55390be02ddf460e661e4"
+    },
+    {
+      "path": "wisal-direct-relay/package.json",
+      "sha256": "deb241ee19adf37e3341f871ccde96cb94ce495563177d67da0d1eb05c88d537"
+    },
+    {
+      "path": "wisal-direct-relay/test/PreKeyPublicationStatus.test.js",
+      "sha256": "8624790451ca920140dc21e68b2b0c933327535e7ce03125909b4923c2b46a7b"
+    },
+    {
+      "path": "wisal-direct-relay/test/fail-closed.test.js",
+      "sha256": "8fb62cb9bf7cccf2c0c99b1153641f6b0bb854d7929e9097b6c7a7c57a1cb929"
+    },
+    {
+      "path": "wisal-direct-relay/test/pg-store.test.js",
+      "sha256": "41d91b5ea5f56f49c9d87d6d0218e6813ad002c8c361cc541d54d08d09458460"
+    },
+    {
+      "path": "wisal-direct-relay/vercel.json",
+      "sha256": "218511cad8c55ee0b41273af4cc5ff77adb80c721b6ba930c9d66a88fbc48db0"
+    },
+    {
+      "path": "wisal-web/vercel.json",
+      "sha256": "1d411fa31e73a86df84f5e85daef1bcecbdba692663b8a168b742efe47a48a17"
+    }
+  ]
+}

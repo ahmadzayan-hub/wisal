@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.SignalPersistenceTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:39:03" hostname="10553fb40495" time="0.036">
+  <properties/>
+  <testcase name="changedOrUnboundSignalIdentityIsRejectedWithoutStateMutation" classname="com.wifeassistant.SignalPersistenceTest" time="0.01"/>
+  <testcase name="encryptedStateCannotBeReboundToAnotherDeviceIdentity" classname="com.wifeassistant.SignalPersistenceTest" time="0.002"/>
+  <testcase name="corruptStateNeverRotatesOrLeaksItsCause" classname="com.wifeassistant.SignalPersistenceTest" time="0.0"/>
+  <testcase name="releaseFactoryRefusesEphemeralSignalStore" classname="com.wifeassistant.SignalPersistenceTest" time="0.0"/>
+  <testcase name="bindingProofCoversDeviceRegistrationAndSignalIdentity" classname="com.wifeassistant.SignalPersistenceTest" time="0.007"/>
+  <testcase name="failedCommitWithholdsBundleAndBlocksFurtherAccess" classname="com.wifeassistant.SignalPersistenceTest" time="0.001"/>
+  <testcase name="missingPreviouslyLoadedStateDoesNotCreateReplacement" classname="com.wifeassistant.SignalPersistenceTest" time="0.001"/>
+  <testcase name="concurrentProvidersCannotOverwriteFirstIdentityOrPreKeys" classname="com.wifeassistant.SignalPersistenceTest" time="0.007"/>
+  <testcase name="failedRatchetCommitDoesNotReleaseCiphertextOrLoseDurableSession" classname="com.wifeassistant.SignalPersistenceTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

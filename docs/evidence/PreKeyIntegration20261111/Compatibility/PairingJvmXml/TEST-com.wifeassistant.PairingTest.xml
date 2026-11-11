@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.PairingTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:38:32" hostname="10553fb40495" time="0.043">
+  <properties/>
+  <testcase name="revokedInvitationCannotBeAccepted" classname="com.wifeassistant.PairingTest" time="0.002"/>
+  <testcase name="tokensAreUniqueAndUrlSafe" classname="com.wifeassistant.PairingTest" time="0.002"/>
+  <testcase name="payloadRoundTripsAndRejectsGarbage" classname="com.wifeassistant.PairingTest" time="0.017"/>
+  <testcase name="acceptWithinTtlSucceedsOnce" classname="com.wifeassistant.PairingTest" time="0.001"/>
+  <testcase name="identityHasNoPhoneOrEmailFields" classname="com.wifeassistant.PairingTest" time="0.002"/>
+  <testcase name="expiredInvitationIsRefused" classname="com.wifeassistant.PairingTest" time="0.001"/>
+  <testcase name="wrongTokenIsRefused" classname="com.wifeassistant.PairingTest" time="0.002"/>
+  <testcase name="identitySignsAndVerifies" classname="com.wifeassistant.PairingTest" time="0.014"/>
+  <testcase name="replayIsRefusedAfterAcceptance" classname="com.wifeassistant.PairingTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

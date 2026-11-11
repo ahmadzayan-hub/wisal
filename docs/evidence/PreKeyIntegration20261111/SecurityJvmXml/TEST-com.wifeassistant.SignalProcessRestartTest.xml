@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.SignalProcessRestartTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:39:04" hostname="10553fb40495" time="3.001">
+  <properties/>
+  <testcase name="sessionDeliveryAndReplayStateSurviveSeparateJvmProcesses" classname="com.wifeassistant.SignalProcessRestartTest" time="3.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

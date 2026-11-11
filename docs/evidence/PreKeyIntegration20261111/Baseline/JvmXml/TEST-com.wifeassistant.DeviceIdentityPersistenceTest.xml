@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.DeviceIdentityPersistenceTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:31:25" hostname="10553fb40495" time="0.181">
+  <properties/>
+  <testcase name="descriptionsNeverIncludePrivateKeyMaterial" classname="com.wifeassistant.DeviceIdentityPersistenceTest" time="0.058"/>
+  <testcase name="failedOrUnverifiedWriteCannotReturnAnEphemeralIdentity" classname="com.wifeassistant.DeviceIdentityPersistenceTest" time="0.018"/>
+  <testcase name="keyPairMismatchAndInvalidIdentifiersAreRefusedWithoutWriting" classname="com.wifeassistant.DeviceIdentityPersistenceTest" time="0.031"/>
+  <testcase name="futureMetadataDoesNotRotateExistingValidKeys" classname="com.wifeassistant.DeviceIdentityPersistenceTest" time="0.021"/>
+  <testcase name="aDifferentEcCurveIsNotAcceptedAsAP256Identity" classname="com.wifeassistant.DeviceIdentityPersistenceTest" time="0.009"/>
+  <testcase name="firstUsePersistsBeforeReturningAndRestartPreservesTheIdentity" classname="com.wifeassistant.DeviceIdentityPersistenceTest" time="0.008"/>
+  <testcase name="concurrentFirstUseCreatesOnlyOneIdentity" classname="com.wifeassistant.DeviceIdentityPersistenceTest" time="0.032"/>
+  <testcase name="unavailableReadNeverCreatesOrOverwritesAnIdentity" classname="com.wifeassistant.DeviceIdentityPersistenceTest" time="0.002"/>
+  <testcase name="malformedStoredDataIsPreservedAndNeverSilentlyReplaced" classname="com.wifeassistant.DeviceIdentityPersistenceTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

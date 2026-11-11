@@ -1,0 +1,349 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> wisal-direct-relay@0.1.0 test
+> node test/relay.test.js && node test/plaintext-leak.test.js && node test/prekeys.test.js && node test/revocation.test.js && node test/fail-closed.test.js && node test/pg-store.test.js && node --test --test-reporter=tap test/ReleaseSecurityAcceptance.test.js && node --test --test-reporter=tap test/PreKeyPublicationStatus.test.js
+
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000001}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:7p3ja2u5","backend":"VODOZEMAC","atEpochSec":1800000000}
+{"event":"envelope_delivered","deviceId":"devB","envelopeId":"devA:1800000000:7p3ja2u5","atEpochSec":1800000010}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:mk44697x","backend":"VODOZEMAC","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:9hza1qw3","backend":"VODOZEMAC","atEpochSec":1800000000}
+relay.test.js: all assertions passed ✅
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:9v8vvyso","backend":"VODOZEMAC","atEpochSec":1800000000}
+{"event":"envelope_delivered","deviceId":"devB","envelopeId":"devA:1800000000:9v8vvyso","atEpochSec":1800000002}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:umglyb0w","backend":"VODOZEMAC","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:umglyb0w","atEpochSec":1800000000}
+plaintext-leak.test.js: all assertions passed ✅
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_claimed","deviceId":"devA","targetDeviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_claimed","deviceId":"devA","targetDeviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_claimed","deviceId":"devA","targetDeviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_claimed","deviceId":"devA","targetDeviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_claimed","deviceId":"devA","targetDeviceId":"devB","atEpochSec":1800000000}
+prekeys.test.js: all assertions passed ✅
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:t5l2d767","backend":"SIGNAL","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devB","recipientDeviceId":"devC","envelopeId":"devB:1800000000:umukczkw","backend":"SIGNAL","atEpochSec":1800000000}
+{"event":"device_revoked","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devB","recipientDeviceId":"devA","envelopeId":"devB:1800000000:ler1c8uk","backend":"SIGNAL","atEpochSec":1800000000}
+{"event":"device_revoked","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_revoked","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC","atEpochSec":1800000000}
+revocation.test.js: all assertions passed ✅
+{"event":"storage_error","reason":"storage not configured"}
+{"event":"storage_error","reason":"storage not configured"}
+{"event":"storage_error","reason":"storage not configured"}
+{"event":"storage_error","reason":"storage not configured"}
+{"event":"storage_error","reason":"storage not configured"}
+{"event":"storage_error","reason":"storage not configured"}
+{"event":"storage_error","reason":"storage not configured"}
+fail-closed.test.js: all assertions passed ✅
+pg-store.test.js: SKIPPED (set RELAY_TEST_DATABASE_URL to run against PostgreSQL)
+TAP version 13
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_claimed","deviceId":"A","targetDeviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_claimed","deviceId":"A","targetDeviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_revoked","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_revoked","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_revoked","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_revoked","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_revoked","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# Subtest: R01 concurrent claims deliver exactly one one-time key
+ok 1 - R01 concurrent claims deliver exactly one one-time key
+  ---
+  duration_ms: 13.233519
+  type: 'test'
+  ...
+# Subtest: R02 consumed key cannot be restored by publication replay
+ok 2 - R02 consumed key cannot be restored by publication replay
+  ---
+  duration_ms: 2.081135
+  type: 'test'
+  ...
+# Subtest: R03 ordinary post-revocation publication and claims are refused
+ok 3 - R03 ordinary post-revocation publication and claims are refused
+  ---
+  duration_ms: 5.070252
+  type: 'test'
+  ...
+# Subtest: R04 revocation removes publication already in flight before its write
+ok 4 - R04 revocation removes publication already in flight before its write
+  ---
+  duration_ms: 2.01302
+  type: 'test'
+  ...
+# Subtest: R05 requester revocation prevents an in-flight claim consuming a key
+ok 5 - R05 requester revocation prevents an in-flight claim consuming a key
+  ---
+  duration_ms: 2.711186
+  type: 'test'
+  ...
+# Subtest: R06 revoked recipient cannot regain an envelope through an in-flight submit
+ok 6 - R06 revoked recipient cannot regain an envelope through an in-flight submit
+  ---
+  duration_ms: 2.788336
+  type: 'test'
+  ...
+# Subtest: R07 stale signed claim is refused without consumption
+ok 7 - R07 stale signed claim is refused without consumption
+  ---
+  duration_ms: 2.018369
+  type: 'test'
+  ...
+# Subtest: R08 signature for a different target cannot consume the bundle
+ok 8 - R08 signature for a different target cannot consume the bundle
+  ---
+  duration_ms: 2.565409
+  type: 'test'
+  ...
+# Subtest: R09 repeated self-revocation remains safe and cannot restore a bundle
+ok 9 - R09 repeated self-revocation remains safe and cannot restore a bundle
+  ---
+  duration_ms: 3.379021
+  type: 'test'
+  ...
+# Subtest: R10 concurrent different bundles sharing one id cannot both publish
+ok 10 - R10 concurrent different bundles sharing one id cannot both publish
+  ---
+  duration_ms: 2.68261
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 160.203825
+TAP version 13
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_claimed","deviceId":"A","targetDeviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_claimed","deviceId":"A","targetDeviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_claimed","deviceId":"A","targetDeviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"A","atEpochSec":1800000000}
+# {"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+# {"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+# Subtest: P01 authenticated absent publication is explicit and does not create keys
+ok 1 - P01 authenticated absent publication is explicit and does not create keys
+  ---
+  duration_ms: 10.493669
+  type: 'test'
+  ...
+# Subtest: P02 status identifies the complete accepted bundle without returning its keys
+ok 2 - P02 status identifies the complete accepted bundle without returning its keys
+  ---
+  duration_ms: 4.382062
+  type: 'test'
+  ...
+# Subtest: P03 lost publication response can be reconciled after claim without restoring the key
+ok 3 - P03 lost publication response can be reconciled after claim without restoring the key
+  ---
+  duration_ms: 5.484407
+  type: 'test'
+  ...
+# Subtest: P04 repeated status calls never consume or reinsert a one-time key
+ok 4 - P04 repeated status calls never consume or reinsert a one-time key
+  ---
+  duration_ms: 7.050562
+  type: 'test'
+  ...
+# Subtest: P05 nonce is covered by the signature and echoed for the matching request
+ok 5 - P05 nonce is covered by the signature and echoed for the matching request
+  ---
+  duration_ms: 2.692393
+  type: 'test'
+  ...
+# Subtest: P06 another registered device cannot read the owner publication
+ok 6 - P06 another registered device cannot read the owner publication
+  ---
+  duration_ms: 3.546422
+  type: 'test'
+  ...
+# Subtest: P07 revocation refuses status even with a fresh valid owner signature
+ok 7 - P07 revocation refuses status even with a fresh valid owner signature
+  ---
+  duration_ms: 2.813434
+  type: 'test'
+  ...
+# Subtest: P08 unregistered owner cannot inspect a publication
+ok 8 - P08 unregistered owner cannot inspect a publication
+  ---
+  duration_ms: 1.856448
+  type: 'test'
+  ...
+# Subtest: P09 timestamp skew boundaries are enforced in both directions
+ok 9 - P09 timestamp skew boundaries are enforced in both directions
+  ---
+  duration_ms: 2.935618
+  type: 'test'
+  ...
+# Subtest: P10 noninteger, unsafe and nonnumeric timestamps fail before storage access
+ok 10 - P10 noninteger, unsafe and nonnumeric timestamps fail before storage access
+  ---
+  duration_ms: 2.193471
+  type: 'test'
+  ...
+# Subtest: P11 malformed nonce, owner and signature are rejected before storage access
+ok 11 - P11 malformed nonce, owner and signature are rejected before storage access
+  ---
+  duration_ms: 2.226324
+  type: 'test'
+  ...
+# Subtest: P12 legacy unclaimed publication derives a digest without mutating storage
+ok 12 - P12 legacy unclaimed publication derives a digest without mutating storage
+  ---
+  duration_ms: 1.657923
+  type: 'test'
+  ...
+# Subtest: P13 legacy claimed publication without digest cannot be certified
+ok 13 - P13 legacy claimed publication without digest cannot be certified
+  ---
+  duration_ms: 1.904051
+  type: 'test'
+  ...
+# Subtest: P14 malformed or conflicting stored receipts fail closed
+ok 14 - P14 malformed or conflicting stored receipts fail closed
+  ---
+  duration_ms: 4.203755
+  type: 'test'
+  ...
+# Subtest: P15 storage read failures cannot be mistaken for absent publication
+ok 15 - P15 storage read failures cannot be mistaken for absent publication
+  ---
+  duration_ms: 2.072961
+  type: 'test'
+  ...
+# Subtest: P16 publication and claim refuse invalid numeric timestamps without changing stock
+ok 16 - P16 publication and claim refuse invalid numeric timestamps without changing stock
+  ---
+  duration_ms: 2.826645
+  type: 'test'
+  ...
+# Subtest: P17 PostgreSQL adapter maps stored digest and additive schema without changing consumed-key semantics
+ok 17 - P17 PostgreSQL adapter maps stored digest and additive schema without changing consumed-key semantics
+  ---
+  duration_ms: 0.65254
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 206.694019

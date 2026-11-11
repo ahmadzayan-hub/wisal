@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.SignalMessageQueueTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:31:26" hostname="10553fb40495" time="0.291">
+  <properties/>
+  <testcase name="duplicateTransportEnvelopeDoesNotDuplicateInboxOrDecryptTwice" classname="com.wifeassistant.SignalMessageQueueTest" time="0.023"/>
+  <testcase name="concurrentDuplicateDeliveriesHaveOneInboxRowAndAllAckIntents" classname="com.wifeassistant.SignalMessageQueueTest" time="0.024"/>
+  <testcase name="failedInboxCommitDoesNotLoseKeysOrCreateAnAckIntent" classname="com.wifeassistant.SignalMessageQueueTest" time="0.018"/>
+  <testcase name="plaintextAndRatchetSurviveCrashBeforeUiDeliveryOrAck" classname="com.wifeassistant.SignalMessageQueueTest" time="0.014"/>
+  <testcase name="envelopeIdReuseWithDifferentCiphertextDoesNotAdvanceReceiver" classname="com.wifeassistant.SignalMessageQueueTest" time="0.013"/>
+  <testcase name="legacySnapshotReadDoesNotRequireAnUnrelatedMigrationWrite" classname="com.wifeassistant.SignalMessageQueueTest" time="0.013"/>
+  <testcase name="outboxIdCannotSilentlyChangePayloadRecipientOrExpiry" classname="com.wifeassistant.SignalMessageQueueTest" time="0.011"/>
+  <testcase name="malformedCiphertextCannotCreateInboxOrAckState" classname="com.wifeassistant.SignalMessageQueueTest" time="0.01"/>
+  <testcase name="capacityRejectionDoesNotBlockReadsOfTheLastDurableState" classname="com.wifeassistant.SignalMessageQueueTest" time="0.13"/>
+  <testcase name="retryAfterReloadUsesOneCiphertextAndOneDurableOutboxRow" classname="com.wifeassistant.SignalMessageQueueTest" time="0.015"/>
+  <testcase name="objectDescriptionsDoNotExposeMessageContents" classname="com.wifeassistant.SignalMessageQueueTest" time="0.009"/>
+  <testcase name="failedOutboxCommitDoesNotReleaseCiphertextOrAdvanceDurableRatchet" classname="com.wifeassistant.SignalMessageQueueTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.PreKeyPublicationTransportTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:41:32" hostname="10553fb40495" time="0.142">
+  <properties/>
+  <testcase name="emptyAndConsumedStatusesAreNonConsumingExplicitObservations" classname="com.wifeassistant.PreKeyPublicationTransportTest" time="0.026"/>
+  <testcase name="signedStatusBindsOwnDeviceTimestampAndFreshNonceWithoutPrivateMaterial" classname="com.wifeassistant.PreKeyPublicationTransportTest" time="0.015"/>
+  <testcase name="rejectsWrongDeviceNonceMalformedHashAndInconsistentStatus" classname="com.wifeassistant.PreKeyPublicationTransportTest" time="0.057"/>
+  <testcase name="unsafeEndpointsAndInvalidClockFailBeforeNetwork" classname="com.wifeassistant.PreKeyPublicationTransportTest" time="0.008"/>
+  <testcase name="staleRequestAndInconsistentServerClockDoNotClaimSuccess" classname="com.wifeassistant.PreKeyPublicationTransportTest" time="0.013"/>
+  <testcase name="redirectAndDisconnectedResponseAreNotSilentlyRetried" classname="com.wifeassistant.PreKeyPublicationTransportTest" time="0.022"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Nov 11, 2026 10:41:32 AM okhttp3.mockwebserver.MockWebServer$SocketHandler handle
+WARNING: MockWebServer[46153] connection from /127.0.0.1 didn't make a request
+]]></system-err>
+</testsuite>
