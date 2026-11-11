@@ -6,6 +6,8 @@ package com.wifeassistant.data.crypto
  * Signal storage has nothing to evaluate.
  */
 data class PreKeyReplenishmentState(
+    // Historical name from PR #20: this means generated LOCAL keys only.
+    // DirectPreKeyMaintenance uses its separate relay-accepted journal.
     val hasPublishedBundle: Boolean,
     val lastSignedKeyRotationEpochSec: Long,
     val oneTimePreKeyCount: Int,
@@ -18,6 +20,7 @@ data class PreKeyReplenishmentState(
 data class PreKeyReplenishmentDecision(
     val needsSignedKeyRotation: Boolean,
     val needsOneTimePreKeyReplenishment: Boolean,
+    val clockAnomaly: Boolean = false,
 ) {
     val needsReplenishment: Boolean get() = needsSignedKeyRotation || needsOneTimePreKeyReplenishment
 }
@@ -54,18 +57,20 @@ class PreKeyReplenishmentPolicy(
      */
     fun evaluate(state: PreKeyReplenishmentState, nowEpochSec: Long): PreKeyReplenishmentDecision {
         require(nowEpochSec >= 0) { "nowEpochSec cannot be negative." }
+        require(state.lastSignedKeyRotationEpochSec >= 0 && state.oneTimePreKeyCount >= 0)
         if (!state.hasPublishedBundle) {
             return PreKeyReplenishmentDecision(needsSignedKeyRotation = true, needsOneTimePreKeyReplenishment = true)
         }
         val signedKeyAgeSeconds = nowEpochSec - state.lastSignedKeyRotationEpochSec
         val needsSignedKeyRotation = signedKeyAgeSeconds >= signedKeyRotationIntervalSeconds
         val needsOneTimePreKeyReplenishment = state.oneTimePreKeyCount < oneTimePreKeyFloor
-        return PreKeyReplenishmentDecision(needsSignedKeyRotation, needsOneTimePreKeyReplenishment)
+        return PreKeyReplenishmentDecision(needsSignedKeyRotation, needsOneTimePreKeyReplenishment,
+            clockAnomaly = nowEpochSec < state.lastSignedKeyRotationEpochSec)
     }
 
     companion object {
-        /** Signal's own clients rotate their signed pre-key roughly weekly;
-         * this keeps the same order of magnitude pending a dedicated review.
+        /** A local default, not a protocol mandate. PQXDH gives a week or month
+         * as examples: https://signal.org/docs/specifications/pqxdh/#publishing-keys
          */
         const val DEFAULT_SIGNED_KEY_ROTATION_INTERVAL_SECONDS: Long = 7L * 24 * 60 * 60
         const val DEFAULT_ONE_TIME_PREKEY_FLOOR: Int = 1

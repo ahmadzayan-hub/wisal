@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS relay_prekey_bundles (
   one_time_pre_key_claimed     BOOLEAN NOT NULL DEFAULT FALSE,
   published_at_epoch_sec       BIGINT NOT NULL
 );
+ALTER TABLE relay_prekey_bundles ADD COLUMN IF NOT EXISTS bundle_digest TEXT;
 `;
 
 const BUNDLE_COLUMNS = [
@@ -60,6 +61,7 @@ const BUNDLE_COLUMNS = [
   ['oneTimePreKeyPublicB64', 'one_time_pre_key_public_b64'],
   ['oneTimePreKeyClaimed', 'one_time_pre_key_claimed'],
   ['publishedAtEpochSec', 'published_at_epoch_sec'],
+  ['bundleDigest', 'bundle_digest'],
 ];
 
 function rowToDevice(r) {

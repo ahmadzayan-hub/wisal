@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "git": { "deploymentEnabled": { "fix/fail-closed-device-identity": false, "fix/WisalReleaseSecurity": false, "feat/durable-prekey-allocation": false } },
+  "git": { "deploymentEnabled": { "fix/fail-closed-device-identity": false, "fix/WisalReleaseSecurity": false, "feat/durable-prekey-allocation": false, "review/WisalPreKeyIntegration": false } },
   "functions": {
     "api/*.js": { "maxDuration": 15 }
   }

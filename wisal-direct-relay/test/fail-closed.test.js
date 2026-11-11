@@ -36,6 +36,7 @@ function fakeRes() {
     ['inbox', 'GET', { query: { deviceId: 'a', timestamp: '1', signatureB64: 'c' } }],
     ['ack', 'POST', { body: { deviceId: 'a', envelopeId: 'b', signatureB64: 'c' } }],
     ['prekeys-claim', 'POST', { body: { requesterDeviceId: 'a', targetDeviceId: 'b', timestamp: 1, signatureB64: 'c' } }],
+    ['prekeys-status', 'POST', { body: { deviceId: 'a', timestamp: 1, requestNonce: '00112233445566778899aabbccddeeff', signatureB64: 'c' } }],
     ['revoke', 'POST', { body: { deviceId: 'a', timestamp: 1, signatureB64: 'c' } }],
   ];
   for (const [name, method, req] of cases) {

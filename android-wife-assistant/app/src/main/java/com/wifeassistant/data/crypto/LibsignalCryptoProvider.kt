@@ -22,6 +22,25 @@ class LibsignalCryptoProvider private constructor(private val access: SignalStor
     override val backend = CryptoBackend.SIGNAL
     override val mayClaimE2ee = false
 
+    private fun durableState(): SignalStatePersistence = access as? SignalStatePersistence
+        ?: error("Pre-key maintenance requires durable Signal storage.")
+
+    internal fun preKeyPublicationState(deviceId: String): PreKeyPublicationState {
+        addressOf(deviceId)
+        return durableState().publicationState(deviceId)
+    }
+
+    internal fun preparePreKeyPublication(deviceId: String, nowEpochSec: Long, relayScope: String,
+        publisherKeyB64: String, expectedAccepted: PreparedPreKeyPublication?): PreparedPreKeyPublication {
+        addressOf(deviceId)
+        return durableState().preparePublication(deviceId, nowEpochSec, relayScope, publisherKeyB64, expectedAccepted)
+    }
+
+    internal fun acceptPreKeyPublication(deviceId: String, publication: PreparedPreKeyPublication) {
+        addressOf(deviceId)
+        durableState().acceptPublication(deviceId, publication)
+    }
+
     private val json = Json { ignoreUnknownKeys = true }
 
     private fun addressOf(recipientDeviceId: String): SignalProtocolAddress {

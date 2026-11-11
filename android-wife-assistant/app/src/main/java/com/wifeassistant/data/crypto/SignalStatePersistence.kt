@@ -39,6 +39,8 @@ private data class SignalSnapshot(
     var highestSignedId: Int = 0,
     var highestKyberId: Int = 0,
     var lastSignedKeyRotationEpochSec: Long = 0,
+    var pendingPreKeyPublication: PreparedPreKeyPublication? = null,
+    var acceptedPreKeyPublication: PreparedPreKeyPublication? = null,
     val outbox: MutableMap<String, QueuedSignalMessage> = mutableMapOf(),
     val inbox: MutableMap<String, ReceivedSignalMessage> = mutableMapOf(),
     val receipts: MutableMap<String, String> = mutableMapOf(),
@@ -121,24 +123,34 @@ class SignalStatePersistence(private val read: () -> String?, private val write:
         nowEpochSec: Long = System.currentTimeMillis() / 1000,
     ): SignalPreKeyBundleDto = use { identity, store ->
         requireOwner(deviceId)
-        // Read, allocate, generate and commit under the same persistence lock.
-        // Counts or the largest remaining key would reuse IDs after consumption.
         val snapshotStore = store as SnapshotSignalStore
-        val (signedId, kyberId, oneTimeId) = snapshotStore.nextPreKeyIds()
-        val bundle = LibsignalKeys.generateAndStorePublishableBundle(identity, store, deviceId, signedId, kyberId, oneTimeId)
-        // A fresh signed pre-key was just generated and committed above:
-        // this is the only place that may legitimately move the rotation
-        // clock forward, so the replenishment policy sees an honest age.
-        snapshotStore.recordSignedKeyRotation(nowEpochSec)
-        bundle
+        check(snapshotStore.publicationState().pending == null) { "Resolve pending pre-key publication first." }
+        snapshotStore.allocatePublishableBundle(identity, deviceId, nowEpochSec)
     }
 
-    /** Read-only snapshot of local pre-key state for [PreKeyReplenishmentPolicy].
-     * Carries no secret material, only counts and a rotation timestamp.
+    /** Snapshot of local pre-key state, NOT relay inventory or publication proof.
+     * On first access, use() also commits the initial Signal identity.
      */
     internal fun replenishmentState(deviceId: String): PreKeyReplenishmentState = use { _, store ->
         requireOwner(deviceId)
         (store as SnapshotSignalStore).replenishmentState()
+    }
+
+    internal fun publicationState(deviceId: String): PreKeyPublicationState = use { _, store ->
+        requireOwner(deviceId)
+        (store as SnapshotSignalStore).publicationState()
+    }
+
+    internal fun preparePublication(deviceId: String, nowEpochSec: Long, relayScope: String,
+        publisherKeyB64: String, expectedAccepted: PreparedPreKeyPublication?): PreparedPreKeyPublication = use { identity, store ->
+        requireOwner(deviceId)
+        (store as SnapshotSignalStore).preparePublication(identity, deviceId, nowEpochSec,
+            relayScope, publisherKeyB64, expectedAccepted)
+    }
+
+    internal fun acceptPublication(deviceId: String, publication: PreparedPreKeyPublication) = use { _, store ->
+        requireOwner(deviceId)
+        (store as SnapshotSignalStore).acceptPublication(publication)
     }
 }
 
@@ -151,6 +163,42 @@ private class SnapshotSignalStore(identity: LibsignalIdentity, private val state
     override val inbox get() = state.inbox
     override val receipts get() = state.receipts
     override val pendingAcks get() = state.pendingAcks
+
+    fun publicationState() = PreKeyPublicationState(state.pendingPreKeyPublication,
+        state.acceptedPreKeyPublication, state.lastSignedKeyRotationEpochSec,
+        state.pendingPreKeyPublication?.bundle?.oneTimePreKeyId?.let { state.preKeys.containsKey(it) } == true,
+        state.acceptedPreKeyPublication?.bundle?.oneTimePreKeyId?.let { state.preKeys.containsKey(it) } == true)
+
+    /** Reuses PR #18 allocation, generation and verified commit boundary. The
+     * caller receives neither the intent nor the bundle before read-back succeeds.
+     */
+    fun allocatePublishableBundle(identity: LibsignalIdentity, deviceId: String, nowEpochSec: Long): SignalPreKeyBundleDto {
+        require(nowEpochSec >= 0)
+        val (signedId, kyberId, oneTimeId) = nextPreKeyIds()
+        val bundle = LibsignalKeys.generateAndStorePublishableBundle(identity, this, deviceId, signedId, kyberId, oneTimeId)
+        recordSignedKeyRotation(nowEpochSec)
+        return bundle
+    }
+
+    fun preparePublication(identity: LibsignalIdentity, deviceId: String, nowEpochSec: Long,
+        relayScope: String, publisherKeyB64: String, expectedAccepted: PreparedPreKeyPublication?): PreparedPreKeyPublication {
+        require(nowEpochSec > 0 && relayScope.length in 1..2048 && publisherKeyB64.length in 1..4096)
+        check(state.acceptedPreKeyPublication == expectedAccepted) { "Publication state changed; re-evaluate the relay." }
+        state.pendingPreKeyPublication?.let {
+            check(it.relayScope == relayScope && it.publisherKeyB64 == publisherKeyB64 && it.bundle.deviceId == deviceId)
+            return it
+        }
+        check(nowEpochSec >= state.lastSignedKeyRotationEpochSec) { "Device clock precedes persisted key generation." }
+        val bundle = allocatePublishableBundle(identity, deviceId, nowEpochSec)
+        return PreparedPreKeyPublication(bundle, nowEpochSec, relayScope, publisherKeyB64)
+            .also { state.pendingPreKeyPublication = it }
+    }
+
+    fun acceptPublication(publication: PreparedPreKeyPublication) {
+        check(state.pendingPreKeyPublication == publication) { "Pending publication changed; receipt was not committed." }
+        state.acceptedPreKeyPublication = publication
+        state.pendingPreKeyPublication = null
+    }
 
     fun nextPreKeyIds(): Triple<Int, Int, Int> {
         val ids = listOf(state.highestSignedId, state.highestKyberId, state.highestPreKeyId)
@@ -188,6 +236,28 @@ private class SnapshotSignalStore(identity: LibsignalIdentity, private val state
         require(state.highestPreKeyId >= (state.preKeys.keys.maxOrNull() ?: 0))
         require(state.highestSignedId >= (state.signedKeys.keys.maxOrNull() ?: 0))
         require(state.highestKyberId >= (state.kyberKeys.keys.maxOrNull() ?: 0))
+        listOfNotNull(state.pendingPreKeyPublication, state.acceptedPreKeyPublication).forEach { item ->
+            val bundle = item.bundle
+            require(item.generatedAtEpochSec > 0 && item.generatedAtEpochSec <= state.lastSignedKeyRotationEpochSec)
+            require(item.relayScope.length in 1..2048 && item.publisherKeyB64.length in 1..4096)
+            require(bundle.hasValidWireFields() && (state.ownerDeviceId == null || bundle.deviceId == state.ownerDeviceId))
+            require(bundle.identityKeyB64 == identity.keyPair.publicKey.serialize().b64() && bundle.registrationId == identity.registrationId)
+            require(bundle.oneTimePreKeyId <= state.highestPreKeyId && bundle.signedPreKeyId <= state.highestSignedId && bundle.kyberPreKeyId <= state.highestKyberId)
+            // An OTP may already have been consumed locally while its publication
+            // receipt was lost. Signed and Kyber material must still be retained.
+            require(containsSignedPreKey(bundle.signedPreKeyId) && containsKyberPreKey(bundle.kyberPreKeyId))
+            require(loadSignedPreKey(bundle.signedPreKeyId).keyPair.publicKey.serialize().b64() == bundle.signedPreKeyPublicB64)
+            require(loadSignedPreKey(bundle.signedPreKeyId).signature.b64() == bundle.signedPreKeySignatureB64)
+            require(loadKyberPreKey(bundle.kyberPreKeyId).keyPair.publicKey.serialize().b64() == bundle.kyberPreKeyPublicB64)
+            require(loadKyberPreKey(bundle.kyberPreKeyId).signature.b64() == bundle.kyberPreKeySignatureB64)
+            if (containsPreKey(bundle.oneTimePreKeyId)) {
+                require(loadPreKey(bundle.oneTimePreKeyId).keyPair.publicKey.serialize().b64() == bundle.oneTimePreKeyPublicB64)
+            }
+        }
+        state.pendingPreKeyPublication?.let { pending -> state.acceptedPreKeyPublication?.let { accepted ->
+            require(pending.bundle.oneTimePreKeyId > accepted.bundle.oneTimePreKeyId)
+            require(pending.relayScope == accepted.relayScope && pending.publisherKeyB64 == accepted.publisherKeyB64)
+        } }
     }
 
     override fun saveIdentity(a: SignalProtocolAddress, key: IdentityKey): IdentityKeyStore.IdentityChange {

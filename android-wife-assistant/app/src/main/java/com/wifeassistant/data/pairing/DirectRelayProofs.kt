@@ -27,5 +27,8 @@ object DirectRelayProofs {
     fun claimPreKeys(requesterDeviceId: String, targetDeviceId: String, timestamp: Long): String =
         "claim-prekeys:$requesterDeviceId:$targetDeviceId:$timestamp"
 
+    fun preKeyPublicationStatus(deviceId: String, timestamp: Long, requestNonce: String): String =
+        "prekeys-status:$deviceId:$timestamp:$requestNonce"
+
     fun revoke(deviceId: String, timestamp: Long): String = "revoke:$deviceId:$timestamp"
 }

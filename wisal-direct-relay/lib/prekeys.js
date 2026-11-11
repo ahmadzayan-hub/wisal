@@ -15,6 +15,7 @@
 
 const { verifySignature } = require('./crypto');
 const { safeLog } = require('./log');
+const { createHash } = require('node:crypto');
 
 const PREKEY_CLOCK_SKEW_SECONDS = 300;
 const MAX_B64_LENGTH = 4096; // مفتاح Kyber العام ~1568 بايت ≈ 2092 حرف base64
@@ -42,6 +43,18 @@ function claimProof(requesterDeviceId, targetDeviceId, timestamp) {
   return `claim-prekeys:${requesterDeviceId}:${targetDeviceId}:${timestamp}`;
 }
 
+// Public-content receipt only. Unlike the publication proof, this is stable
+// across retries with different timestamps. Preserve it after an OPK is claimed.
+function bundleDigest(bundle) {
+  return createHash('sha256')
+    .update(['wisal-prekey-bundle-v1', ...BUNDLE_FIELDS.map((f) => bundle[f])].join(':'), 'utf8')
+    .digest('hex');
+}
+
+function validTimestamp(timestamp) {
+  return Number.isSafeInteger(timestamp) && timestamp > 0;
+}
+
 function validateBundle(bundle) {
   if (!bundle || typeof bundle !== 'object') return 'missing bundle';
   for (const field of BUNDLE_FIELDS) {
@@ -64,6 +77,7 @@ function sameBundle(a, b) {
 // ---- نشر حزمة ----
 async function publishPreKeyBundle(store, { bundle, timestamp, signatureB64 }, nowEpochSec) {
   if (!bundle || !timestamp || !signatureB64) return refused('missing fields');
+  if (!validTimestamp(timestamp) || !validTimestamp(nowEpochSec)) return refused('invalid timestamp');
   const invalid = validateBundle(bundle);
   if (invalid) return refused(invalid);
 
@@ -84,7 +98,7 @@ async function publishPreKeyBundle(store, { bundle, timestamp, signatureB64 }, n
   for (const f of BUNDLE_FIELDS) stored[f] = bundle[f];
   // شرط "المعرّف لازم يزيد" بيتطبّق جوه التخزين ذرّيًا (نشرين متزامنين).
   const applied = await store.putPreKeyBundle(
-    bundle.deviceId, { ...stored, publishedAtEpochSec: nowEpochSec, oneTimePreKeyClaimed: false },
+    bundle.deviceId, { ...stored, bundleDigest: bundleDigest(bundle), publishedAtEpochSec: nowEpochSec, oneTimePreKeyClaimed: false },
   );
   if (!applied) return refused('one-time pre-key id must be higher than any previously published id');
   safeLog('prekeys_published', { deviceId: bundle.deviceId, atEpochSec: nowEpochSec });
@@ -94,6 +108,7 @@ async function publishPreKeyBundle(store, { bundle, timestamp, signatureB64 }, n
 // ---- طلب حزمة جهاز تاني (بيستهلك المفتاح الفردي) ----
 async function claimPreKeyBundle(store, { requesterDeviceId, targetDeviceId, timestamp, signatureB64 }, nowEpochSec) {
   if (!requesterDeviceId || !targetDeviceId || !timestamp || !signatureB64) return refused('missing fields');
+  if (!validTimestamp(timestamp) || !validTimestamp(nowEpochSec)) return refused('invalid timestamp');
   if (requesterDeviceId === targetDeviceId) return refused('cannot claim your own bundle');
 
   const requester = await store.getDevice(requesterDeviceId);
@@ -119,5 +134,5 @@ async function claimPreKeyBundle(store, { requesterDeviceId, targetDeviceId, tim
 
 module.exports = {
   publishPreKeyBundle, claimPreKeyBundle, publishProof, claimProof,
-  BUNDLE_FIELDS, PREKEY_CLOCK_SKEW_SECONDS,
+  bundleDigest, validTimestamp, validateBundle, BUNDLE_FIELDS, PREKEY_CLOCK_SKEW_SECONDS,
 };

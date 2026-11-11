@@ -8,11 +8,13 @@ sourceSets {
     main {
         kotlin.srcDir("../../android-wife-assistant/app/src/main/java")
         kotlin.include("com/wifeassistant/data/crypto/DeviceIdentity.kt", "com/wifeassistant/data/crypto/SignalPreKeyBundleDto.kt",
-            "com/wifeassistant/data/pairing/DirectRelayClient.kt", "com/wifeassistant/data/pairing/DirectRelayProofs.kt")
+            "com/wifeassistant/data/pairing/DirectRelayClient.kt", "com/wifeassistant/data/pairing/DirectRelayProofs.kt",
+            "com/wifeassistant/data/pairing/PreKeyPublicationTransport.kt")
     }
     test {
         kotlin.srcDir("../../android-wife-assistant/app/src/test/java")
-        kotlin.include("com/wifeassistant/DirectRelayClientTest.kt", "com/wifeassistant/DirectRelayProofsTest.kt", "com/wifeassistant/DirectRelayKeyLifecycleTest.kt")
+        kotlin.include("com/wifeassistant/DirectRelayClientTest.kt", "com/wifeassistant/DirectRelayProofsTest.kt", "com/wifeassistant/DirectRelayKeyLifecycleTest.kt",
+            "com/wifeassistant/PreKeyPublicationTransportTest.kt")
     }
 }
 dependencies {

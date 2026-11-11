@@ -16,11 +16,14 @@ sourceSets {
             "com/wifeassistant/data/crypto/SignalPreKeyBundleDto.kt",
             "com/wifeassistant/data/crypto/SignalStatePersistence.kt",
             "com/wifeassistant/data/crypto/PreKeyReplenishmentPolicy.kt",
+            "com/wifeassistant/data/crypto/PreKeyPublication.kt",
             "com/wifeassistant/data/crypto/SignalMessageQueue.kt",
             "com/wifeassistant/data/crypto/SignalWireCodec.kt",
             "com/wifeassistant/data/crypto/SignalPeerBinding.kt",
             "com/wifeassistant/data/pairing/DirectRelayClient.kt",
             "com/wifeassistant/data/pairing/DirectRelayProofs.kt",
+            "com/wifeassistant/data/pairing/PreKeyPublicationTransport.kt",
+            "com/wifeassistant/data/pairing/DirectPreKeyMaintenance.kt",
             "com/wifeassistant/data/pairing/DirectSignalDelivery.kt")
     }
     test {
@@ -34,6 +37,10 @@ sourceSets {
             "com/wifeassistant/SignalPersistenceTest.kt",
             "com/wifeassistant/SignalPreKeyAllocationTest.kt",
             "com/wifeassistant/PreKeyReplenishmentPolicyTest.kt",
+            "com/wifeassistant/PreKeyPublicationPersistenceTest.kt",
+            "com/wifeassistant/DirectPreKeyMaintenanceTest.kt",
+            "com/wifeassistant/PreKeyPublicationTransportTest.kt",
+            "com/wifeassistant/PreKeyMaintenanceHttpTest.kt",
             "com/wifeassistant/SignalMessageQueueTest.kt",
             "com/wifeassistant/DirectRelayClientTest.kt",
             "com/wifeassistant/DirectRelayProofsTest.kt",
