@@ -91,6 +91,28 @@ function createPgStore(pool) {
     return schemaReady;
   };
   const q = async (text, params) => { await ready(); return pool.query(text, params); };
+  // Serialize mutations with revoke's UPDATE on the same device rows. Lock in
+  // stable order for opposite-direction submissions/claims, avoiding deadlocks.
+  const withActiveDevices = async (ids, refused, operation) => {
+    if (ids.some((id) => typeof id !== 'string' || !id)) return refused;
+    const unique = [...new Set(ids)].sort();
+    await ready();
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const { rows } = await client.query(
+        'SELECT device_id, revoked_at_epoch_sec FROM relay_devices WHERE device_id = ANY($1::text[]) ORDER BY device_id FOR UPDATE',
+        [unique],
+      );
+      const result = rows.length === unique.length && rows.every((r) => r.revoked_at_epoch_sec == null)
+        ? await operation(client) : refused;
+      await client.query('COMMIT');
+      return result;
+    } catch (err) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw err;
+    } finally { client.release(); }
+  };
 
   return {
     // ---- الأجهزة ----
@@ -134,12 +156,15 @@ function createPgStore(pool) {
 
     // ---- المغلفات ----
     async putEnvelope(e) {
-      await q(
-        `INSERT INTO relay_envelopes
-           (id, sender_device_id, recipient_device_id, ciphertext_b64, backend, expires_at_epoch_sec, created_at_epoch_sec)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [e.id, e.senderDeviceId, e.recipientDeviceId, e.ciphertextB64, e.backend, e.expiresAtEpochSec, e.createdAtEpochSec],
-      );
+      return withActiveDevices([e.senderDeviceId, e.recipientDeviceId], false, async (client) => {
+        await client.query(
+          `INSERT INTO relay_envelopes
+             (id, sender_device_id, recipient_device_id, ciphertext_b64, backend, expires_at_epoch_sec, created_at_epoch_sec)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [e.id, e.senderDeviceId, e.recipientDeviceId, e.ciphertextB64, e.backend, e.expiresAtEpochSec, e.createdAtEpochSec],
+        );
+        return true;
+      });
     },
     async getEnvelope(id) {
       const { rows } = await q('SELECT * FROM relay_envelopes WHERE id = $1', [id]);
@@ -166,38 +191,43 @@ function createPgStore(pool) {
 
     // ---- حزم المفاتيح المسبقة ----
     async putPreKeyBundle(deviceId, bundle) {
-      const values = BUNDLE_COLUMNS.map(([key]) => (key === 'deviceId' ? deviceId : bundle[key]));
-      const cols = BUNDLE_COLUMNS.map(([, col]) => col);
-      const updates = cols.filter((c) => c !== 'device_id').map((c) => `${c} = EXCLUDED.${c}`).join(', ');
-      // الكتابة بتحصل بس لو المعرّف الجديد أعلى من المخزّن — ذرّيًا في نفس الجملة.
-      const { rowCount } = await q(
-        `INSERT INTO relay_prekey_bundles (${cols.join(', ')})
-         VALUES (${cols.map((_, i) => `$${i + 1}`).join(', ')})
-         ON CONFLICT (device_id) DO UPDATE SET ${updates}
-         WHERE relay_prekey_bundles.one_time_pre_key_id < EXCLUDED.one_time_pre_key_id`,
-        values,
-      );
-      return rowCount === 1;
+      return withActiveDevices([deviceId], false, async (client) => {
+        const values = BUNDLE_COLUMNS.map(([key]) => (key === 'deviceId' ? deviceId : bundle[key]));
+        const cols = BUNDLE_COLUMNS.map(([, col]) => col);
+        const updates = cols.filter((c) => c !== 'device_id').map((c) => `${c} = EXCLUDED.${c}`).join(', ');
+        // الكتابة بتحصل بس لو المعرّف الجديد أعلى من المخزّن — ذرّيًا في نفس الجملة.
+        const { rowCount } = await client.query(
+          `INSERT INTO relay_prekey_bundles (${cols.join(', ')})
+           VALUES (${cols.map((_, i) => `$${i + 1}`).join(', ')})
+           ON CONFLICT (device_id) DO UPDATE SET ${updates}
+           WHERE relay_prekey_bundles.one_time_pre_key_id < EXCLUDED.one_time_pre_key_id`,
+          values,
+        );
+        return rowCount === 1;
+      });
     },
     async getPreKeyBundle(deviceId) {
       const { rows } = await q('SELECT * FROM relay_prekey_bundles WHERE device_id = $1', [deviceId]);
       return rows[0] ? rowToBundle(rows[0]) : null;
     },
-    async claimPreKeyBundle(deviceId) {
-      const { rows } = await q(
-        `UPDATE relay_prekey_bundles AS b
-            SET one_time_pre_key_public_b64 = NULL, one_time_pre_key_claimed = TRUE
-           FROM (SELECT device_id, one_time_pre_key_public_b64 AS claimed_key
-                   FROM relay_prekey_bundles
-                  WHERE device_id = $1 AND NOT one_time_pre_key_claimed
-                  FOR UPDATE) AS old
-          WHERE b.device_id = old.device_id AND NOT b.one_time_pre_key_claimed
-         RETURNING b.*, old.claimed_key`,
-        [deviceId],
-      );
-      if (!rows[0]) return null;
-      const bundle = rowToBundle(rows[0]);
-      return { ...bundle, oneTimePreKeyPublicB64: rows[0].claimed_key, oneTimePreKeyClaimed: false };
+    async claimPreKeyBundle(deviceId, requesterDeviceId) {
+      if (deviceId === requesterDeviceId) return null;
+      return withActiveDevices([deviceId, requesterDeviceId], null, async (client) => {
+        const { rows } = await client.query(
+          `UPDATE relay_prekey_bundles AS b
+              SET one_time_pre_key_public_b64 = NULL, one_time_pre_key_claimed = TRUE
+             FROM (SELECT device_id, one_time_pre_key_public_b64 AS claimed_key
+                     FROM relay_prekey_bundles
+                    WHERE device_id = $1 AND NOT one_time_pre_key_claimed
+                    FOR UPDATE) AS old
+            WHERE b.device_id = old.device_id AND NOT b.one_time_pre_key_claimed
+           RETURNING b.*, old.claimed_key`,
+          [deviceId],
+        );
+        if (!rows[0]) return null;
+        const bundle = rowToBundle(rows[0]);
+        return { ...bundle, oneTimePreKeyPublicB64: rows[0].claimed_key, oneTimePreKeyClaimed: false };
+      });
     },
   };
 }

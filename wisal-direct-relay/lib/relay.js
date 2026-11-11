@@ -56,10 +56,11 @@ async function submitEnvelope(store, envelope, signatureB64, nowEpochSec) {
   if (expiresAtEpochSec - nowEpochSec > MAX_ENVELOPE_TTL_SECONDS) return refused('ttl too long');
 
   const id = `${senderDeviceId}:${nowEpochSec}:${Math.random().toString(36).slice(2, 10)}`;
-  await store.putEnvelope({
+  const applied = await store.putEnvelope({
     id, senderDeviceId, recipientDeviceId, ciphertextB64, backend,
     expiresAtEpochSec, createdAtEpochSec: nowEpochSec,
   });
+  if (applied !== true) return refused('device unavailable or revoked during submission');
   safeLog('envelope_submitted', { senderDeviceId, recipientDeviceId, envelopeId: id, backend, atEpochSec: nowEpochSec });
   return ok({ id });
 }

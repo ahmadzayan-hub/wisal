@@ -6,10 +6,11 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
 // تخزين مشفّر لمفتاح Groq (Android Keystore + EncryptedSharedPreferences).
-// لو التشفير فشل لأي سبب، بيرجع بأمان للتخزين العادي عشان التطبيق ما يقعش.
+// Encryption failures stop secret access; they never enable plaintext writes.
 object SecureStore {
     private const val LEGACY_PREFS = "wife_assistant_settings"
     private const val KEY = "groqKey"
+    private val secretPersistence = SecretPersistence()
 
     private fun secure(context: Context): SharedPreferences? = try {
         val master = MasterKey.Builder(context)
@@ -52,14 +53,17 @@ object SecureStore {
         legacy(context).edit().remove(KEY).apply()
     }
 
-    // ---- تخزين أسرار عامة (هوية الجهاز وغيرها) ----
-    // نفس سياسة الاحتياطي: التشفير أولًا، والفشل بيرجع للتخزين العادي بدل الكراش.
+    // General secrets migrate only after a verified encrypted commit.
     fun getSecret(context: Context, key: String): String? =
-        secure(context)?.getString(key, null) ?: legacy(context).getString(key, null)
+        secretPersistence.read(key, secure(context)?.let(::PreferenceSecrets), PreferenceSecrets(legacy(context)))
 
     fun setSecret(context: Context, key: String, value: String) {
-        val enc = secure(context)
-        if (enc != null) enc.edit().putString(key, value).apply()
-        else legacy(context).edit().putString(key, value).apply()
+        secretPersistence.write(key, value, secure(context)?.let(::PreferenceSecrets), PreferenceSecrets(legacy(context)))
+    }
+
+    private class PreferenceSecrets(private val prefs: SharedPreferences) : SecretPreferences {
+        override fun read(key: String): String? = prefs.getString(key, null)
+        override fun write(key: String, value: String): Boolean = prefs.edit().putString(key, value).commit()
+        override fun remove(key: String): Boolean = prefs.edit().remove(key).commit()
     }
 }

@@ -18,6 +18,7 @@ android {
         versionCode = if (suppliedCode == null) 1 else suppliedCode.toIntOrNull()
             ?.takeIf { it in 1..2_100_000_000 } ?: error("VERSION_CODE must be a valid Android integer; never silently reset it to 1.")
         versionName = System.getenv("VERSION_NAME") ?: "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // libsignal-android بتحمل مكتبة native (~74MB) لكل ABI. مفيش تقسيم APK
         // لكل ABI في التوزيع الحالي (ملف APK واحد)، فلو سبنا كل الـ ABIs
@@ -69,6 +70,12 @@ android {
     }
 
     buildTypes {
+        create("acceptance") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".acceptance"
+            versionNameSuffix = "-acceptance"
+            matchingFallbacks += "debug"
+        }
         release {
             // R8: يشيل الكود والموارد غير المستخدمة (منها آلاف أيقونات
             // material-icons-extended) — تصغير كبير للـ APK. قواعد الحفظ في
@@ -90,6 +97,7 @@ android {
         // Robolectric محتاج موارد أندرويد عشان يشغّل اختبارات طبقة البيانات على الـ JVM.
         unitTests.isIncludeAndroidResources = true
     }
+    testBuildType = "acceptance"
 }
 
 dependencies {
@@ -120,6 +128,8 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
     testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
     // سيرفر HTTP وهمي محلي — بيختبر DirectRelayClient ضد طلبات/ردود حقيقية بدون شبكة فعلية.
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     // اختبارات طبقة البيانات على الـ JVM (بدون emulator) — بتحرس دوران JSON اللي R8 ممكن يكسره.

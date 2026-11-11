@@ -13,7 +13,7 @@ const LOCALE_DIRS = { '': { lang: 'ar', dir: 'rtl' }, en: { lang: 'en', dir: 'lt
 const pages = Object.keys(LOCALE_DIRS).flatMap((d) =>
   readdirSync(join(root, d)).filter((f) => f.endsWith('.html')).map((f) => (d ? `${d}/${f}` : f)),
 ).sort();
-const SITE = 'https://wisal-app.vercel.app';
+const SITE = 'https://wisal-three.vercel.app';
 // en/index.html → /en (trailingSlash: false في vercel.json)، وindex.html → /
 const urlOf = (page) => `${SITE}/${page.replace(/\/?index\.html$/, '').replace(/\.html$/, '')}`;
 const pageOfUrl = (url) => {

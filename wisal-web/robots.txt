@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://wisal-app.vercel.app/sitemap.xml
+Sitemap: https://wisal-three.vercel.app/sitemap.xml
