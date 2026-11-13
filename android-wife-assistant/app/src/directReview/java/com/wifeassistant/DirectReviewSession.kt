@@ -83,8 +83,10 @@ internal class DirectReviewSession(private val context: Context) {
         return view()
     }
 
+    fun isRevoked() = SecureStore.getSecret(context, REGISTRATION) == "revoked"
+
     suspend fun register(enteredPin: String) {
-        check(SecureStore.getSecret(context, REGISTRATION) != "revoked")
+        check(!isRevoked())
         val pin = enteredPin.trim()
         require(PIN_PATTERN.matches(pin))
         val savedPin = SecureStore.getSecret(context, RELAY_PIN)
@@ -155,7 +157,7 @@ internal class DirectReviewSession(private val context: Context) {
         private const val REGISTRATION = "directReviewRegistration"
         private const val RELAY_PIN = "directReviewRelayPin"
         private const val INITIAL_DEADLINE = "directReviewInitialDeadline"
-        private const val RELAY_ORIGIN = "https://localhost:8443"
+        const val RELAY_ORIGIN = "https://localhost:8443"
         private val PIN_PATTERN = Regex("sha256/[A-Za-z0-9+/]{43}=")
 
         fun isRegistered(context: Context) = SecureStore.getSecret(context, REGISTRATION) == "registered"

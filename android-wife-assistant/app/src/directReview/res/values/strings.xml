@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="direct_review_app_name">Wisal Direct</string>
+    <string name="direct_review_status">Test messages only. Release on hold.</string>
+    <string name="direct_review_working">Working</string>
+    <string name="direct_review_back">Back</string>
+    <string name="direct_review_device_details">Device details</string>
+    <string name="direct_review_register">Register device</string>
+    <string name="direct_review_register_body">Use the public-key pin supplied by the operator of the test relay.</string>
+    <string name="direct_review_relay">Test relay</string>
+    <string name="direct_review_pin">Public-key pin (sha256/…)</string>
+    <string name="direct_review_pair">Pair a device</string>
+    <string name="direct_review_pair_body">Exchange pairing codes. Read the other device’s fingerprint from its screen.</string>
+    <string name="direct_review_my_fingerprint">This device’s fingerprint</string>
+    <string name="direct_review_peer_fingerprint">Other device’s fingerprint</string>
+    <string name="direct_review_peer_code">Other device’s pairing code</string>
+    <string name="direct_review_copy_code">Copy my pairing code</string>
+    <string name="direct_review_copied">Pairing code copied</string>
+    <string name="direct_review_verify">Verify and pair</string>
+    <string name="direct_review_messages">Messages</string>
+    <string name="direct_review_verified_peer">Verified test device</string>
+    <string name="direct_review_no_messages">No incoming messages yet.</string>
+    <string name="direct_review_test_message">Test message</string>
+    <string name="direct_review_queue_message">Queue message</string>
+    <string name="direct_review_sync">Sync with relay</string>
+    <string name="direct_review_queued">Message queued</string>
+    <string name="direct_review_synced">Sync completed</string>
+    <string name="direct_review_discard_expired">Discard expired messages</string>
+    <string name="direct_review_restart_session">Start a new session</string>
+    <string name="direct_review_revoke">Revoke device</string>
+    <string name="direct_review_revoke_question">Revoke this test device?</string>
+    <string name="direct_review_revoke_body">This device will lose access to the test relay.</string>
+    <string name="direct_review_revoked">Device revoked</string>
+    <string name="direct_review_revoked_body">This installation’s registration has been revoked.</string>
+    <string name="direct_review_unavailable">Couldn’t open device data</string>
+    <string name="direct_review_unavailable_body">Unlock the device, then try opening its test data again.</string>
+    <string name="direct_review_retry">Try again</string>
+    <string name="direct_review_register_failed">Registration failed. Check the pin and the relay connection.</string>
+    <string name="direct_review_pair_failed">Pairing failed. Check the code and the full fingerprint on the other device.</string>
+    <string name="direct_review_queue_failed">Couldn’t queue the message. Check the relay connection and device storage.</string>
+    <string name="direct_review_sync_failed">Sync failed. Check the connection and try again.</string>
+    <string name="direct_review_action_failed">Couldn’t complete the action. Check the connection and device storage.</string>
+    <plurals name="direct_review_pending">
+        <item quantity="one">%d message waiting to send</item>
+        <item quantity="other">%d messages waiting to send</item>
+    </plurals>
+    <plurals name="direct_review_expired">
+        <item quantity="one">%d expired message</item>
+        <item quantity="other">%d expired messages</item>
+    </plurals>
+</resources>

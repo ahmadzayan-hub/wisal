@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="direct_review_app_name">وصال دايركت</string>
+    <string name="direct_review_status">رسائل اختبار فقط. اعتماد الإصدار معلّق.</string>
+    <string name="direct_review_working">جارٍ تنفيذ العملية</string>
+    <string name="direct_review_back">رجوع</string>
+    <string name="direct_review_device_details">بيانات الجهاز</string>
+    <string name="direct_review_register">تسجيل الجهاز</string>
+    <string name="direct_review_register_body">أدخل بصمة المفتاح العام التي زوّدك بها مشغّل خادم الاختبار.</string>
+    <string name="direct_review_relay">خادم الاختبار</string>
+    <string name="direct_review_pin">بصمة المفتاح العام للخادم</string>
+    <string name="direct_review_pair">اقتران الجهازين</string>
+    <string name="direct_review_pair_body">تبادلا رمزي الربط. اقرأ بصمة الجهاز الآخر من شاشته مباشرة.</string>
+    <string name="direct_review_my_fingerprint">بصمة هذا الجهاز</string>
+    <string name="direct_review_peer_fingerprint">بصمة الجهاز الآخر</string>
+    <string name="direct_review_peer_code">رمز ربط الجهاز الآخر</string>
+    <string name="direct_review_copy_code">نسخ رمز الربط</string>
+    <string name="direct_review_copied">تم نسخ رمز الربط</string>
+    <string name="direct_review_verify">تحقّق واقترن</string>
+    <string name="direct_review_messages">الرسائل</string>
+    <string name="direct_review_verified_peer">تم التحقق من الجهاز الآخر</string>
+    <string name="direct_review_no_messages">لا توجد رسائل واردة بعد.</string>
+    <string name="direct_review_test_message">رسالة اختبار</string>
+    <string name="direct_review_queue_message">إضافة لقائمة الإرسال</string>
+    <string name="direct_review_sync">مزامنة مع الخادم</string>
+    <string name="direct_review_queued">أُضيفت الرسالة إلى قائمة الإرسال</string>
+    <string name="direct_review_synced">اكتملت المزامنة</string>
+    <string name="direct_review_discard_expired">حذف الرسائل المنتهية</string>
+    <string name="direct_review_restart_session">بدء جلسة جديدة</string>
+    <string name="direct_review_revoke">إلغاء تسجيل الجهاز</string>
+    <string name="direct_review_revoke_question">إلغاء تسجيل هذا الجهاز؟</string>
+    <string name="direct_review_revoke_body">سيفقد هذا الجهاز الوصول إلى خادم الاختبار.</string>
+    <string name="direct_review_revoked">أُلغي تسجيل الجهاز</string>
+    <string name="direct_review_revoked_body">لم يعد هذا التثبيت مسجّلًا على خادم الاختبار.</string>
+    <string name="direct_review_unavailable">تعذّر فتح بيانات الجهاز</string>
+    <string name="direct_review_unavailable_body">افتح قفل الجهاز ثم أعد المحاولة.</string>
+    <string name="direct_review_retry">إعادة المحاولة</string>
+    <string name="direct_review_register_failed">تعذّر التسجيل. تحقّق من بصمة المفتاح واتصال الخادم.</string>
+    <string name="direct_review_pair_failed">تعذّر الاقتران. تحقّق من الرمز والبصمة الكاملة على الجهاز الآخر.</string>
+    <string name="direct_review_queue_failed">تعذّرت إضافة الرسالة. تحقّق من الاتصال بالخادم وتخزين الجهاز.</string>
+    <string name="direct_review_sync_failed">تعذّرت المزامنة. تحقّق من الاتصال وأعد المحاولة.</string>
+    <string name="direct_review_action_failed">تعذّر إكمال الإجراء. تحقّق من الاتصال وتخزين الجهاز.</string>
+    <plurals name="direct_review_pending">
+        <item quantity="zero">قائمة الإرسال فارغة</item>
+        <item quantity="one">رسالة واحدة بانتظار الإرسال</item>
+        <item quantity="two">رسالتان بانتظار الإرسال</item>
+        <item quantity="few">%d رسائل بانتظار الإرسال</item>
+        <item quantity="many">%d رسالة بانتظار الإرسال</item>
+        <item quantity="other">%d رسالة بانتظار الإرسال</item>
+    </plurals>
+    <plurals name="direct_review_expired">
+        <item quantity="zero">لا توجد رسائل منتهية</item>
+        <item quantity="one">رسالة منتهية واحدة</item>
+        <item quantity="two">رسالتان منتهيتان</item>
+        <item quantity="few">%d رسائل منتهية</item>
+        <item quantity="many">%d رسالة منتهية</item>
+        <item quantity="other">%d رسالة منتهية</item>
+    </plurals>
+</resources>
