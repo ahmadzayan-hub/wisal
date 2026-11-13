@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.PreKeyReplenishmentPolicyTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:40:52" hostname="10553fb40495" time="0.018">
+  <properties/>
+  <testcase name="generatingAFreshBundleResetsTheRotationClock" classname="com.wifeassistant.PreKeyReplenishmentPolicyTest" time="0.002"/>
+  <testcase name="freshlyRotatedWithKeysInStockNeedsNothing" classname="com.wifeassistant.PreKeyReplenishmentPolicyTest" time="0.0"/>
+  <testcase name="zeroFloorNeverRequiresOneTimeReplenishmentOnCountAlone" classname="com.wifeassistant.PreKeyReplenishmentPolicyTest" time="0.0"/>
+  <testcase name="oneTimePreKeyCountReflectsLocallyStoredUnconsumedKeys" classname="com.wifeassistant.PreKeyReplenishmentPolicyTest" time="0.012"/>
+  <testcase name="providerReportsBothDueBeforeAnyBundleExists" classname="com.wifeassistant.PreKeyReplenishmentPolicyTest" time="0.0"/>
+  <testcase name="negativeNowIsRejected" classname="com.wifeassistant.PreKeyReplenishmentPolicyTest" time="0.001"/>
+  <testcase name="providerStampsRotationTimeWhenABundleIsGenerated" classname="com.wifeassistant.PreKeyReplenishmentPolicyTest" time="0.001"/>
+  <testcase name="invalidConfigurationIsRejected" classname="com.wifeassistant.PreKeyReplenishmentPolicyTest" time="0.001"/>
+  <testcase name="signedKeyRotationIsDueExactlyAtTheIntervalBoundary" classname="com.wifeassistant.PreKeyReplenishmentPolicyTest" time="0.0"/>
+  <testcase name="neverPublishedNeedsBothRegardlessOfTimeOrCount" classname="com.wifeassistant.PreKeyReplenishmentPolicyTest" time="0.0"/>
+  <testcase name="oneTimePreKeyReplenishmentIsDueExactlyAtTheFloorBoundary" classname="com.wifeassistant.PreKeyReplenishmentPolicyTest" time="0.0"/>
+  <testcase name="clockAtOrBeforeLastRotationIsNotYetDue" classname="com.wifeassistant.PreKeyReplenishmentPolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

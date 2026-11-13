@@ -76,6 +76,13 @@ android {
             versionNameSuffix = "-acceptance"
             matchingFallbacks += "debug"
         }
+        create("directReview") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".directreview"
+            versionNameSuffix = "-direct-review"
+            isDebuggable = false
+            matchingFallbacks += "debug"
+        }
         release {
             // R8: يشيل الكود والموارد غير المستخدمة (منها آلاف أيقونات
             // material-icons-extended) — تصغير كبير للـ APK. قواعد الحفظ في

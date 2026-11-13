@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.SignalPreKeyAllocationTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:40:52" hostname="10553fb40495" time="0.031">
+  <properties/>
+  <testcase name="consumingTheLastOneTimeKeyDoesNotResetItsCounter" classname="com.wifeassistant.SignalPreKeyAllocationTest" time="0.009"/>
+  <testcase name="concurrentReopenedProvidersAllocateDistinctCommittedBundles" classname="com.wifeassistant.SignalPreKeyAllocationTest" time="0.008"/>
+  <testcase name="wrongOwnerAndEphemeralStorageCannotAllocate" classname="com.wifeassistant.SignalPreKeyAllocationTest" time="0.001"/>
+  <testcase name="exhaustionNeverWrapsOrPartiallyWrites" classname="com.wifeassistant.SignalPreKeyAllocationTest" time="0.001"/>
+  <testcase name="restartContinuesEachIndependentHighWaterMark" classname="com.wifeassistant.SignalPreKeyAllocationTest" time="0.002"/>
+  <testcase name="pendingCiphertextSurvivesReplenishmentAndConsumedIdIsNotReused" classname="com.wifeassistant.SignalPreKeyAllocationTest" time="0.009"/>
+  <testcase name="failedCommitWithholdsBundleAndBlocksTheProvider" classname="com.wifeassistant.SignalPreKeyAllocationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

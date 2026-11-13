@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.DirectRelayClientTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:31:26" hostname="10553fb40495" time="0.298">
+  <properties/>
+  <testcase name="notConfiguredWhenBaseUrlBlank" classname="com.wifeassistant.DirectRelayClientTest" time="0.186"/>
+  <testcase name="registerDeviceSendsValidSignatureAndParsesSuccess" classname="com.wifeassistant.DirectRelayClientTest" time="0.052"/>
+  <testcase name="registerDevicePropagatesServerRefusal" classname="com.wifeassistant.DirectRelayClientTest" time="0.008"/>
+  <testcase name="ackDeliverySignsAckProof" classname="com.wifeassistant.DirectRelayClientTest" time="0.01"/>
+  <testcase name="fetchInboxSignsFetchProofAndParsesItems" classname="com.wifeassistant.DirectRelayClientTest" time="0.021"/>
+  <testcase name="submitEnvelopeSignsCorrectProofAndReturnsId" classname="com.wifeassistant.DirectRelayClientTest" time="0.018"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

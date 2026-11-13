@@ -1,0 +1,2150 @@
+diff --git a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/LibsignalCryptoProvider.kt b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/LibsignalCryptoProvider.kt
+index 6cfb571..9e28517 100644
+--- a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/LibsignalCryptoProvider.kt
++++ b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/LibsignalCryptoProvider.kt
+@@ -22,6 +22,25 @@ class LibsignalCryptoProvider private constructor(private val access: SignalStor
+     override val backend = CryptoBackend.SIGNAL
+     override val mayClaimE2ee = false
+ 
++    private fun durableState(): SignalStatePersistence = access as? SignalStatePersistence
++        ?: error("Pre-key maintenance requires durable Signal storage.")
++
++    internal fun preKeyPublicationState(deviceId: String): PreKeyPublicationState {
++        addressOf(deviceId)
++        return durableState().publicationState(deviceId)
++    }
++
++    internal fun preparePreKeyPublication(deviceId: String, nowEpochSec: Long, relayScope: String,
++        publisherKeyB64: String, expectedAccepted: PreparedPreKeyPublication?): PreparedPreKeyPublication {
++        addressOf(deviceId)
++        return durableState().preparePublication(deviceId, nowEpochSec, relayScope, publisherKeyB64, expectedAccepted)
++    }
++
++    internal fun acceptPreKeyPublication(deviceId: String, publication: PreparedPreKeyPublication) {
++        addressOf(deviceId)
++        durableState().acceptPublication(deviceId, publication)
++    }
++
+     private val json = Json { ignoreUnknownKeys = true }
+ 
+     private fun addressOf(recipientDeviceId: String): SignalProtocolAddress {
+diff --git a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/PreKeyPublication.kt b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/PreKeyPublication.kt
+new file mode 100644
+index 0000000..c4a5bcf
+--- /dev/null
++++ b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/PreKeyPublication.kt
+@@ -0,0 +1,37 @@
++package com.wifeassistant.data.crypto
++
++import kotlinx.serialization.Serializable
++import java.security.MessageDigest
++
++/** Public material only, committed in the SAME encrypted snapshot as the private
++ * keys and monotonic counters. This is an intent, not evidence of relay acceptance.
++ */
++@Serializable
++data class PreparedPreKeyPublication(
++    val bundle: SignalPreKeyBundleDto,
++    val generatedAtEpochSec: Long,
++    val relayScope: String,
++    val publisherKeyB64: String,
++)
++
++data class PreKeyPublicationState(
++    val pending: PreparedPreKeyPublication?,
++    val accepted: PreparedPreKeyPublication?,
++    val lastSignedKeyRotationEpochSec: Long,
++    val pendingOneTimeKeyPresent: Boolean,
++    val acceptedOneTimeKeyPresent: Boolean,
++)
++
++/** Versioned content identifier, not a replacement for Signal or TLS authentication.
++ * Exact contract: wisal-direct-relay/lib/prekeys.js. Only validated public fields
++ * enter the digest, in the same order as the existing signed publication proof.
++ */
++fun SignalPreKeyBundleDto.publicationDigest(): String {
++    require(hasValidWireFields())
++    val canonical = listOf("wisal-prekey-bundle-v1", deviceId, registrationId, identityKeyB64,
++        signedPreKeyId, signedPreKeyPublicB64, signedPreKeySignatureB64,
++        kyberPreKeyId, kyberPreKeyPublicB64, kyberPreKeySignatureB64,
++        oneTimePreKeyId, oneTimePreKeyPublicB64).joinToString(":")
++    return MessageDigest.getInstance("SHA-256").digest(canonical.toByteArray(Charsets.UTF_8))
++        .joinToString("") { "%02x".format(it.toInt() and 255) }
++}
+diff --git a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/PreKeyReplenishmentPolicy.kt b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/PreKeyReplenishmentPolicy.kt
+index d189394..508c364 100644
+--- a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/PreKeyReplenishmentPolicy.kt
++++ b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/PreKeyReplenishmentPolicy.kt
+@@ -6,6 +6,8 @@ package com.wifeassistant.data.crypto
+  * Signal storage has nothing to evaluate.
+  */
+ data class PreKeyReplenishmentState(
++    // Historical name from PR #20: this means generated LOCAL keys only.
++    // DirectPreKeyMaintenance uses its separate relay-accepted journal.
+     val hasPublishedBundle: Boolean,
+     val lastSignedKeyRotationEpochSec: Long,
+     val oneTimePreKeyCount: Int,
+@@ -18,6 +20,7 @@ data class PreKeyReplenishmentState(
+ data class PreKeyReplenishmentDecision(
+     val needsSignedKeyRotation: Boolean,
+     val needsOneTimePreKeyReplenishment: Boolean,
++    val clockAnomaly: Boolean = false,
+ ) {
+     val needsReplenishment: Boolean get() = needsSignedKeyRotation || needsOneTimePreKeyReplenishment
+ }
+@@ -54,18 +57,20 @@ class PreKeyReplenishmentPolicy(
+      */
+     fun evaluate(state: PreKeyReplenishmentState, nowEpochSec: Long): PreKeyReplenishmentDecision {
+         require(nowEpochSec >= 0) { "nowEpochSec cannot be negative." }
++        require(state.lastSignedKeyRotationEpochSec >= 0 && state.oneTimePreKeyCount >= 0)
+         if (!state.hasPublishedBundle) {
+             return PreKeyReplenishmentDecision(needsSignedKeyRotation = true, needsOneTimePreKeyReplenishment = true)
+         }
+         val signedKeyAgeSeconds = nowEpochSec - state.lastSignedKeyRotationEpochSec
+         val needsSignedKeyRotation = signedKeyAgeSeconds >= signedKeyRotationIntervalSeconds
+         val needsOneTimePreKeyReplenishment = state.oneTimePreKeyCount < oneTimePreKeyFloor
+-        return PreKeyReplenishmentDecision(needsSignedKeyRotation, needsOneTimePreKeyReplenishment)
++        return PreKeyReplenishmentDecision(needsSignedKeyRotation, needsOneTimePreKeyReplenishment,
++            clockAnomaly = nowEpochSec < state.lastSignedKeyRotationEpochSec)
+     }
+ 
+     companion object {
+-        /** Signal's own clients rotate their signed pre-key roughly weekly;
+-         * this keeps the same order of magnitude pending a dedicated review.
++        /** A local default, not a protocol mandate. PQXDH gives a week or month
++         * as examples: https://signal.org/docs/specifications/pqxdh/#publishing-keys
+          */
+         const val DEFAULT_SIGNED_KEY_ROTATION_INTERVAL_SECONDS: Long = 7L * 24 * 60 * 60
+         const val DEFAULT_ONE_TIME_PREKEY_FLOOR: Int = 1
+diff --git a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/SignalStatePersistence.kt b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/SignalStatePersistence.kt
+index 089c1ff..7f1f514 100644
+--- a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/SignalStatePersistence.kt
++++ b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/crypto/SignalStatePersistence.kt
+@@ -39,6 +39,8 @@ private data class SignalSnapshot(
+     var highestSignedId: Int = 0,
+     var highestKyberId: Int = 0,
+     var lastSignedKeyRotationEpochSec: Long = 0,
++    var pendingPreKeyPublication: PreparedPreKeyPublication? = null,
++    var acceptedPreKeyPublication: PreparedPreKeyPublication? = null,
+     val outbox: MutableMap<String, QueuedSignalMessage> = mutableMapOf(),
+     val inbox: MutableMap<String, ReceivedSignalMessage> = mutableMapOf(),
+     val receipts: MutableMap<String, String> = mutableMapOf(),
+@@ -121,25 +123,35 @@ class SignalStatePersistence(private val read: () -> String?, private val write:
+         nowEpochSec: Long = System.currentTimeMillis() / 1000,
+     ): SignalPreKeyBundleDto = use { identity, store ->
+         requireOwner(deviceId)
+-        // Read, allocate, generate and commit under the same persistence lock.
+-        // Counts or the largest remaining key would reuse IDs after consumption.
+         val snapshotStore = store as SnapshotSignalStore
+-        val (signedId, kyberId, oneTimeId) = snapshotStore.nextPreKeyIds()
+-        val bundle = LibsignalKeys.generateAndStorePublishableBundle(identity, store, deviceId, signedId, kyberId, oneTimeId)
+-        // A fresh signed pre-key was just generated and committed above:
+-        // this is the only place that may legitimately move the rotation
+-        // clock forward, so the replenishment policy sees an honest age.
+-        snapshotStore.recordSignedKeyRotation(nowEpochSec)
+-        bundle
++        check(snapshotStore.publicationState().pending == null) { "Resolve pending pre-key publication first." }
++        snapshotStore.allocatePublishableBundle(identity, deviceId, nowEpochSec)
+     }
+ 
+-    /** Read-only snapshot of local pre-key state for [PreKeyReplenishmentPolicy].
+-     * Carries no secret material, only counts and a rotation timestamp.
++    /** Snapshot of local pre-key state, NOT relay inventory or publication proof.
++     * On first access, use() also commits the initial Signal identity.
+      */
+     internal fun replenishmentState(deviceId: String): PreKeyReplenishmentState = use { _, store ->
+         requireOwner(deviceId)
+         (store as SnapshotSignalStore).replenishmentState()
+     }
++
++    internal fun publicationState(deviceId: String): PreKeyPublicationState = use { _, store ->
++        requireOwner(deviceId)
++        (store as SnapshotSignalStore).publicationState()
++    }
++
++    internal fun preparePublication(deviceId: String, nowEpochSec: Long, relayScope: String,
++        publisherKeyB64: String, expectedAccepted: PreparedPreKeyPublication?): PreparedPreKeyPublication = use { identity, store ->
++        requireOwner(deviceId)
++        (store as SnapshotSignalStore).preparePublication(identity, deviceId, nowEpochSec,
++            relayScope, publisherKeyB64, expectedAccepted)
++    }
++
++    internal fun acceptPublication(deviceId: String, publication: PreparedPreKeyPublication) = use { _, store ->
++        requireOwner(deviceId)
++        (store as SnapshotSignalStore).acceptPublication(publication)
++    }
+ }
+ 
+ /** Native record serialization from libsignal 0.86.5, including Kyber replay
+@@ -152,6 +164,42 @@ private class SnapshotSignalStore(identity: LibsignalIdentity, private val state
+     override val receipts get() = state.receipts
+     override val pendingAcks get() = state.pendingAcks
+ 
++    fun publicationState() = PreKeyPublicationState(state.pendingPreKeyPublication,
++        state.acceptedPreKeyPublication, state.lastSignedKeyRotationEpochSec,
++        state.pendingPreKeyPublication?.bundle?.oneTimePreKeyId?.let { state.preKeys.containsKey(it) } == true,
++        state.acceptedPreKeyPublication?.bundle?.oneTimePreKeyId?.let { state.preKeys.containsKey(it) } == true)
++
++    /** Reuses PR #18 allocation, generation and verified commit boundary. The
++     * caller receives neither the intent nor the bundle before read-back succeeds.
++     */
++    fun allocatePublishableBundle(identity: LibsignalIdentity, deviceId: String, nowEpochSec: Long): SignalPreKeyBundleDto {
++        require(nowEpochSec >= 0)
++        val (signedId, kyberId, oneTimeId) = nextPreKeyIds()
++        val bundle = LibsignalKeys.generateAndStorePublishableBundle(identity, this, deviceId, signedId, kyberId, oneTimeId)
++        recordSignedKeyRotation(nowEpochSec)
++        return bundle
++    }
++
++    fun preparePublication(identity: LibsignalIdentity, deviceId: String, nowEpochSec: Long,
++        relayScope: String, publisherKeyB64: String, expectedAccepted: PreparedPreKeyPublication?): PreparedPreKeyPublication {
++        require(nowEpochSec > 0 && relayScope.length in 1..2048 && publisherKeyB64.length in 1..4096)
++        check(state.acceptedPreKeyPublication == expectedAccepted) { "Publication state changed; re-evaluate the relay." }
++        state.pendingPreKeyPublication?.let {
++            check(it.relayScope == relayScope && it.publisherKeyB64 == publisherKeyB64 && it.bundle.deviceId == deviceId)
++            return it
++        }
++        check(nowEpochSec >= state.lastSignedKeyRotationEpochSec) { "Device clock precedes persisted key generation." }
++        val bundle = allocatePublishableBundle(identity, deviceId, nowEpochSec)
++        return PreparedPreKeyPublication(bundle, nowEpochSec, relayScope, publisherKeyB64)
++            .also { state.pendingPreKeyPublication = it }
++    }
++
++    fun acceptPublication(publication: PreparedPreKeyPublication) {
++        check(state.pendingPreKeyPublication == publication) { "Pending publication changed; receipt was not committed." }
++        state.acceptedPreKeyPublication = publication
++        state.pendingPreKeyPublication = null
++    }
++
+     fun nextPreKeyIds(): Triple<Int, Int, Int> {
+         val ids = listOf(state.highestSignedId, state.highestKyberId, state.highestPreKeyId)
+         check(ids.all { it in 0 until Int.MAX_VALUE }) { "Pre-key ID space exhausted; no new keys were generated." }
+@@ -188,6 +236,28 @@ private class SnapshotSignalStore(identity: LibsignalIdentity, private val state
+         require(state.highestPreKeyId >= (state.preKeys.keys.maxOrNull() ?: 0))
+         require(state.highestSignedId >= (state.signedKeys.keys.maxOrNull() ?: 0))
+         require(state.highestKyberId >= (state.kyberKeys.keys.maxOrNull() ?: 0))
++        listOfNotNull(state.pendingPreKeyPublication, state.acceptedPreKeyPublication).forEach { item ->
++            val bundle = item.bundle
++            require(item.generatedAtEpochSec > 0 && item.generatedAtEpochSec <= state.lastSignedKeyRotationEpochSec)
++            require(item.relayScope.length in 1..2048 && item.publisherKeyB64.length in 1..4096)
++            require(bundle.hasValidWireFields() && (state.ownerDeviceId == null || bundle.deviceId == state.ownerDeviceId))
++            require(bundle.identityKeyB64 == identity.keyPair.publicKey.serialize().b64() && bundle.registrationId == identity.registrationId)
++            require(bundle.oneTimePreKeyId <= state.highestPreKeyId && bundle.signedPreKeyId <= state.highestSignedId && bundle.kyberPreKeyId <= state.highestKyberId)
++            // An OTP may already have been consumed locally while its publication
++            // receipt was lost. Signed and Kyber material must still be retained.
++            require(containsSignedPreKey(bundle.signedPreKeyId) && containsKyberPreKey(bundle.kyberPreKeyId))
++            require(loadSignedPreKey(bundle.signedPreKeyId).keyPair.publicKey.serialize().b64() == bundle.signedPreKeyPublicB64)
++            require(loadSignedPreKey(bundle.signedPreKeyId).signature.b64() == bundle.signedPreKeySignatureB64)
++            require(loadKyberPreKey(bundle.kyberPreKeyId).keyPair.publicKey.serialize().b64() == bundle.kyberPreKeyPublicB64)
++            require(loadKyberPreKey(bundle.kyberPreKeyId).signature.b64() == bundle.kyberPreKeySignatureB64)
++            if (containsPreKey(bundle.oneTimePreKeyId)) {
++                require(loadPreKey(bundle.oneTimePreKeyId).keyPair.publicKey.serialize().b64() == bundle.oneTimePreKeyPublicB64)
++            }
++        }
++        state.pendingPreKeyPublication?.let { pending -> state.acceptedPreKeyPublication?.let { accepted ->
++            require(pending.bundle.oneTimePreKeyId > accepted.bundle.oneTimePreKeyId)
++            require(pending.relayScope == accepted.relayScope && pending.publisherKeyB64 == accepted.publisherKeyB64)
++        } }
+     }
+ 
+     override fun saveIdentity(a: SignalProtocolAddress, key: IdentityKey): IdentityKeyStore.IdentityChange {
+diff --git a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectPreKeyMaintenance.kt b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectPreKeyMaintenance.kt
+new file mode 100644
+index 0000000..a30e5c4
+--- /dev/null
++++ b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectPreKeyMaintenance.kt
+@@ -0,0 +1,142 @@
++package com.wifeassistant.data.pairing
++
++import com.wifeassistant.data.crypto.*
++import kotlinx.coroutines.CancellationException
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.ensureActive
++import kotlinx.coroutines.sync.Mutex
++import kotlinx.coroutines.sync.withLock
++import kotlinx.coroutines.withContext
++import kotlin.coroutines.coroutineContext
++
++enum class PreKeyMaintenanceAction { CURRENT, PUBLISHED, RECONCILED }
++
++data class PreKeyMaintenanceResult(
++    val action: PreKeyMaintenanceAction,
++    val oneTimePreKeyId: Int,
++    /** Observation only. Another device may claim the key immediately afterwards. */
++    val oneTimePreKeyAvailable: Boolean,
++)
++
++/** Explicit, bounded, single-process integration. Nothing schedules or activates
++ * this class in the app. One call publishes OR reconciles at most one journaled
++ * bundle. The caller decides when to retry; there is no internal retry loop.
++ *
++ * Every new bundle rotates the signed, Kyber and one-time triplet, reusing PR #18.
++ * A consumed relay OTP can therefore trigger signed rotation earlier than 7 days.
++ * Only the relay's supported inventory floor (one available bundle) is used here.
++ */
++class DirectPreKeyMaintenance(
++    private val provider: LibsignalCryptoProvider,
++    private val relay: PreKeyPublicationTransport,
++    private val clock: () -> Long = { System.currentTimeMillis() / 1000 },
++    signedKeyRotationIntervalSeconds: Long = PreKeyReplenishmentPolicy.DEFAULT_SIGNED_KEY_ROTATION_INTERVAL_SECONDS,
++) {
++    private val policy = PreKeyReplenishmentPolicy(signedKeyRotationIntervalSeconds, oneTimePreKeyFloor = 1)
++
++    companion object {
++        // A process-wide coroutine lock also covers reopened coordinator instances.
++        // No native/persistence monitor is held during HTTP. Mutex.withLock releases
++        // on failure/cancellation: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.sync/with-lock.html
++        private val maintenanceLock = Mutex()
++    }
++
++    suspend fun runOnce(identity: LocalIdentity): Result<PreKeyMaintenanceResult> = withContext(Dispatchers.IO) {
++        maintenanceLock.withLock {
++            try {
++                Result.success(maintain(identity))
++            } catch (cancelled: CancellationException) {
++                throw cancelled
++            } catch (failure: Exception) {
++                Result.failure(if (failure is RelayRequestException && failure.refusalReason == "stale timestamp")
++                    PreKeyClockException() else failure)
++            }
++        }
++    }
++
++    private suspend fun maintain(identity: LocalIdentity): PreKeyMaintenanceResult {
++        val scope = relay.publicationScope()
++        val local = provider.preKeyPublicationState(identity.deviceId)
++        listOfNotNull(local.pending, local.accepted).forEach {
++            check(it.relayScope == scope && it.publisherKeyB64 == identity.publicKeyB64 && it.bundle.deviceId == identity.deviceId) {
++                "Pre-key publication belongs to a different relay or device identity."
++            }
++        }
++        fun now(): Long {
++            val value = clock()
++            if (value !in 1..9_007_199_254_740_991L || value < local.lastSignedKeyRotationEpochSec) throw PreKeyClockException()
++            return value
++        }
++        val observed = relay.preKeyPublicationStatus(identity, now()).getOrThrow()
++        // A forward clock jump after the successful preflight must not poison
++        // the durable rotation watermark before the relay rejects publication.
++        // Long-paused calls stop and can be invoked again with a fresh status.
++        fun checkedNow(): Long {
++            val value = now()
++            if (kotlin.math.abs(value - observed.serverTimeEpochSec) > 300) throw PreKeyClockException()
++            return value
++        }
++        coroutineContext.ensureActive()
++        checkedNow()
++
++        local.pending?.let { pending ->
++            if (observed.matches(pending)) {
++                if (observed.oneTimePreKeyAvailable && !local.pendingOneTimeKeyPresent) throw PreKeyPublicationConflictException()
++                provider.acceptPreKeyPublication(identity.deviceId, pending)
++                return result(PreKeyMaintenanceAction.RECONCILED, pending, observed)
++            }
++            // Only a known previous accepted publication (or an empty first
++            // relay) permits sending. Unknown higher/lower/different state stops.
++            requirePrevious(observed, local.accepted)
++            if (!local.pendingOneTimeKeyPresent) throw PreKeyPublicationConflictException()
++            return publishAndConfirm(identity, pending, ::checkedNow)
++        }
++
++        requirePrevious(observed, local.accepted)
++        if (observed.oneTimePreKeyAvailable && !local.acceptedOneTimeKeyPresent) throw PreKeyPublicationConflictException()
++        val decision = policy.evaluate(PreKeyReplenishmentState(
++            hasPublishedBundle = local.accepted != null,
++            lastSignedKeyRotationEpochSec = local.accepted?.generatedAtEpochSec ?: 0,
++            oneTimePreKeyCount = if (observed.oneTimePreKeyAvailable) 1 else 0,
++        ), checkedNow())
++        if (decision.clockAnomaly) throw PreKeyClockException()
++        if (!decision.needsReplenishment) return result(PreKeyMaintenanceAction.CURRENT, checkNotNull(local.accepted), observed)
++
++        coroutineContext.ensureActive()
++        // Stage private material, ID high-water marks and public intent in ONE
++        // verified write. A storage failure prevents the publication request.
++        val pending = provider.preparePreKeyPublication(identity.deviceId, checkedNow(), scope,
++            identity.publicKeyB64, local.accepted)
++        return publishAndConfirm(identity, pending, ::checkedNow)
++    }
++
++    private suspend fun publishAndConfirm(identity: LocalIdentity, pending: PreparedPreKeyPublication,
++        now: () -> Long): PreKeyMaintenanceResult {
++        coroutineContext.ensureActive()
++        val timestamp = now()
++        if (timestamp < pending.generatedAtEpochSec) throw PreKeyClockException()
++        relay.publishPreKeys(identity, pending.bundle, timestamp).getOrThrow()
++        coroutineContext.ensureActive()
++        // The existing HTTP receipt checks device/key ID. This second, signed,
++        // non-consuming read binds acceptance to the entire public bundle.
++        val confirmationTime = now()
++        if (confirmationTime < pending.generatedAtEpochSec) throw PreKeyClockException()
++        val observed = relay.preKeyPublicationStatus(identity, confirmationTime).getOrThrow()
++        if (!observed.matches(pending)) throw PreKeyPublicationConflictException()
++        coroutineContext.ensureActive()
++        provider.acceptPreKeyPublication(identity.deviceId, pending)
++        return result(PreKeyMaintenanceAction.PUBLISHED, pending, observed)
++    }
++
++    private fun requirePrevious(observed: RelayPreKeyStatus, accepted: PreparedPreKeyPublication?) {
++        if (accepted == null) {
++            if (observed.bundleDigest != null) throw PreKeyPublicationConflictException()
++        } else if (!observed.matches(accepted)) throw PreKeyPublicationConflictException()
++    }
++
++    private fun RelayPreKeyStatus.matches(publication: PreparedPreKeyPublication): Boolean =
++        bundleDigest == publication.bundle.publicationDigest() && oneTimePreKeyId == publication.bundle.oneTimePreKeyId
++
++    private fun result(action: PreKeyMaintenanceAction, publication: PreparedPreKeyPublication, status: RelayPreKeyStatus) =
++        PreKeyMaintenanceResult(action, publication.bundle.oneTimePreKeyId, status.oneTimePreKeyAvailable)
++}
+diff --git a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectRelayClient.kt b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectRelayClient.kt
+index 1f72d70..ce1f918 100644
+--- a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectRelayClient.kt
++++ b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectRelayClient.kt
+@@ -13,6 +13,7 @@ import okhttp3.OkHttpClient
+ import okhttp3.Request
+ import okhttp3.RequestBody.Companion.toRequestBody
+ import java.util.Base64
++import java.util.UUID
+ import java.util.concurrent.TimeUnit
+ 
+ // عميل wisal-direct-relay (ADR-002 §5.3): تسجيل جهاز، إيداع/سحب/تأكيد مغلف
+@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit
+ // جاي من CryptoProvider الحالي (DEMO_ONLY في التطوير) — النقل مايغيّرش
+ // وصف مستوى الأمان. لو baseUrl فاضي (الـ relay لسه مش منشور)، isConfigured()
+ // بترجع false بدل ما يحاول يتصل بحاجة مش موجودة.
+-class DirectRelayClient(private val baseUrl: String) {
++class DirectRelayClient(private val baseUrl: String) : PreKeyPublicationTransport {
+     private val client = OkHttpClient.Builder()
+         .connectTimeout(15, TimeUnit.SECONDS)
+         .readTimeout(30, TimeUnit.SECONDS)
+@@ -36,6 +37,15 @@ class DirectRelayClient(private val baseUrl: String) {
+ 
+     fun isConfigured(): Boolean = baseUrl.isNotBlank() && baseUrl.toHttpUrlOrNull() != null
+ 
++    override fun publicationScope(): String {
++        val url = baseUrl.toHttpUrlOrNull() ?: error("relay not configured")
++        require(url.username.isEmpty() && url.password.isEmpty() && url.query == null && url.fragment == null) { "invalid relay endpoint" }
++        // Cleartext is limited to literal loopback addresses for isolated tests.
++        // This restriction is additional to the existing transport API behavior.
++        require(url.isHttps || url.host in setOf("127.0.0.1", "::1")) { "Pre-key maintenance requires HTTPS." }
++        return url.toString().trimEnd('/')
++    }
++
+     suspend fun registerDevice(identity: LocalIdentity): Result<Unit> = withContext(Dispatchers.IO) {
+         if (!isConfigured()) return@withContext Result.failure(IllegalStateException("relay not configured"))
+         val sig = signB64(identity, DirectRelayProofs.register(identity.deviceId))
+@@ -85,7 +95,7 @@ class DirectRelayClient(private val baseUrl: String) {
+         post(AckResponse.serializer(), "$baseUrl/api/ack", body).map { }
+     }
+ 
+-    suspend fun publishPreKeys(identity: LocalIdentity, bundle: SignalPreKeyBundleDto, nowEpochSec: Long): Result<Unit> = withContext(Dispatchers.IO) {
++    override suspend fun publishPreKeys(identity: LocalIdentity, bundle: SignalPreKeyBundleDto, nowEpochSec: Long): Result<Unit> = withContext(Dispatchers.IO) {
+         if (!isConfigured()) return@withContext Result.failure(IllegalStateException("relay not configured"))
+         runCatching {
+             require(nowEpochSec > 0 && bundle.deviceId == identity.deviceId && bundle.hasValidWireFields()) { "invalid pre-key publication" }
+@@ -96,6 +106,30 @@ class DirectRelayClient(private val baseUrl: String) {
+         }
+     }
+ 
++    override suspend fun preKeyPublicationStatus(identity: LocalIdentity, nowEpochSec: Long): Result<RelayPreKeyStatus> = withContext(Dispatchers.IO) {
++        runCatching {
++            val scope = publicationScope()
++            require(nowEpochSec in 1..9_007_199_254_740_991L && identity.deviceId.length in 1..200 && !identity.deviceId.contains(':'))
++            val nonce = UUID.randomUUID().toString().replace("-", "")
++            val signature = signB64(identity, DirectRelayProofs.preKeyPublicationStatus(identity.deviceId, nowEpochSec, nonce))
++            val body = json.encodeToString(PreKeyStatusRequest.serializer(),
++                PreKeyStatusRequest(identity.deviceId, nowEpochSec, nonce, signature))
++            val response = post(PreKeyStatusResponse.serializer(), "$scope/api/prekeys-status", body).getOrThrow()
++            check(response.deviceId == identity.deviceId && response.requestNonce == nonce) { "mismatched publication status" }
++            val serverTime = checkNotNull(response.serverTimeEpochSec)
++            check(serverTime in 1..9_007_199_254_740_991L)
++            if (kotlin.math.abs(serverTime - nowEpochSec) > 300) throw PreKeyClockException()
++            val available = checkNotNull(response.oneTimePreKeyAvailable)
++            if (response.bundleDigest == null) {
++                check(response.oneTimePreKeyId == null && response.publishedAtEpochSec == null && !available) { "inconsistent empty publication status" }
++            } else {
++                check(Regex("^[0-9a-f]{64}$").matches(response.bundleDigest) && (response.oneTimePreKeyId ?: 0) > 0)
++                check(response.publishedAtEpochSec != null && response.publishedAtEpochSec in 1..serverTime) { "invalid publication time" }
++            }
++            RelayPreKeyStatus(response.bundleDigest, response.oneTimePreKeyId, available, response.publishedAtEpochSec, serverTime)
++        }
++    }
++
+     suspend fun claimPreKeys(identity: LocalIdentity, targetDeviceId: String, nowEpochSec: Long): Result<SignalPreKeyBundleDto> = withContext(Dispatchers.IO) {
+         if (!isConfigured()) return@withContext Result.failure(IllegalStateException("relay not configured"))
+         runCatching {
+@@ -129,15 +163,19 @@ class DirectRelayClient(private val baseUrl: String) {
+         val body = bodyJson.toRequestBody("application/json".toMediaType())
+         val req = Request.Builder().url(url).post(body).build()
+         client.newCall(req).execute().use { resp ->
+-            val payload = json.decodeFromString(serializer, resp.body?.string().orEmpty())
+-            if (!resp.isSuccessful || payload.ok != true) throw RuntimeException(payload.reason ?: "HTTP ${resp.code}")
+-            payload
++            val raw = resp.body?.string().orEmpty()
++            val status = json.decodeFromString(RelayResponseStatus.serializer(), raw)
++            if (!resp.isSuccessful || status.ok != true) throw RelayRequestException(resp.code, status.reason)
++            json.decodeFromString(serializer, raw)
+         }
+     }
+ }
+ 
+ interface RelayOkResponse { val ok: Boolean?; val reason: String? }
+ 
++@Serializable
++private data class RelayResponseStatus(val ok: Boolean? = null, val reason: String? = null)
++
+ @Serializable
+ data class RelayInboxItem(
+     val id: String,
+@@ -180,6 +218,20 @@ private data class PublishPreKeysRequest(val bundle: SignalPreKeyBundleDto, val
+ @Serializable
+ private data class PublishPreKeysResponse(override val ok: Boolean? = null, override val reason: String? = null, val deviceId: String? = null, val oneTimePreKeyId: Int? = null) : RelayOkResponse
+ @Serializable
++private data class PreKeyStatusRequest(val deviceId: String, val timestamp: Long, val requestNonce: String, val signatureB64: String)
++@Serializable
++private data class PreKeyStatusResponse(
++    override val ok: Boolean? = null,
++    override val reason: String? = null,
++    val deviceId: String? = null,
++    val requestNonce: String? = null,
++    val serverTimeEpochSec: Long? = null,
++    val bundleDigest: String?,
++    val oneTimePreKeyId: Int?,
++    val oneTimePreKeyAvailable: Boolean? = null,
++    val publishedAtEpochSec: Long?,
++) : RelayOkResponse
++@Serializable
+ private data class ClaimPreKeysRequest(val requesterDeviceId: String, val targetDeviceId: String, val timestamp: Long, val signatureB64: String)
+ @Serializable
+ private data class ClaimPreKeysResponse(override val ok: Boolean? = null, override val reason: String? = null, val bundle: SignalPreKeyBundleDto? = null) : RelayOkResponse
+diff --git a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectRelayProofs.kt b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectRelayProofs.kt
+index 37cc2e3..afe9b0c 100644
+--- a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectRelayProofs.kt
++++ b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/DirectRelayProofs.kt
+@@ -27,5 +27,8 @@ object DirectRelayProofs {
+     fun claimPreKeys(requesterDeviceId: String, targetDeviceId: String, timestamp: Long): String =
+         "claim-prekeys:$requesterDeviceId:$targetDeviceId:$timestamp"
+ 
++    fun preKeyPublicationStatus(deviceId: String, timestamp: Long, requestNonce: String): String =
++        "prekeys-status:$deviceId:$timestamp:$requestNonce"
++
+     fun revoke(deviceId: String, timestamp: Long): String = "revoke:$deviceId:$timestamp"
+ }
+diff --git a/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/PreKeyPublicationTransport.kt b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/PreKeyPublicationTransport.kt
+new file mode 100644
+index 0000000..4ef54d9
+--- /dev/null
++++ b/android-wife-assistant/app/src/main/java/com/wifeassistant/data/pairing/PreKeyPublicationTransport.kt
+@@ -0,0 +1,28 @@
++package com.wifeassistant.data.pairing
++
++import com.wifeassistant.data.crypto.LocalIdentity
++import com.wifeassistant.data.crypto.SignalPreKeyBundleDto
++
++/** A point-in-time observation over the configured authenticated HTTPS channel.
++ * It is NOT a signed server attestation, availability reservation, or E2EE proof.
++ */
++data class RelayPreKeyStatus(
++    val bundleDigest: String?,
++    val oneTimePreKeyId: Int?,
++    val oneTimePreKeyAvailable: Boolean,
++    val publishedAtEpochSec: Long?,
++    val serverTimeEpochSec: Long,
++)
++
++interface PreKeyPublicationTransport {
++    /** Canonical endpoint identity. Maintenance never moves a journal between relays. */
++    fun publicationScope(): String
++    suspend fun publishPreKeys(identity: LocalIdentity, bundle: SignalPreKeyBundleDto, nowEpochSec: Long): Result<Unit>
++    suspend fun preKeyPublicationStatus(identity: LocalIdentity, nowEpochSec: Long): Result<RelayPreKeyStatus>
++}
++
++class RelayRequestException(val httpCode: Int, val refusalReason: String?) :
++    IllegalStateException(refusalReason ?: "HTTP $httpCode")
++
++class PreKeyClockException : IllegalStateException("Pre-key maintenance requires a consistent device clock. Any pending publication is retained for verification.")
++class PreKeyPublicationConflictException : IllegalStateException("Relay publication does not match the durable local journal; review is required.")
+diff --git a/android-wife-assistant/app/src/test/java/com/wifeassistant/DirectPreKeyMaintenanceTest.kt b/android-wife-assistant/app/src/test/java/com/wifeassistant/DirectPreKeyMaintenanceTest.kt
+new file mode 100644
+index 0000000..747773f
+--- /dev/null
++++ b/android-wife-assistant/app/src/test/java/com/wifeassistant/DirectPreKeyMaintenanceTest.kt
+@@ -0,0 +1,459 @@
++package com.wifeassistant
++
++import com.wifeassistant.data.crypto.*
++import com.wifeassistant.data.pairing.*
++import kotlinx.coroutines.*
++import kotlinx.serialization.json.Json
++import kotlinx.serialization.json.JsonNull
++import kotlinx.serialization.json.int
++import kotlinx.serialization.json.jsonObject
++import kotlinx.serialization.json.jsonPrimitive
++import org.junit.Assert.*
++import org.junit.Test
++import java.io.IOException
++
++/** Native libsignal and the actual snapshot store with a controllable transport.
++ * These synthetic fixtures do not exercise Android Keystore, devices or a live relay.
++ */
++class DirectPreKeyMaintenanceTest {
++    private class Disk {
++        @Volatile var value: String? = null
++        var writes = 0
++        var failStage = false
++        var failAcceptance = false
++        var persistThenFailAcceptance = false
++        var dropStageWrite = false
++
++        fun open(owner: String = "B") = LibsignalCryptoProvider(SignalStatePersistence({ value }, { encoded ->
++            val state = Json.parseToJsonElement(encoded).jsonObject
++            val staged = state["pendingPreKeyPublication"] != JsonNull
++            val accepted = state["acceptedPreKeyPublication"] != JsonNull && !staged
++            if (staged && failStage) throw IOException("synthetic private storage failure")
++            if (accepted && failAcceptance) throw IOException("synthetic acceptance failure")
++            if (!(staged && dropStageWrite)) { value = encoded; writes++ }
++            if (accepted && persistThenFailAcceptance) throw IOException("synthetic ambiguous acceptance")
++        }, owner))
++
++        fun highestId() = Json.parseToJsonElement(value!!).jsonObject.getValue("highestPreKeyId").jsonPrimitive.int
++    }
++
++    private class Relay : PreKeyPublicationTransport {
++        var scope = "https://isolated.invalid"
++        var bundle: SignalPreKeyBundleDto? = null
++        var available = false
++        var publicationTime = 0L
++        var statusCalls = 0
++        var publishCalls = 0
++        val attempts = mutableListOf<SignalPreKeyBundleDto>()
++        var statusFailure: Exception? = null
++        var publishFailureBefore: Exception? = null
++        var publishFailureAfter: Exception? = null
++        var beforePublish: ((SignalPreKeyBundleDto) -> Unit)? = null
++        var afterPublish: (suspend () -> Unit)? = null
++        var beforeStatus: (suspend (Int) -> Unit)? = null
++
++        override fun publicationScope() = scope
++
++        override suspend fun publishPreKeys(identity: LocalIdentity, bundle: SignalPreKeyBundleDto,
++            nowEpochSec: Long): Result<Unit> = runCatching {
++            publishCalls++
++            attempts += bundle
++            beforePublish?.invoke(bundle)
++            publishFailureBefore?.let { throw it }
++            val current = this.bundle
++            if (current != null && bundle.oneTimePreKeyId <= current.oneTimePreKeyId) {
++                check(available && bundle == current) { "one-time pre-key id must be higher" }
++            } else {
++                this.bundle = bundle
++                available = true
++                publicationTime = nowEpochSec
++            }
++            afterPublish?.invoke()
++            publishFailureAfter?.let { throw it }
++        }
++
++        override suspend fun preKeyPublicationStatus(identity: LocalIdentity,
++            nowEpochSec: Long): Result<RelayPreKeyStatus> = runCatching {
++            statusCalls++
++            beforeStatus?.invoke(statusCalls)
++            statusFailure?.let { throw it }
++            RelayPreKeyStatus(bundle?.publicationDigest(), bundle?.oneTimePreKeyId,
++                bundle != null && available, if (bundle == null) null else publicationTime, nowEpochSec)
++        }
++    }
++
++    private class Fixture {
++        val disk = Disk()
++        val provider = disk.open()
++        val identity = DeviceIdentityCodec.generate().copy(deviceId = "B")
++        val relay = Relay()
++        var now = 1_800_000_000L
++        fun coordinator(p: LibsignalCryptoProvider = provider, interval: Long = 100) =
++            DirectPreKeyMaintenance(p, relay, { now }, interval)
++        fun state() = disk.open().preKeyPublicationState("B")
++    }
++
++    @Test fun firstPublicationCommitsPrivateKeysAndIntentBeforeAnyPublishAndThenAcceptance() = runBlocking {
++        val f = Fixture()
++        f.relay.beforePublish = { bundle ->
++            val state = f.state()
++            assertEquals(bundle, state.pending!!.bundle)
++            assertNull(state.accepted)
++            val snapshot = Json.parseToJsonElement(f.disk.value!!).jsonObject
++            assertTrue(snapshot.getValue("preKeys").jsonObject.containsKey(bundle.oneTimePreKeyId.toString()))
++            assertTrue(snapshot.getValue("signedKeys").jsonObject.containsKey(bundle.signedPreKeyId.toString()))
++            assertTrue(snapshot.getValue("kyberKeys").jsonObject.containsKey(bundle.kyberPreKeyId.toString()))
++        }
++        val result = f.coordinator().runOnce(f.identity).getOrThrow()
++        assertEquals(PreKeyMaintenanceAction.PUBLISHED, result.action)
++        assertEquals(1, result.oneTimePreKeyId)
++        assertTrue(result.oneTimePreKeyAvailable)
++        assertNull(f.state().pending)
++        assertEquals(f.relay.bundle, f.state().accepted!!.bundle)
++        assertEquals(1, f.relay.publishCalls)
++        assertFalse(f.provider.mayClaimE2ee)
++    }
++
++    @Test fun preflightNetworkFailureCreatesNoPreKeysAndDoesNotPublish() = runBlocking {
++        val f = Fixture()
++        f.relay.statusFailure = IOException("synthetic disconnected")
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        assertEquals(0, f.disk.highestId())
++        assertNull(f.state().pending)
++        assertNull(f.state().accepted)
++        assertEquals(0, f.relay.publishCalls)
++    }
++
++    @Test fun failureBeforeRelayAcceptanceRetriesTheIdenticalDurableBundleAfterReopening() = runBlocking {
++        val f = Fixture()
++        f.relay.publishFailureBefore = IOException("synthetic connection failure")
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        val pending = f.state().pending!!
++        assertNull(f.relay.bundle)
++        f.relay.publishFailureBefore = null
++        f.now += 20
++        val result = f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow()
++        assertEquals(PreKeyMaintenanceAction.PUBLISHED, result.action)
++        assertEquals(listOf(pending.bundle, pending.bundle), f.relay.attempts)
++        assertEquals(1, f.disk.highestId())
++        assertEquals(pending, f.state().accepted)
++    }
++
++    @Test fun lostPublishResponseReconcilesWithoutResendingOrAllocatingAnotherKey() = runBlocking {
++        val f = Fixture()
++        f.relay.publishFailureAfter = IOException("synthetic lost response")
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        val pending = f.state().pending!!
++        f.relay.publishFailureAfter = null
++        val result = f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow()
++        assertEquals(PreKeyMaintenanceAction.RECONCILED, result.action)
++        assertEquals(1, f.relay.publishCalls)
++        assertEquals(pending, f.state().accepted)
++        assertEquals(1, f.disk.highestId())
++    }
++
++    @Test fun lostResponseThenClaimReconcilesConsumedReceiptAndOnlyNextCallReplenishes() = runBlocking {
++        val f = Fixture()
++        f.relay.publishFailureAfter = IOException("synthetic lost response")
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        val old = f.state().pending!!.bundle
++        f.relay.available = false // A peer claimed it, without any message reaching this device.
++        f.relay.publishFailureAfter = null
++        val reconciled = f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow()
++        assertEquals(PreKeyMaintenanceAction.RECONCILED, reconciled.action)
++        assertFalse(reconciled.oneTimePreKeyAvailable)
++        assertEquals(1, f.relay.publishCalls)
++        assertEquals(old, f.relay.bundle)
++        val next = f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow()
++        assertEquals(2, next.oneTimePreKeyId)
++        assertEquals(2, f.relay.publishCalls)
++        assertEquals(listOf(1, 2), f.relay.attempts.map { it.oneTimePreKeyId })
++    }
++
++    @Test fun failedStatusAfterHttpSuccessKeepsIntentForReconciliation() = runBlocking {
++        val f = Fixture()
++        f.relay.beforeStatus = { call -> if (call == 2) throw IOException("synthetic status response loss") }
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        assertNotNull(f.state().pending)
++        assertNull(f.state().accepted)
++        val result = f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow()
++        assertEquals(PreKeyMaintenanceAction.RECONCILED, result.action)
++        assertEquals(1, f.relay.publishCalls)
++    }
++
++    @Test fun stageCommitFailurePreventsPublicationAndBlocksThatProvider() = runBlocking {
++        val f = Fixture()
++        f.disk.failStage = true
++        val failed = f.coordinator().runOnce(f.identity)
++        assertTrue(failed.isFailure)
++        assertFalse(failed.exceptionOrNull().toString().contains("synthetic private"))
++        assertEquals(0, f.relay.publishCalls)
++        assertEquals(0, f.disk.highestId())
++        f.disk.failStage = false
++        val before = f.relay.statusCalls
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        assertEquals(before, f.relay.statusCalls)
++        assertEquals(1, f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow().oneTimePreKeyId)
++    }
++
++    @Test fun unverifiedStageReadbackNeverReleasesBundleToRelay() = runBlocking {
++        val f = Fixture()
++        f.disk.dropStageWrite = true
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        assertEquals(0, f.disk.highestId())
++        assertEquals(0, f.relay.publishCalls)
++        f.disk.dropStageWrite = false
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++    }
++
++    @Test fun failedAcceptanceCommitLeavesPendingAndReopenedCoordinatorReconciles() = runBlocking {
++        val f = Fixture()
++        f.disk.failAcceptance = true
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        assertNotNull(f.state().pending)
++        assertNull(f.state().accepted)
++        f.disk.failAcceptance = false
++        val calls = f.relay.statusCalls
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        assertEquals(calls, f.relay.statusCalls)
++        assertEquals(PreKeyMaintenanceAction.RECONCILED,
++            f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow().action)
++        assertEquals(1, f.relay.publishCalls)
++        assertEquals(1, f.disk.highestId())
++    }
++
++    @Test fun ambiguousAcceptanceThatReachedDiskIsNotRepublishedAfterRestart() = runBlocking {
++        val f = Fixture()
++        f.disk.persistThenFailAcceptance = true
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        assertNull(f.state().pending)
++        assertNotNull(f.state().accepted)
++        f.disk.persistThenFailAcceptance = false
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        assertEquals(PreKeyMaintenanceAction.CURRENT,
++            f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow().action)
++        assertEquals(1, f.relay.publishCalls)
++    }
++
++    @Test fun concurrentReopenedCoordinatorsPublishOnceAndAllObserveSameAcceptedKey() = runBlocking {
++        val f = Fixture()
++        val results = coroutineScope {
++            (1..8).map { async(Dispatchers.Default) {
++                f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow()
++            } }.awaitAll()
++        }
++        assertEquals(1, results.count { it.action == PreKeyMaintenanceAction.PUBLISHED })
++        assertEquals(7, results.count { it.action == PreKeyMaintenanceAction.CURRENT })
++        assertEquals(setOf(1), results.map { it.oneTimePreKeyId }.toSet())
++        assertEquals(1, f.relay.publishCalls)
++        assertEquals(1, f.disk.highestId())
++    }
++
++    @Test fun aPendingBundleCannotMoveToAnotherRelayOrPublisherKey() = runBlocking {
++        val f = Fixture()
++        f.relay.publishFailureBefore = IOException("synthetic offline")
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        val stable = f.disk.value
++        val calls = f.relay.statusCalls
++        f.relay.scope = "https://another.invalid"
++        assertTrue(f.coordinator(f.disk.open()).runOnce(f.identity).isFailure)
++        assertEquals(calls, f.relay.statusCalls)
++        f.relay.scope = "https://isolated.invalid"
++        val changed = DeviceIdentityCodec.generate().copy(deviceId = "B")
++        assertTrue(f.coordinator(f.disk.open()).runOnce(changed).isFailure)
++        assertEquals(calls, f.relay.statusCalls)
++        assertEquals(stable, f.disk.value)
++    }
++
++    @Test fun wrongOwnerAndEphemeralProviderFailBeforeAnyRelayRequest() = runBlocking {
++        val f = Fixture()
++        assertTrue(f.coordinator().runOnce(f.identity.copy(deviceId = "A")).isFailure)
++        assertTrue(f.coordinator(LibsignalCryptoProvider(LibsignalKeys.generateIdentity()))
++            .runOnce(f.identity).isFailure)
++        assertEquals(0, f.relay.statusCalls)
++        assertEquals(0, f.relay.publishCalls)
++        assertNull(f.disk.value)
++    }
++
++    @Test fun backwardClockPausesBeforeNetworkAndPreservesPendingIntent() = runBlocking {
++        val f = Fixture()
++        f.relay.publishFailureBefore = IOException("synthetic offline")
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        val pending = f.state().pending
++        val calls = f.relay.statusCalls
++        f.now--
++        assertTrue(f.coordinator(f.disk.open()).runOnce(f.identity).exceptionOrNull() is PreKeyClockException)
++        assertEquals(calls, f.relay.statusCalls)
++        assertEquals(pending, f.state().pending)
++        assertEquals(1, f.disk.highestId())
++    }
++
++    @Test fun relayClockRefusalAndUnsafeClockDoNotGeneratePreKeys() = runBlocking {
++        val f = Fixture()
++        f.relay.statusFailure = RelayRequestException(400, "stale timestamp")
++        assertTrue(f.coordinator().runOnce(f.identity).exceptionOrNull() is PreKeyClockException)
++        assertEquals(0, f.disk.highestId())
++        f.now = Long.MAX_VALUE
++        val calls = f.relay.statusCalls
++        assertTrue(f.coordinator(f.disk.open()).runOnce(f.identity).exceptionOrNull() is PreKeyClockException)
++        assertEquals(calls, f.relay.statusCalls)
++        assertEquals(0, f.relay.publishCalls)
++    }
++
++    @Test fun forwardClockJumpAfterPreflightCannotPoisonPersistedRotationTime() = runBlocking {
++        val f = Fixture()
++        f.relay.beforeStatus = { if (it == 1) f.now += 86_400 }
++        assertTrue(f.coordinator().runOnce(f.identity).exceptionOrNull() is PreKeyClockException)
++        assertEquals(0, f.disk.highestId())
++        assertEquals(0, f.relay.publishCalls)
++        assertNull(f.state().pending)
++        f.now -= 86_400
++        assertEquals(1, f.coordinator().runOnce(f.identity).getOrThrow().oneTimePreKeyId)
++    }
++
++    @Test fun clockFailureAfterRemotePublicationRetainsIntentAndReportsUncertainty() = runBlocking {
++        val f = Fixture()
++        f.relay.afterPublish = { f.now += 86_400 }
++        val failed = f.coordinator().runOnce(f.identity)
++        assertTrue(failed.exceptionOrNull() is PreKeyClockException)
++        assertFalse(failed.exceptionOrNull()!!.message!!.contains("no keys were replaced"))
++        val pending = f.state().pending!!
++        assertEquals(pending.bundle, f.relay.bundle)
++        assertNull(f.state().accepted)
++        f.now -= 86_400
++        f.relay.afterPublish = null
++        assertEquals(PreKeyMaintenanceAction.RECONCILED, f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow().action)
++        assertEquals(1, f.relay.publishCalls)
++    }
++
++    @Test fun clockMovingBackwardAfterStagingKeepsBundleWithoutPublishing() = runBlocking {
++        val f = Fixture()
++        val coordinator = DirectPreKeyMaintenance(f.provider, f.relay, {
++            val staged = f.disk.value?.let {
++                Json.parseToJsonElement(it).jsonObject["pendingPreKeyPublication"] != JsonNull
++            } == true
++            if (staged) f.now - 1 else f.now
++        }, 100)
++        assertTrue(coordinator.runOnce(f.identity).exceptionOrNull() is PreKeyClockException)
++        assertNotNull(f.state().pending)
++        assertEquals(1, f.disk.highestId())
++        assertEquals(0, f.relay.publishCalls)
++    }
++
++    @Test fun cancellationAfterRelayAcceptanceLeavesDurableIntentAndReleasesMutex() = runBlocking {
++        val f = Fixture()
++        val published = CompletableDeferred<Unit>()
++        val hold = CompletableDeferred<Unit>()
++        f.relay.afterPublish = { published.complete(Unit); hold.await() }
++        val task = launch { f.coordinator().runOnce(f.identity) }
++        withTimeout(10_000) { published.await() }
++        task.cancelAndJoin()
++        assertNotNull(f.state().pending)
++        assertNull(f.state().accepted)
++        f.relay.afterPublish = null
++        val result = withTimeout(10_000) { f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow() }
++        assertEquals(PreKeyMaintenanceAction.RECONCILED, result.action)
++        assertEquals(1, f.relay.publishCalls)
++    }
++
++    @Test fun relayConsumptionReplenishesEvenWhileLocalPrivateKeyCountRemainsOne() = runBlocking {
++        val f = Fixture()
++        f.coordinator().runOnce(f.identity).getOrThrow()
++        f.relay.available = false
++        assertFalse(f.provider.replenishmentDecision("B", f.now).needsOneTimePreKeyReplenishment)
++        val result = f.coordinator().runOnce(f.identity).getOrThrow()
++        assertEquals(2, result.oneTimePreKeyId)
++        val snapshot = Json.parseToJsonElement(f.disk.value!!).jsonObject
++        assertEquals(setOf("1", "2"), snapshot.getValue("preKeys").jsonObject.keys)
++    }
++
++    @Test fun currentAcceptedBundleRotatesExactlyAtConfiguredAgeWithoutPruningOldKeys() = runBlocking {
++        val f = Fixture()
++        f.coordinator().runOnce(f.identity).getOrThrow()
++        f.now += 99
++        assertEquals(PreKeyMaintenanceAction.CURRENT, f.coordinator().runOnce(f.identity).getOrThrow().action)
++        f.now++
++        assertEquals(2, f.coordinator().runOnce(f.identity).getOrThrow().oneTimePreKeyId)
++        val snapshot = Json.parseToJsonElement(f.disk.value!!).jsonObject
++        for (key in listOf("preKeys", "signedKeys", "kyberKeys")) {
++            assertEquals(setOf("1", "2"), snapshot.getValue(key).jsonObject.keys)
++        }
++    }
++
++    @Test fun unknownLegacyRemoteBundleIsNotAdoptedOrOverwritten() = runBlocking {
++        val f = Fixture()
++        val legacy = f.provider.nextPublishableBundle("B", f.now)
++        f.relay.bundle = legacy
++        f.relay.available = true
++        f.relay.publicationTime = f.now
++        val stable = f.disk.value
++        assertTrue(f.coordinator().runOnce(f.identity).exceptionOrNull() is PreKeyPublicationConflictException)
++        assertEquals(stable, f.disk.value)
++        assertEquals(0, f.relay.publishCalls)
++        assertNull(f.state().accepted)
++    }
++
++    @Test fun missingOrMismatchedAcceptedRelayStateCannotTriggerBlindReplacement() = runBlocking {
++        val f = Fixture()
++        f.coordinator().runOnce(f.identity).getOrThrow()
++        val accepted = f.relay.bundle!!
++        val stable = f.disk.value
++        f.relay.bundle = null
++        f.relay.available = false
++        assertTrue(f.coordinator().runOnce(f.identity).exceptionOrNull() is PreKeyPublicationConflictException)
++        f.relay.bundle = accepted.copy(signedPreKeyId = accepted.signedPreKeyId + 1)
++        assertTrue(f.coordinator().runOnce(f.identity).exceptionOrNull() is PreKeyPublicationConflictException)
++        assertEquals(1, f.relay.publishCalls)
++        assertEquals(stable, f.disk.value)
++    }
++
++    @Test fun unknownRemoteStateDoesNotCausePendingBundleResendOrAcknowledgement() = runBlocking {
++        val f = Fixture()
++        f.relay.publishFailureBefore = IOException("synthetic offline")
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        val pending = f.state().pending!!
++        f.relay.bundle = pending.bundle.copy(oneTimePreKeyId = pending.bundle.oneTimePreKeyId + 10)
++        f.relay.available = true
++        f.relay.publicationTime = f.now
++        f.relay.publishFailureBefore = null
++        assertTrue(f.coordinator(f.disk.open()).runOnce(f.identity).exceptionOrNull() is PreKeyPublicationConflictException)
++        assertEquals(pending, f.state().pending)
++        assertNull(f.state().accepted)
++        assertEquals(1, f.relay.publishCalls)
++        assertEquals(1, f.disk.highestId())
++    }
++
++    @Test fun knownPriorAcceptedPublicationPermitsResumingNewPendingPublication() = runBlocking {
++        val f = Fixture()
++        f.coordinator().runOnce(f.identity).getOrThrow()
++        f.relay.available = false
++        f.relay.publishFailureBefore = IOException("synthetic offline on second key")
++        assertTrue(f.coordinator().runOnce(f.identity).isFailure)
++        assertEquals(1, f.relay.bundle!!.oneTimePreKeyId)
++        assertEquals(2, f.state().pending!!.bundle.oneTimePreKeyId)
++        f.relay.publishFailureBefore = null
++        assertEquals(2, f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow().oneTimePreKeyId)
++        assertEquals(listOf(1, 2, 2), f.relay.attempts.map { it.oneTimePreKeyId })
++        assertEquals(2, f.disk.highestId())
++    }
++
++    @Test fun retainedOldPrivateMaterialDecryptsDelayedMessageAfterRelayReplenishment() = runBlocking {
++        val f = Fixture()
++        f.coordinator().runOnce(f.identity).getOrThrow()
++        val old = f.relay.bundle!!
++        val aliceIdentity = DeviceIdentityCodec.generate().copy(deviceId = "A")
++        val alice = LibsignalCryptoProvider(LibsignalKeys.generateIdentity())
++        val aliceBundle = alice.publishableBundle("A")
++        alice.trustPeer(f.identity.public, old, SignalPeerBinding.sign(f.identity, old))
++        alice.establishSession("B", Json.encodeToString(SignalPreKeyBundleDto.serializer(), old).toByteArray())
++        val delayed = alice.session("B").encrypt("synthetic delayed message".toByteArray())
++        f.relay.available = false
++        f.coordinator().runOnce(f.identity).getOrThrow()
++        val reopened = f.disk.open()
++        reopened.trustPeer(aliceIdentity.public, aliceBundle, SignalPeerBinding.sign(aliceIdentity, aliceBundle))
++        assertEquals("synthetic delayed message", String(reopened.session("A").decrypt(delayed)))
++        f.relay.available = false
++        assertEquals(3, f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow().oneTimePreKeyId)
++        assertEquals(listOf(1, 2, 3), f.relay.attempts.map { it.oneTimePreKeyId })
++    }
++}
+diff --git a/android-wife-assistant/app/src/test/java/com/wifeassistant/PreKeyPublicationPersistenceTest.kt b/android-wife-assistant/app/src/test/java/com/wifeassistant/PreKeyPublicationPersistenceTest.kt
+new file mode 100644
+index 0000000..b4f5e7a
+--- /dev/null
++++ b/android-wife-assistant/app/src/test/java/com/wifeassistant/PreKeyPublicationPersistenceTest.kt
+@@ -0,0 +1,139 @@
++package com.wifeassistant
++
++import com.wifeassistant.data.crypto.*
++import kotlinx.serialization.json.*
++import org.junit.Assert.*
++import org.junit.Test
++
++class PreKeyPublicationPersistenceTest {
++    private val owner = DeviceIdentityCodec.generate()
++    private val scope = "https://relay.example.test"
++    private class Disk {
++        var text: String? = null
++        var writes = 0
++        var failure = ""
++        fun open(owner: String) = LibsignalCryptoProvider(SignalStatePersistence({ text }, {
++            writes++
++            if (failure == "before") error("synthetic private disk detail")
++            if (failure != "no-op") text = it
++            if (failure == "after") error("synthetic private disk detail")
++        }, owner))
++    }
++    private fun prepare(provider: LibsignalCryptoProvider, accepted: PreparedPreKeyPublication? = null, time: Long = 1_800_000_000L) =
++        provider.preparePreKeyPublication(owner.deviceId, time, scope, owner.publicKeyB64, accepted)
++
++    @Test fun keysCountersAndPendingIntentShareOneVerifiedWriteAndSurviveReopen() {
++        val disk = Disk()
++        val pending = prepare(disk.open(owner.deviceId))
++        assertEquals(1, disk.writes)
++        val reopened = disk.open(owner.deviceId).preKeyPublicationState(owner.deviceId)
++        assertEquals(pending, reopened.pending)
++        assertNull(reopened.accepted)
++        assertTrue(reopened.pendingOneTimeKeyPresent)
++        val snapshot = Json.parseToJsonElement(disk.text!!).jsonObject
++        for (field in listOf("preKeys", "signedKeys", "kyberKeys")) assertEquals(1, snapshot.getValue(field).jsonObject.size)
++        for (field in listOf("highestPreKeyId", "highestSignedId", "highestKyberId")) assertEquals(1, snapshot.getValue(field).jsonPrimitive.int)
++        assertFalse(disk.open(owner.deviceId).mayClaimE2ee)
++    }
++
++    @Test fun retriesReturnExactPersistedBundleWithoutGeneratingOrWritingAgain() {
++        val disk = Disk()
++        val first = prepare(disk.open(owner.deviceId))
++        repeat(4) { assertEquals(first, prepare(disk.open(owner.deviceId), time = 1_800_000_100L + it)) }
++        assertEquals(1, disk.writes)
++        assertTrue(runCatching { disk.open(owner.deviceId).nextPublishableBundle(owner.deviceId) }.isFailure)
++    }
++
++    @Test fun acceptedJournalAndNewPendingUseIndependentDurableHighWaterMarks() {
++        val disk = Disk()
++        val provider = disk.open(owner.deviceId)
++        provider.publishableBundle(owner.deviceId, 7, 11, 19)
++        val first = prepare(provider)
++        assertEquals(Triple(8, 12, 20), Triple(first.bundle.signedPreKeyId, first.bundle.kyberPreKeyId, first.bundle.oneTimePreKeyId))
++        provider.acceptPreKeyPublication(owner.deviceId, first)
++        val second = prepare(disk.open(owner.deviceId), first, 1_800_000_100L)
++        assertEquals(21, second.bundle.oneTimePreKeyId)
++        assertEquals(first, disk.open(owner.deviceId).preKeyPublicationState(owner.deviceId).accepted)
++        assertEquals(second, disk.open(owner.deviceId).preKeyPublicationState(owner.deviceId).pending)
++    }
++
++    @Test fun beforeWriteAndSilentNoOpFailuresReleaseNoBundleAndBlockSameProvider() {
++        for (mode in listOf("before", "no-op")) {
++            val disk = Disk(); val provider = disk.open(owner.deviceId)
++            disk.failure = mode
++            val failure = runCatching { prepare(provider) }.exceptionOrNull()!!
++            assertFalse(failure.toString().contains("private disk detail"))
++            assertNull(failure.cause)
++            assertNull(disk.text)
++            disk.failure = ""
++            assertTrue(runCatching { prepare(provider) }.isFailure)
++            assertEquals(1, prepare(disk.open(owner.deviceId)).bundle.oneTimePreKeyId)
++        }
++    }
++
++    @Test fun ambiguousWritePreservesExactPendingOnRestartWithoutReusingAnId() {
++        val disk = Disk(); val provider = disk.open(owner.deviceId)
++        disk.failure = "after"
++        assertTrue(runCatching { prepare(provider) }.isFailure)
++        disk.failure = ""
++        assertTrue(runCatching { prepare(provider) }.isFailure)
++        val recovered = disk.open(owner.deviceId)
++        val pending = recovered.preKeyPublicationState(owner.deviceId).pending!!
++        assertEquals(pending, prepare(recovered))
++        recovered.acceptPreKeyPublication(owner.deviceId, pending)
++        assertEquals(2, prepare(recovered, pending, 1_800_000_001L).bundle.oneTimePreKeyId)
++    }
++
++    @Test fun acknowledgementWriteFailureDoesNotPretendAcceptance() {
++        val disk = Disk(); val provider = disk.open(owner.deviceId)
++        val pending = prepare(provider)
++        val stable = disk.text
++        disk.failure = "before"
++        assertTrue(runCatching { provider.acceptPreKeyPublication(owner.deviceId, pending) }.isFailure)
++        assertEquals(stable, disk.text)
++        disk.failure = ""
++        assertTrue(runCatching { provider.acceptPreKeyPublication(owner.deviceId, pending) }.isFailure)
++        val reopened = disk.open(owner.deviceId)
++        assertEquals(pending, reopened.preKeyPublicationState(owner.deviceId).pending)
++        reopened.acceptPreKeyPublication(owner.deviceId, pending)
++        assertNull(reopened.preKeyPublicationState(owner.deviceId).pending)
++        assertEquals(pending, reopened.preKeyPublicationState(owner.deviceId).accepted)
++    }
++
++    @Test fun mismatchedReceiptScopeOwnerAndEphemeralProviderCannotChangeJournal() {
++        val disk = Disk(); val provider = disk.open(owner.deviceId)
++        val pending = prepare(provider)
++        val stable = disk.text
++        assertTrue(runCatching { provider.acceptPreKeyPublication(owner.deviceId, pending.copy(relayScope = "https://different.test")) }.isFailure)
++        assertTrue(runCatching { provider.preparePreKeyPublication(owner.deviceId, 1_800_000_001L, "https://different.test", owner.publicKeyB64, null) }.isFailure)
++        assertTrue(runCatching { provider.preKeyPublicationState("wrong") }.isFailure)
++        assertEquals(stable, disk.text)
++        assertTrue(runCatching { prepare(LibsignalCryptoProvider(LibsignalKeys.generateIdentity())) }.isFailure)
++    }
++
++    @Test fun corruptedPublicIntentCannotOutliveItsPrivateKeyOrSignature() {
++        for (field in listOf("oneTimePreKeyPublicB64", "signedPreKeyPublicB64", "signedPreKeySignatureB64", "kyberPreKeyPublicB64", "kyberPreKeySignatureB64", "identityKeyB64")) {
++            val disk = Disk(); prepare(disk.open(owner.deviceId))
++            val root = Json.parseToJsonElement(disk.text!!).jsonObject
++            val intent = root.getValue("pendingPreKeyPublication").jsonObject
++            val bundle = intent.getValue("bundle").jsonObject
++            disk.text = JsonObject(root + ("pendingPreKeyPublication" to JsonObject(intent +
++                ("bundle" to JsonObject(bundle + (field to JsonPrimitive("AQ=="))))))).toString()
++            val corrupted = disk.text
++            assertTrue(field, runCatching { disk.open(owner.deviceId).preKeyPublicationState(owner.deviceId) }.isFailure)
++            assertEquals(corrupted, disk.text)
++        }
++    }
++
++    @Test fun exhaustedCountersAndClockRollbackNeverPartiallyStage() {
++        for (ids in listOf(Triple(Int.MAX_VALUE, 1, 1), Triple(1, Int.MAX_VALUE, 1), Triple(1, 1, Int.MAX_VALUE))) {
++            val disk = Disk(); val provider = disk.open(owner.deviceId)
++            provider.publishableBundle(owner.deviceId, ids.first, ids.second, ids.third)
++            val stable = disk.text
++            assertTrue(runCatching { prepare(provider) }.isFailure)
++            assertEquals(stable, disk.text)
++        }
++        val policy = PreKeyReplenishmentPolicy()
++        assertTrue(policy.evaluate(PreKeyReplenishmentState(true, 1_800_000_000L, 1), 1_700_000_000L).clockAnomaly)
++    }
++}
+diff --git a/android-wife-assistant/app/src/test/java/com/wifeassistant/PreKeyPublicationTransportTest.kt b/android-wife-assistant/app/src/test/java/com/wifeassistant/PreKeyPublicationTransportTest.kt
+new file mode 100644
+index 0000000..3c2292a
+--- /dev/null
++++ b/android-wife-assistant/app/src/test/java/com/wifeassistant/PreKeyPublicationTransportTest.kt
+@@ -0,0 +1,120 @@
++package com.wifeassistant
++
++import com.wifeassistant.data.crypto.DeviceIdentityCodec
++import com.wifeassistant.data.pairing.*
++import kotlinx.coroutines.runBlocking
++import kotlinx.serialization.json.*
++import okhttp3.mockwebserver.*
++import org.junit.After
++import org.junit.Assert.*
++import org.junit.Before
++import org.junit.Test
++import java.net.InetAddress
++import java.util.Base64
++import java.util.concurrent.TimeUnit
++
++class PreKeyPublicationTransportTest {
++    private lateinit var server: MockWebServer
++    private val identity = DeviceIdentityCodec.generate()
++    private val now = 1_800_000_000L
++    private fun client() = DirectRelayClient(server.url("/").newBuilder().host("127.0.0.1").build().toString())
++    @Before fun setUp() { server = MockWebServer(); server.start(InetAddress.getByName("127.0.0.1"), 0) }
++    @After fun tearDown() { server.shutdown() }
++
++    private fun respond(change: (MutableMap<String, JsonElement>) -> Unit = {}) {
++        server.dispatcher = object : Dispatcher() {
++            override fun dispatch(request: RecordedRequest): MockResponse {
++                val body = Json.parseToJsonElement(request.body.clone().readUtf8()).jsonObject
++                val fields = mutableMapOf<String, JsonElement>(
++                    "ok" to JsonPrimitive(true), "deviceId" to JsonPrimitive(identity.deviceId),
++                    "requestNonce" to body.getValue("requestNonce"), "serverTimeEpochSec" to JsonPrimitive(now),
++                    "bundleDigest" to JsonPrimitive("a".repeat(64)), "oneTimePreKeyId" to JsonPrimitive(1),
++                    "oneTimePreKeyAvailable" to JsonPrimitive(true), "publishedAtEpochSec" to JsonPrimitive(now - 1))
++                change(fields)
++                return MockResponse().setBody(JsonObject(fields).toString())
++            }
++        }
++    }
++
++    @Test fun signedStatusBindsOwnDeviceTimestampAndFreshNonceWithoutPrivateMaterial() = runBlocking {
++        respond()
++        assertTrue(client().preKeyPublicationStatus(identity, now).getOrThrow().oneTimePreKeyAvailable)
++        val first = server.takeRequest(1, TimeUnit.SECONDS)!!
++        assertEquals("POST", first.method); assertEquals("/api/prekeys-status", first.path)
++        val body = first.body.readUtf8()
++        val payload = Json.parseToJsonElement(body).jsonObject
++        val nonce = payload.getValue("requestNonce").jsonPrimitive.content
++        assertTrue(Regex("^[0-9a-f]{32}$").matches(nonce))
++        val proof = "prekeys-status:${identity.deviceId}:$now:$nonce"
++        assertEquals(proof, DirectRelayProofs.preKeyPublicationStatus(identity.deviceId, now, nonce))
++        assertTrue(DeviceIdentityCodec.verify(identity.publicKeyB64, proof.toByteArray(),
++            Base64.getDecoder().decode(payload.getValue("signatureB64").jsonPrimitive.content)))
++        assertFalse(body.contains(identity.privateKeyB64))
++        client().preKeyPublicationStatus(identity, now).getOrThrow()
++        val again = Json.parseToJsonElement(server.takeRequest().body.readUtf8()).jsonObject
++        assertNotEquals(nonce, again.getValue("requestNonce").jsonPrimitive.content)
++    }
++
++    @Test fun emptyAndConsumedStatusesAreNonConsumingExplicitObservations() = runBlocking {
++        respond {
++            it["bundleDigest"] = JsonNull; it["oneTimePreKeyId"] = JsonNull
++            it["publishedAtEpochSec"] = JsonNull; it["oneTimePreKeyAvailable"] = JsonPrimitive(false)
++        }
++        val empty = client().preKeyPublicationStatus(identity, now).getOrThrow()
++        assertNull(empty.bundleDigest); assertFalse(empty.oneTimePreKeyAvailable)
++        respond { it["oneTimePreKeyAvailable"] = JsonPrimitive(false) }
++        val consumed = client().preKeyPublicationStatus(identity, now).getOrThrow()
++        assertEquals("a".repeat(64), consumed.bundleDigest); assertFalse(consumed.oneTimePreKeyAvailable)
++    }
++
++    @Test fun rejectsWrongDeviceNonceMalformedHashAndInconsistentStatus() = runBlocking {
++        val mutations: List<(MutableMap<String, JsonElement>) -> Unit> = listOf(
++            { it["deviceId"] = JsonPrimitive("other") },
++            { it["requestNonce"] = JsonPrimitive("0".repeat(32)) },
++            { it["bundleDigest"] = JsonPrimitive("bad digest") },
++            { it["bundleDigest"] = JsonNull },
++            { it["oneTimePreKeyId"] = JsonPrimitive(0) },
++            { it["publishedAtEpochSec"] = JsonPrimitive(now + 1) },
++            { it["publishedAtEpochSec"] = JsonNull },
++            { it.remove("bundleDigest") },
++            { it.remove("oneTimePreKeyAvailable") },
++            { it.remove("requestNonce") },
++        )
++        for (mutation in mutations) {
++            respond(mutation)
++            assertTrue(client().preKeyPublicationStatus(identity, now).isFailure)
++        }
++        assertEquals(mutations.size, server.requestCount)
++    }
++
++    @Test fun staleRequestAndInconsistentServerClockDoNotClaimSuccess() = runBlocking {
++        respond { it["serverTimeEpochSec"] = JsonPrimitive(now + 301) }
++        assertTrue(client().preKeyPublicationStatus(identity, now).exceptionOrNull() is PreKeyClockException)
++        server.dispatcher = object : Dispatcher() {
++            override fun dispatch(request: RecordedRequest) = MockResponse().setResponseCode(400)
++                .setBody("""{"ok":false,"reason":"stale timestamp"}""")
++        }
++        // Non-success responses are decoded generically before a success schema
++        // can establish any publication evidence.
++        assertEquals("stale timestamp", (client().preKeyPublicationStatus(identity, now).exceptionOrNull() as RelayRequestException).refusalReason)
++    }
++
++    @Test fun unsafeEndpointsAndInvalidClockFailBeforeNetwork() = runBlocking {
++        for (url in listOf("", "http://relay.example.test", "https://user:pass@relay.example.test",
++            "https://relay.example.test?x=1", "https://relay.example.test#x")) {
++            assertTrue(DirectRelayClient(url).preKeyPublicationStatus(identity, now).isFailure)
++        }
++        for (time in listOf(0L, -1L, Long.MAX_VALUE)) assertTrue(client().preKeyPublicationStatus(identity, time).isFailure)
++        assertEquals(0, server.requestCount)
++        assertEquals("https://relay.example.test/path", DirectRelayClient("https://RELAY.example.test:443/path/").publicationScope())
++    }
++
++    @Test fun redirectAndDisconnectedResponseAreNotSilentlyRetried() = runBlocking {
++        server.enqueue(MockResponse().setResponseCode(307).addHeader("Location", server.url("/wrong"))
++            .setBody("""{"ok":true}"""))
++        assertTrue(client().preKeyPublicationStatus(identity, now).isFailure)
++        server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST))
++        assertTrue(client().preKeyPublicationStatus(identity, now).isFailure)
++        assertEquals(2, server.requestCount)
++    }
++}
+diff --git a/vercel.json b/vercel.json
+index 5d81c6d..897979a 100644
+--- a/vercel.json
++++ b/vercel.json
+@@ -1,6 +1,6 @@
+ {
+   "$schema": "https://openapi.vercel.sh/vercel.json",
+-  "git": { "deploymentEnabled": { "fix/fail-closed-device-identity": false, "fix/WisalReleaseSecurity": false, "feat/durable-prekey-allocation": false } },
++  "git": { "deploymentEnabled": { "fix/fail-closed-device-identity": false, "fix/WisalReleaseSecurity": false, "feat/durable-prekey-allocation": false, "review/WisalPreKeyIntegration": false } },
+   "framework": null,
+   "buildCommand": "",
+   "installCommand": "",
+diff --git a/verification/relay-client/build.gradle.kts b/verification/relay-client/build.gradle.kts
+index 9280285..deac5cc 100644
+--- a/verification/relay-client/build.gradle.kts
++++ b/verification/relay-client/build.gradle.kts
+@@ -8,11 +8,13 @@ sourceSets {
+     main {
+         kotlin.srcDir("../../android-wife-assistant/app/src/main/java")
+         kotlin.include("com/wifeassistant/data/crypto/DeviceIdentity.kt", "com/wifeassistant/data/crypto/SignalPreKeyBundleDto.kt",
+-            "com/wifeassistant/data/pairing/DirectRelayClient.kt", "com/wifeassistant/data/pairing/DirectRelayProofs.kt")
++            "com/wifeassistant/data/pairing/DirectRelayClient.kt", "com/wifeassistant/data/pairing/DirectRelayProofs.kt",
++            "com/wifeassistant/data/pairing/PreKeyPublicationTransport.kt")
+     }
+     test {
+         kotlin.srcDir("../../android-wife-assistant/app/src/test/java")
+-        kotlin.include("com/wifeassistant/DirectRelayClientTest.kt", "com/wifeassistant/DirectRelayProofsTest.kt", "com/wifeassistant/DirectRelayKeyLifecycleTest.kt")
++        kotlin.include("com/wifeassistant/DirectRelayClientTest.kt", "com/wifeassistant/DirectRelayProofsTest.kt", "com/wifeassistant/DirectRelayKeyLifecycleTest.kt",
++            "com/wifeassistant/PreKeyPublicationTransportTest.kt")
+     }
+ }
+ dependencies {
+diff --git a/verification/security/RelayHarness.cjs b/verification/security/RelayHarness.cjs
+index 69fe93e..1af7bfa 100644
+--- a/verification/security/RelayHarness.cjs
++++ b/verification/security/RelayHarness.cjs
+@@ -6,9 +6,11 @@ process.env.VERCEL_ENV = 'development';
+ const http = require('node:http');
+ const path = require('node:path');
+ const relay = path.resolve(__dirname, '../../wisal-direct-relay');
+-const handlers = Object.fromEntries(['devices', 'prekeys', 'prekeys-claim', 'envelopes', 'inbox', 'ack', 'revoke']
++const handlers = Object.fromEntries(['devices', 'prekeys', 'prekeys-status', 'prekeys-claim', 'envelopes', 'inbox', 'ack', 'revoke']
+   .map(name => ['/api/' + name, require(path.join(relay, 'api', name + '.js'))]));
+ let dropAck = process.env.WISAL_TEST_DROP_ACK_ONCE === '1';
++let dropPublication = process.env.WISAL_TEST_DROP_PUBLICATION_ONCE === '1';
++let refusePublication = process.env.WISAL_TEST_REFUSE_PUBLICATION_ONCE === '1';
+ const server = http.createServer(async (req, res) => {
+   const url = new URL(req.url, 'http://127.0.0.1');
+   const handler = handlers[url.pathname];
+@@ -24,8 +26,14 @@ const server = http.createServer(async (req, res) => {
+     if (dropAck && url.pathname === '/api/ack' && value.ok === true) {
+       dropAck = false; req.socket.destroy(); return;
+     }
++    if (dropPublication && url.pathname === '/api/prekeys' && value.ok === true) {
++      dropPublication = false; req.socket.destroy(); return;
++    }
+     res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(value));
+   };
++  if (refusePublication && url.pathname === '/api/prekeys') {
++    refusePublication = false; res.status(503).json({ ok: false, reason: 'synthetic unavailable' }); return;
++  }
+   try { await handler(req, res); } catch { res.status(500).json({ ok: false }); }
+ });
+ server.listen(0, '127.0.0.1', () => console.log('READY ' + server.address().port));
+diff --git a/verification/security/build.gradle.kts b/verification/security/build.gradle.kts
+index f08e10c..68c7acd 100644
+--- a/verification/security/build.gradle.kts
++++ b/verification/security/build.gradle.kts
+@@ -16,11 +16,14 @@ sourceSets {
+             "com/wifeassistant/data/crypto/SignalPreKeyBundleDto.kt",
+             "com/wifeassistant/data/crypto/SignalStatePersistence.kt",
+             "com/wifeassistant/data/crypto/PreKeyReplenishmentPolicy.kt",
++            "com/wifeassistant/data/crypto/PreKeyPublication.kt",
+             "com/wifeassistant/data/crypto/SignalMessageQueue.kt",
+             "com/wifeassistant/data/crypto/SignalWireCodec.kt",
+             "com/wifeassistant/data/crypto/SignalPeerBinding.kt",
+             "com/wifeassistant/data/pairing/DirectRelayClient.kt",
+             "com/wifeassistant/data/pairing/DirectRelayProofs.kt",
++            "com/wifeassistant/data/pairing/PreKeyPublicationTransport.kt",
++            "com/wifeassistant/data/pairing/DirectPreKeyMaintenance.kt",
+             "com/wifeassistant/data/pairing/DirectSignalDelivery.kt")
+     }
+     test {
+@@ -34,6 +37,10 @@ sourceSets {
+             "com/wifeassistant/SignalPersistenceTest.kt",
+             "com/wifeassistant/SignalPreKeyAllocationTest.kt",
+             "com/wifeassistant/PreKeyReplenishmentPolicyTest.kt",
++            "com/wifeassistant/PreKeyPublicationPersistenceTest.kt",
++            "com/wifeassistant/DirectPreKeyMaintenanceTest.kt",
++            "com/wifeassistant/PreKeyPublicationTransportTest.kt",
++            "com/wifeassistant/PreKeyMaintenanceHttpTest.kt",
+             "com/wifeassistant/SignalMessageQueueTest.kt",
+             "com/wifeassistant/DirectRelayClientTest.kt",
+             "com/wifeassistant/DirectRelayProofsTest.kt",
+diff --git a/verification/security/src/test/kotlin/com/wifeassistant/PreKeyMaintenanceHttpTest.kt b/verification/security/src/test/kotlin/com/wifeassistant/PreKeyMaintenanceHttpTest.kt
+new file mode 100644
+index 0000000..6c10035
+--- /dev/null
++++ b/verification/security/src/test/kotlin/com/wifeassistant/PreKeyMaintenanceHttpTest.kt
+@@ -0,0 +1,173 @@
++package com.wifeassistant
++
++import com.wifeassistant.data.crypto.*
++import com.wifeassistant.data.pairing.*
++import kotlinx.coroutines.runBlocking
++import kotlinx.serialization.json.Json
++import org.junit.Assert.*
++import org.junit.Test
++import java.nio.file.Files
++import java.nio.file.Path
++import java.util.concurrent.TimeUnit
++
++/** Real libsignal native crypto, actual Android transport and actual Node API
++ * handlers over loopback, with synthetic identities. No production service.
++ */
++class PreKeyMaintenanceHttpTest {
++    private class RelayFixture(flag: String? = null) : AutoCloseable {
++        private val root = System.getProperty("wisal.repository") ?: generateSequence(Path.of("").toAbsolutePath()) { it.parent }
++            .first { Files.exists(it.resolve("verification/security/RelayHarness.cjs")) }.toString()
++        private val builder = ProcessBuilder("node", Path.of(root, "verification/security/RelayHarness.cjs").toString()).redirectErrorStream(true)
++        private val child: Process
++        val client: DirectRelayClient
++        init {
++            if (flag != null) builder.environment()[flag] = "1"
++            child = builder.start()
++            val ready = child.inputStream.bufferedReader().readLine()
++            check(ready?.startsWith("READY ") == true)
++            client = DirectRelayClient("http://127.0.0.1:" + ready.substringAfter("READY "))
++        }
++        override fun close() { child.destroyForcibly(); child.waitFor(5, TimeUnit.SECONDS) }
++    }
++    private class Disk(val owner: LocalIdentity) {
++        var saved: String? = null
++        var failAcceptance = false
++        fun open() = LibsignalCryptoProvider(SignalStatePersistence({ saved }, {
++            if (failAcceptance && it.contains("\"pendingPreKeyPublication\":null") &&
++                !it.contains("\"acceptedPreKeyPublication\":null")) error("synthetic commit failure")
++            saved = it
++        }, owner.deviceId))
++    }
++    private fun now() = System.currentTimeMillis() / 1000
++
++    @Test(timeout = 30_000) fun remoteClaimTriggersFreshIdsBeforeRecipientDecryptsAndOldCiphertextSurvives() = runBlocking {
++        RelayFixture().use { fixture ->
++            val relay = fixture.client
++            val owner = DeviceIdentityCodec.generate(); val peer = DeviceIdentityCodec.generate()
++            relay.registerDevice(owner).getOrThrow(); relay.registerDevice(peer).getOrThrow()
++            val disk = Disk(owner); val bob = disk.open()
++            val first = DirectPreKeyMaintenance(bob, relay).runOnce(owner).getOrThrow()
++            assertEquals(PreKeyMaintenanceAction.PUBLISHED, first.action)
++            assertTrue(first.oneTimePreKeyAvailable)
++            val oldBundle = relay.claimPreKeys(peer, owner.deviceId, now()).getOrThrow()
++            val alice = LibsignalCryptoProvider(LibsignalKeys.generateIdentity())
++            val aliceBundle = alice.publishableBundle(peer.deviceId)
++            bob.trustPeer(peer.public, aliceBundle, SignalPeerBinding.sign(peer, aliceBundle))
++            alice.trustPeer(owner.public, oldBundle, SignalPeerBinding.sign(owner, oldBundle))
++            alice.establishSession(owner.deviceId, Json.encodeToString(SignalPreKeyBundleDto.serializer(), oldBundle).toByteArray())
++            val delayed = alice.session(owner.deviceId).encrypt("delayed before replenishment".toByteArray())
++            // Reproduces why PR #20's LOCAL key count cannot measure relay stock.
++            assertFalse(bob.replenishmentDecision(owner.deviceId).needsOneTimePreKeyReplenishment)
++            val replacement = DirectPreKeyMaintenance(disk.open(), relay).runOnce(owner).getOrThrow()
++            assertEquals(2, replacement.oneTimePreKeyId)
++            assertEquals("delayed before replenishment", String(disk.open().session(peer.deviceId).decrypt(delayed)))
++            assertEquals(PreKeyMaintenanceAction.CURRENT, DirectPreKeyMaintenance(disk.open(), relay).runOnce(owner).getOrThrow().action)
++            assertTrue(relay.publishPreKeys(owner, oldBundle, now()).isFailure)
++            assertEquals(2, relay.claimPreKeys(peer, owner.deviceId, now()).getOrThrow().oneTimePreKeyId)
++            assertTrue(relay.claimPreKeys(peer, owner.deviceId, now()).isFailure)
++            assertFalse(disk.open().mayClaimE2ee)
++        }
++    }
++
++    @Test(timeout = 30_000) fun lostPublishResponseThenClaimReconcilesWithoutRevivingConsumedKey() = runBlocking {
++        RelayFixture("WISAL_TEST_DROP_PUBLICATION_ONCE").use { fixture ->
++            val relay = fixture.client; val owner = DeviceIdentityCodec.generate(); val peer = DeviceIdentityCodec.generate()
++            relay.registerDevice(owner).getOrThrow(); relay.registerDevice(peer).getOrThrow()
++            val disk = Disk(owner)
++            assertTrue(DirectPreKeyMaintenance(disk.open(), relay).runOnce(owner).isFailure)
++            val pending = disk.open().preKeyPublicationState(owner.deviceId).pending!!
++            assertNull(disk.open().preKeyPublicationState(owner.deviceId).accepted)
++            relay.claimPreKeys(peer, owner.deviceId, now()).getOrThrow()
++            val recovered = DirectPreKeyMaintenance(disk.open(), relay).runOnce(owner).getOrThrow()
++            assertEquals(PreKeyMaintenanceAction.RECONCILED, recovered.action)
++            assertEquals(pending.bundle.oneTimePreKeyId, recovered.oneTimePreKeyId)
++            assertFalse(recovered.oneTimePreKeyAvailable)
++            assertTrue(relay.claimPreKeys(peer, owner.deviceId, now()).isFailure)
++            assertEquals(2, DirectPreKeyMaintenance(disk.open(), relay).runOnce(owner).getOrThrow().oneTimePreKeyId)
++        }
++    }
++
++    @Test(timeout = 30_000) fun unavailablePublicationRetriesExactDurableBundleAndFreshTimestamp() = runBlocking {
++        RelayFixture("WISAL_TEST_REFUSE_PUBLICATION_ONCE").use { fixture ->
++            val relay = fixture.client; val owner = DeviceIdentityCodec.generate()
++            relay.registerDevice(owner).getOrThrow(); val disk = Disk(owner)
++            assertTrue(DirectPreKeyMaintenance(disk.open(), relay).runOnce(owner).isFailure)
++            val pending = disk.open().preKeyPublicationState(owner.deviceId).pending!!
++            assertNull(relay.preKeyPublicationStatus(owner, now()).getOrThrow().bundleDigest)
++            assertEquals(1, DirectPreKeyMaintenance(disk.open(), relay).runOnce(owner).getOrThrow().oneTimePreKeyId)
++            assertEquals(pending, disk.open().preKeyPublicationState(owner.deviceId).accepted)
++            assertEquals(pending.bundle.publicationDigest(), relay.preKeyPublicationStatus(owner, now()).getOrThrow().bundleDigest)
++        }
++    }
++
++    @Test(timeout = 30_000) fun failedLocalAcceptanceCommitRequiresReopenAndStatusReconciliation() = runBlocking {
++        RelayFixture().use { fixture ->
++            val relay = fixture.client; val owner = DeviceIdentityCodec.generate()
++            relay.registerDevice(owner).getOrThrow(); val disk = Disk(owner)
++            val provider = disk.open(); disk.failAcceptance = true
++            assertTrue(DirectPreKeyMaintenance(provider, relay).runOnce(owner).isFailure)
++            disk.failAcceptance = false
++            assertTrue(DirectPreKeyMaintenance(provider, relay).runOnce(owner).isFailure)
++            val pending = disk.open().preKeyPublicationState(owner.deviceId).pending!!
++            assertEquals(pending.bundle.publicationDigest(), relay.preKeyPublicationStatus(owner, now()).getOrThrow().bundleDigest)
++            val result = DirectPreKeyMaintenance(disk.open(), relay).runOnce(owner).getOrThrow()
++            assertEquals(PreKeyMaintenanceAction.RECONCILED, result.action)
++            assertEquals(1, result.oneTimePreKeyId)
++        }
++    }
++
++    @Test(timeout = 30_000) fun relayClockRefusalOccursBeforeNewPreKeysAndCorrectedClockCanRetry() = runBlocking {
++        RelayFixture().use { fixture ->
++            val relay = fixture.client; val owner = DeviceIdentityCodec.generate()
++            relay.registerDevice(owner).getOrThrow(); val disk = Disk(owner)
++            val skewed = DirectPreKeyMaintenance(disk.open(), relay, clock = { now() + 3_600 }).runOnce(owner)
++            assertTrue(skewed.exceptionOrNull() is PreKeyClockException)
++            assertNull(disk.open().preKeyPublicationState(owner.deviceId).pending)
++            assertEquals(0, disk.open().preKeyPublicationState(owner.deviceId).lastSignedKeyRotationEpochSec)
++            assertEquals(1, DirectPreKeyMaintenance(disk.open(), relay).runOnce(owner).getOrThrow().oneTimePreKeyId)
++        }
++    }
++
++    @Test(timeout = 30_000) fun durablePendingSurvivesSeparateJvmExitBeforePublishing() {
++        val directory = Files.createTempDirectory("WisalPreKeyRestart")
++        try {
++            for (phase in listOf("prepare", "resume")) {
++                val child = ProcessBuilder(System.getProperty("java.home") + "/bin/java", "-cp",
++                    System.getProperty("wisal.childClasspath") ?: System.getProperty("java.class.path"),
++                    "com.wifeassistant.PreKeyPublicationRestartHarness", phase, directory.toString())
++                    .redirectErrorStream(true).start()
++                val output = child.inputStream.bufferedReader().readText()
++                assertEquals(output, 0, child.waitFor())
++                assertTrue(output, output.contains("PASS $phase"))
++            }
++        } finally {
++            Files.walk(directory).use { stream -> stream.sorted(Comparator.reverseOrder()).forEach { Files.delete(it) } }
++        }
++    }
++}
++
++/** Plaintext FILE fixtures hold synthetic keys only. This does not test Android
++ * Keystore, fsync semantics, backup restoration or hardware rollback resistance.
++ */
++object PreKeyPublicationRestartHarness {
++    @JvmStatic fun main(args: Array<String>) {
++        val directory = Path.of(args[1]); val snapshot = directory.resolve("SyntheticSnapshot.json")
++        val provider = LibsignalCryptoProvider(SignalStatePersistence(
++            { snapshot.takeIf { Files.exists(it) }?.let(Files::readString) },
++            { Files.writeString(snapshot, it) }, "synthetic-owner"))
++        val scope = "https://relay.example.test"
++        if (args[0] == "prepare") {
++            val pending = provider.preparePreKeyPublication("synthetic-owner", 1_800_000_000L, scope, "synthetic-public", null)
++            Files.writeString(directory.resolve("ExpectedDigest.txt"), pending.bundle.publicationDigest())
++        } else {
++            val pending = provider.preKeyPublicationState("synthetic-owner").pending!!
++            check(pending.bundle.publicationDigest() == Files.readString(directory.resolve("ExpectedDigest.txt")))
++            check(provider.preparePreKeyPublication("synthetic-owner", 1_800_000_001L, scope, "synthetic-public", null) == pending)
++            provider.acceptPreKeyPublication("synthetic-owner", pending)
++            val next = provider.preparePreKeyPublication("synthetic-owner", 1_800_000_002L, scope, "synthetic-public", pending)
++            check(next.bundle.oneTimePreKeyId == 2 && next.bundle.signedPreKeyId == 2 && next.bundle.kyberPreKeyId == 2)
++            check(next.bundle.identityKeyB64 == pending.bundle.identityKeyB64)
++        }
++        println("PASS ${args[0]}: synthetic pending publication survived process lifecycle")
++    }
++}
+diff --git a/wisal-cloud-api/vercel.json b/wisal-cloud-api/vercel.json
+index aa2ea76..bec2cb5 100644
+--- a/wisal-cloud-api/vercel.json
++++ b/wisal-cloud-api/vercel.json
+@@ -1,6 +1,6 @@
+ {
+   "$schema": "https://openapi.vercel.sh/vercel.json",
+-  "git": { "deploymentEnabled": { "fix/fail-closed-device-identity": false, "fix/WisalReleaseSecurity": false, "feat/durable-prekey-allocation": false } },
++  "git": { "deploymentEnabled": { "fix/fail-closed-device-identity": false, "fix/WisalReleaseSecurity": false, "feat/durable-prekey-allocation": false, "review/WisalPreKeyIntegration": false } },
+   "functions": {
+     "api/*.js": { "maxDuration": 15 }
+   }
+diff --git a/wisal-direct-relay/README.md b/wisal-direct-relay/README.md
+index f83be29..0a6b51f 100644
+--- a/wisal-direct-relay/README.md
++++ b/wisal-direct-relay/README.md
+@@ -110,3 +110,45 @@ Tests: `npm test`. The PostgreSQL test runs when `RELAY_TEST_DATABASE_URL`
+ points at an empty test database (it drops and recreates the `relay_*`
+ tables). CI starts a PostgreSQL 16 service and sets `REQUIRE_PG=1`, so the
+ test fails rather than skips there.
++
++## Pre-key publication receipt status
++
++The isolated replenishment integration adds `POST /api/prekeys-status`. The
++owner sends `deviceId`, a positive integer `timestamp`, a fresh 16-byte random
++nonce encoded as 32 lowercase hexadecimal characters in `requestNonce`, and
++`signatureB64` over this UTF-8 proof:
++
++```
++prekeys-status:{deviceId}:{timestamp}:{requestNonce}
++```
++
++The relay verifies the registered owner's P-256 signature and the existing
++300-second clock tolerance. It returns the matching owner and nonce, its
++current time, the current bundle's SHA256 digest, one-time key ID, availability,
++and publication time. When no bundle exists, digest, ID and publication time
++are null and availability is false. No public key bytes or private state are
++returned. A status request never consumes or reserves a key; another device
++can claim it immediately after a successful read.
++
++`bundleDigest` is SHA256 of the UTF-8 colon-joined sequence
++`["wisal-prekey-bundle-v1", ...BUNDLE_FIELDS]`, using field values in the
++existing canonical order. Publication stores this receipt alongside the
++public bundle, and a claim retains it when erasing the one-time public key.
++This lets a client reconcile a lost publication response after a peer has
++already claimed the key. It does not allow replaying the consumed key.
++
++PostgreSQL uses an additive nullable `bundle_digest TEXT` column. Older
++unclaimed rows can yield a digest from their intact public fields without
++being rewritten. Older claimed rows lacking the digest return
++`publication receipt unavailable`; the client must not treat these as
++verified acceptance. Observing an unclaimed legacy row does not backfill its
++digest, so it can become unverifiable if claimed afterward. Unknown remote
++state must not be adopted as a locally journaled acceptance. Deployment and
++schema activation need a separate review.
++
++Responses use `Cache-Control: no-store`. A client must authenticate the relay
++with HTTPS, validate the nonce, owner, key ID and complete digest, and commit
++its local acceptance state before reporting completion. The status endpoint
++does not provide an independent server signature or offline attestation.
++All additions remain review changes; local tests do not establish E2EE or
++physical-device acceptance.
+diff --git a/wisal-direct-relay/api/prekeys-status.js b/wisal-direct-relay/api/prekeys-status.js
+new file mode 100644
+index 0000000..b226941
+--- /dev/null
++++ b/wisal-direct-relay/api/prekeys-status.js
+@@ -0,0 +1,35 @@
++// POST /api/prekeys-status: only the owner may observe their current publication.
++// The request is signed and nonce-bound. This endpoint never claims or creates keys.
++const store = require('../lib/sharedStore');
++const { preKeyPublicationStatus } = require('../lib/prekeysStatus');
++const { makeRateLimiter } = require('../lib/limiter');
++const { safeLog } = require('../lib/log');
++const { storageErrorReason } = require('../lib/storageError');
++
++const allow = makeRateLimiter({ limit: 60, windowMs: 60000 });
++
++module.exports = async function handler(req, res) {
++  if (typeof res.setHeader === 'function') res.setHeader('Cache-Control', 'no-store');
++  if (req.method !== 'POST') {
++    res.status(405).json({ ok: false, error: 'method not allowed' });
++    return;
++  }
++  if (!allow()) {
++    res.status(429).json({ ok: false, error: 'rate limit exceeded' });
++    return;
++  }
++  let body = req.body;
++  if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = {}; } }
++  body = body || {};
++
++  try {
++    const result = await preKeyPublicationStatus(store, {
++      deviceId: body.deviceId, timestamp: body.timestamp,
++      requestNonce: body.requestNonce, signatureB64: body.signatureB64,
++    }, Math.floor(Date.now() / 1000));
++    res.status(result.ok ? 200 : 400).json(result);
++  } catch (err) {
++    safeLog('storage_error', { reason: storageErrorReason(err) });
++    res.status(503).json({ ok: false, error: 'relay storage unavailable' });
++  }
++};
+diff --git a/wisal-direct-relay/lib/pgStore.js b/wisal-direct-relay/lib/pgStore.js
+index 55d8750..125f72f 100644
+--- a/wisal-direct-relay/lib/pgStore.js
++++ b/wisal-direct-relay/lib/pgStore.js
+@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS relay_prekey_bundles (
+   one_time_pre_key_claimed     BOOLEAN NOT NULL DEFAULT FALSE,
+   published_at_epoch_sec       BIGINT NOT NULL
+ );
++ALTER TABLE relay_prekey_bundles ADD COLUMN IF NOT EXISTS bundle_digest TEXT;
+ `;
+ 
+ const BUNDLE_COLUMNS = [
+@@ -60,6 +61,7 @@ const BUNDLE_COLUMNS = [
+   ['oneTimePreKeyPublicB64', 'one_time_pre_key_public_b64'],
+   ['oneTimePreKeyClaimed', 'one_time_pre_key_claimed'],
+   ['publishedAtEpochSec', 'published_at_epoch_sec'],
++  ['bundleDigest', 'bundle_digest'],
+ ];
+ 
+ function rowToDevice(r) {
+diff --git a/wisal-direct-relay/lib/prekeys.js b/wisal-direct-relay/lib/prekeys.js
+index 4775738..2165596 100644
+--- a/wisal-direct-relay/lib/prekeys.js
++++ b/wisal-direct-relay/lib/prekeys.js
+@@ -15,6 +15,7 @@
+ 
+ const { verifySignature } = require('./crypto');
+ const { safeLog } = require('./log');
++const { createHash } = require('node:crypto');
+ 
+ const PREKEY_CLOCK_SKEW_SECONDS = 300;
+ const MAX_B64_LENGTH = 4096; // مفتاح Kyber العام ~1568 بايت ≈ 2092 حرف base64
+@@ -42,6 +43,18 @@ function claimProof(requesterDeviceId, targetDeviceId, timestamp) {
+   return `claim-prekeys:${requesterDeviceId}:${targetDeviceId}:${timestamp}`;
+ }
+ 
++// Public-content receipt only. Unlike the publication proof, this is stable
++// across retries with different timestamps. Preserve it after an OPK is claimed.
++function bundleDigest(bundle) {
++  return createHash('sha256')
++    .update(['wisal-prekey-bundle-v1', ...BUNDLE_FIELDS.map((f) => bundle[f])].join(':'), 'utf8')
++    .digest('hex');
++}
++
++function validTimestamp(timestamp) {
++  return Number.isSafeInteger(timestamp) && timestamp > 0;
++}
++
+ function validateBundle(bundle) {
+   if (!bundle || typeof bundle !== 'object') return 'missing bundle';
+   for (const field of BUNDLE_FIELDS) {
+@@ -64,6 +77,7 @@ function sameBundle(a, b) {
+ // ---- نشر حزمة ----
+ async function publishPreKeyBundle(store, { bundle, timestamp, signatureB64 }, nowEpochSec) {
+   if (!bundle || !timestamp || !signatureB64) return refused('missing fields');
++  if (!validTimestamp(timestamp) || !validTimestamp(nowEpochSec)) return refused('invalid timestamp');
+   const invalid = validateBundle(bundle);
+   if (invalid) return refused(invalid);
+ 
+@@ -84,7 +98,7 @@ async function publishPreKeyBundle(store, { bundle, timestamp, signatureB64 }, n
+   for (const f of BUNDLE_FIELDS) stored[f] = bundle[f];
+   // شرط "المعرّف لازم يزيد" بيتطبّق جوه التخزين ذرّيًا (نشرين متزامنين).
+   const applied = await store.putPreKeyBundle(
+-    bundle.deviceId, { ...stored, publishedAtEpochSec: nowEpochSec, oneTimePreKeyClaimed: false },
++    bundle.deviceId, { ...stored, bundleDigest: bundleDigest(bundle), publishedAtEpochSec: nowEpochSec, oneTimePreKeyClaimed: false },
+   );
+   if (!applied) return refused('one-time pre-key id must be higher than any previously published id');
+   safeLog('prekeys_published', { deviceId: bundle.deviceId, atEpochSec: nowEpochSec });
+@@ -94,6 +108,7 @@ async function publishPreKeyBundle(store, { bundle, timestamp, signatureB64 }, n
+ // ---- طلب حزمة جهاز تاني (بيستهلك المفتاح الفردي) ----
+ async function claimPreKeyBundle(store, { requesterDeviceId, targetDeviceId, timestamp, signatureB64 }, nowEpochSec) {
+   if (!requesterDeviceId || !targetDeviceId || !timestamp || !signatureB64) return refused('missing fields');
++  if (!validTimestamp(timestamp) || !validTimestamp(nowEpochSec)) return refused('invalid timestamp');
+   if (requesterDeviceId === targetDeviceId) return refused('cannot claim your own bundle');
+ 
+   const requester = await store.getDevice(requesterDeviceId);
+@@ -119,5 +134,5 @@ async function claimPreKeyBundle(store, { requesterDeviceId, targetDeviceId, tim
+ 
+ module.exports = {
+   publishPreKeyBundle, claimPreKeyBundle, publishProof, claimProof,
+-  BUNDLE_FIELDS, PREKEY_CLOCK_SKEW_SECONDS,
++  bundleDigest, validTimestamp, validateBundle, BUNDLE_FIELDS, PREKEY_CLOCK_SKEW_SECONDS,
+ };
+diff --git a/wisal-direct-relay/lib/prekeysStatus.js b/wisal-direct-relay/lib/prekeysStatus.js
+new file mode 100644
+index 0000000..089cea8
+--- /dev/null
++++ b/wisal-direct-relay/lib/prekeysStatus.js
+@@ -0,0 +1,65 @@
++// Authenticated, non-consuming status for the publishing device. This is an
++// observation, not a reservation: another registered device can claim the OPK
++// after this read. HTTPS authenticates the relay; no new crypto protocol is used.
++const { verifySignature } = require('./crypto');
++const { bundleDigest, validTimestamp, validateBundle, PREKEY_CLOCK_SKEW_SECONDS } = require('./prekeys');
++
++const NONCE_PATTERN = /^[0-9a-f]{32}$/;
++const DIGEST_PATTERN = /^[0-9a-f]{64}$/;
++const refused = (reason) => ({ ok: false, reason });
++
++function statusProof(deviceId, timestamp, requestNonce) {
++  return `prekeys-status:${deviceId}:${timestamp}:${requestNonce}`;
++}
++
++async function preKeyPublicationStatus(store, { deviceId, timestamp, requestNonce, signatureB64 }, nowEpochSec) {
++  if (typeof deviceId !== 'string' || !deviceId || deviceId.length > 200 || deviceId.includes(':')) {
++    return refused('invalid deviceId');
++  }
++  if (!validTimestamp(timestamp) || !validTimestamp(nowEpochSec)) return refused('invalid timestamp');
++  if (typeof requestNonce !== 'string' || !NONCE_PATTERN.test(requestNonce)) return refused('invalid request nonce');
++  if (typeof signatureB64 !== 'string' || !signatureB64 || signatureB64.length > 1024) return refused('invalid signature');
++
++  const device = await store.getDevice(deviceId);
++  if (!device) return refused('device not registered');
++  if (!verifySignature(device.publicKeyB64, statusProof(deviceId, timestamp, requestNonce), signatureB64)) {
++    return refused('bad signature');
++  }
++  if (device.revokedAtEpochSec) return refused('device revoked');
++  if (Math.abs(nowEpochSec - timestamp) > PREKEY_CLOCK_SKEW_SECONDS) return refused('stale timestamp');
++
++  const current = await store.getPreKeyBundle(deviceId);
++  const base = { ok: true, deviceId, requestNonce, serverTimeEpochSec: nowEpochSec };
++  if (!current) {
++    return { ...base, bundleDigest: null, oneTimePreKeyId: null,
++      oneTimePreKeyAvailable: false, publishedAtEpochSec: null };
++  }
++
++  // Validate surviving public fields before treating a stored receipt as useful.
++  // For a claimed OPK only its erased public bytes are intentionally absent.
++  const publicFields = current.oneTimePreKeyClaimed
++    ? { ...current, oneTimePreKeyPublicB64: 'AQ==' } : current;
++  if (current.deviceId !== deviceId || validateBundle(publicFields)) {
++    return refused('publication receipt unavailable');
++  }
++
++  // Old unclaimed rows still contain all public fields, so the digest can be
++  // derived without a write. A legacy claimed row has lost its OPK and cannot
++  // prove a complete publication; refusing is safer than inventing a receipt.
++  let digest = current.bundleDigest;
++  if (digest == null && !current.oneTimePreKeyClaimed && current.oneTimePreKeyPublicB64) {
++    digest = bundleDigest(current);
++  }
++  if (typeof digest !== 'string' || !DIGEST_PATTERN.test(digest)
++      || !Number.isInteger(current.oneTimePreKeyId) || current.oneTimePreKeyId < 1 || current.oneTimePreKeyId > 0x7fffffff
++      || !validTimestamp(current.publishedAtEpochSec)
++      || typeof current.oneTimePreKeyClaimed !== 'boolean'
++      || (!current.oneTimePreKeyClaimed && (!current.oneTimePreKeyPublicB64 || digest !== bundleDigest(current)))) {
++    return refused('publication receipt unavailable');
++  }
++
++  return { ...base, bundleDigest: digest, oneTimePreKeyId: current.oneTimePreKeyId,
++    oneTimePreKeyAvailable: !current.oneTimePreKeyClaimed, publishedAtEpochSec: current.publishedAtEpochSec };
++}
++
++module.exports = { preKeyPublicationStatus, statusProof };
+diff --git a/wisal-direct-relay/package.json b/wisal-direct-relay/package.json
+index 73b9802..22870fb 100644
+--- a/wisal-direct-relay/package.json
++++ b/wisal-direct-relay/package.json
+@@ -5,8 +5,8 @@
+   "description": "Store-and-forward relay for Wisal Direct (E2EE) — device registry + opaque encrypted envelopes. Not the E2EE protocol itself (see docs/decisions/ADR-002-e2ee-protocol.md).",
+   "type": "commonjs",
+   "scripts": {
+-    "check": "node --check api/devices.js && node --check api/envelopes.js && node --check api/inbox.js && node --check api/ack.js && node --check api/prekeys.js && node --check api/prekeys-claim.js && node --check api/revoke.js && node --check lib/crypto.js && node --check lib/store.js && node --check lib/pgStore.js && node --check lib/relay.js && node --check lib/prekeys.js && node --check lib/revocation.js && node --check lib/log.js && node --check lib/limiter.js && node --check lib/sharedStore.js && node --check lib/selectStore.js && node --check lib/storageError.js && node --check test/relay.test.js && node --check test/plaintext-leak.test.js && node --check test/prekeys.test.js && node --check test/revocation.test.js && node --check test/fail-closed.test.js && node --check test/pg-store.test.js && node --check test/ReleaseSecurityAcceptance.test.js",
+-    "test": "node test/relay.test.js && node test/plaintext-leak.test.js && node test/prekeys.test.js && node test/revocation.test.js && node test/fail-closed.test.js && node test/pg-store.test.js && node --test --test-reporter=tap test/ReleaseSecurityAcceptance.test.js"
++    "check": "node --check api/devices.js && node --check api/envelopes.js && node --check api/inbox.js && node --check api/ack.js && node --check api/prekeys.js && node --check api/prekeys-claim.js && node --check api/revoke.js && node --check lib/crypto.js && node --check lib/store.js && node --check lib/pgStore.js && node --check lib/relay.js && node --check lib/prekeys.js && node --check lib/revocation.js && node --check lib/log.js && node --check lib/limiter.js && node --check lib/sharedStore.js && node --check lib/selectStore.js && node --check lib/storageError.js && node --check test/relay.test.js && node --check test/plaintext-leak.test.js && node --check test/prekeys.test.js && node --check test/revocation.test.js && node --check test/fail-closed.test.js && node --check test/pg-store.test.js && node --check test/ReleaseSecurityAcceptance.test.js && node --check api/prekeys-status.js && node --check lib/prekeysStatus.js && node --check test/PreKeyPublicationStatus.test.js",
++    "test": "node test/relay.test.js && node test/plaintext-leak.test.js && node test/prekeys.test.js && node test/revocation.test.js && node test/fail-closed.test.js && node test/pg-store.test.js && node --test --test-reporter=tap test/ReleaseSecurityAcceptance.test.js && node --test --test-reporter=tap test/PreKeyPublicationStatus.test.js"
+   },
+   "engines": {
+     "node": ">=18"
+diff --git a/wisal-direct-relay/test/PreKeyPublicationStatus.test.js b/wisal-direct-relay/test/PreKeyPublicationStatus.test.js
+new file mode 100644
+index 0000000..258c2be
+--- /dev/null
++++ b/wisal-direct-relay/test/PreKeyPublicationStatus.test.js
+@@ -0,0 +1,202 @@
++// Synthetic identities, real signed requests and actual relay storage logic.
++// These tests do not exercise a deployed service or Android device.
++const { test } = require('node:test');
++const assert = require('node:assert/strict');
++const { generateKeyPairSync, sign: cryptoSign, randomBytes } = require('node:crypto');
++const { createInMemoryStore } = require('../lib/store');
++const { createPgStore, SCHEMA } = require('../lib/pgStore');
++const { registerDevice } = require('../lib/relay');
++const { publishPreKeyBundle, claimPreKeyBundle, publishProof, claimProof, bundleDigest } = require('../lib/prekeys');
++const { preKeyPublicationStatus, statusProof } = require('../lib/prekeysStatus');
++
++const NOW = 1_800_000_000;
++const NONCE = '00112233445566778899aabbccddeeff';
++const sign = (who, proof) => cryptoSign('sha256', Buffer.from(proof, 'utf8'), who.privateKey).toString('base64');
++const makeBundle = (id = 1) => ({ deviceId: 'B', registrationId: 1, identityKeyB64: 'AQ==',
++  signedPreKeyId: 2, signedPreKeyPublicB64: 'Ag==', signedPreKeySignatureB64: 'Aw==',
++  kyberPreKeyId: 3, kyberPreKeyPublicB64: 'BA==', kyberPreKeySignatureB64: 'BQ==',
++  oneTimePreKeyId: id, oneTimePreKeyPublicB64: 'Bg==' });
++
++async function setup() {
++  const store = createInMemoryStore();
++  const identities = {};
++  for (const id of ['A', 'B']) {
++    const who = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
++    identities[id] = who;
++    assert.equal((await registerDevice(store, { deviceId: id,
++      publicKeyB64: who.publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
++      signatureB64: sign(who, `wisal-direct-register:${id}`) }, NOW)).ok, true);
++  }
++  const request = (deviceId = 'B', timestamp = NOW, requestNonce = NONCE, who = identities.B) => ({
++    deviceId, timestamp, requestNonce, signatureB64: sign(who, statusProof(deviceId, timestamp, requestNonce)),
++  });
++  const status = (r = request(), s = store) => preKeyPublicationStatus(s, r, NOW);
++  const publish = (bundle = makeBundle(), timestamp = NOW) => publishPreKeyBundle(store, {
++    bundle, timestamp, signatureB64: sign(identities.B, publishProof(bundle, timestamp)),
++  }, NOW);
++  const claim = (timestamp = NOW) => claimPreKeyBundle(store, {
++    requesterDeviceId: 'A', targetDeviceId: 'B', timestamp,
++    signatureB64: sign(identities.A, claimProof('A', 'B', timestamp)),
++  }, NOW);
++  return { store, identities, request, status, publish, claim };
++}
++
++test('P01 authenticated absent publication is explicit and does not create keys', async () => {
++  const f = await setup();
++  const expected = { ok: true, deviceId: 'B', requestNonce: NONCE, serverTimeEpochSec: NOW,
++    bundleDigest: null, oneTimePreKeyId: null, oneTimePreKeyAvailable: false, publishedAtEpochSec: null };
++  assert.deepEqual(await f.status(), expected);
++  assert.deepEqual(await f.status(), expected);
++  assert.equal(await f.store.getPreKeyBundle('B'), null);
++});
++
++test('P02 status identifies the complete accepted bundle without returning its keys', async () => {
++  const f = await setup(); const b = makeBundle();
++  assert.equal((await f.publish(b)).ok, true);
++  const result = await f.status();
++  assert.deepEqual(result, { ok: true, deviceId: 'B', requestNonce: NONCE, serverTimeEpochSec: NOW,
++    bundleDigest: bundleDigest(b), oneTimePreKeyId: 1, oneTimePreKeyAvailable: true, publishedAtEpochSec: NOW });
++  for (const field of ['identityKeyB64', 'oneTimePreKeyPublicB64', 'signedPreKeyPublicB64', 'privateKeyB64', 'bundle']) {
++    assert.equal(field in result, false);
++  }
++  assert.notEqual(bundleDigest({ ...b, signedPreKeyId: 4 }), result.bundleDigest);
++  assert.notEqual(bundleDigest({ ...b, oneTimePreKeyPublicB64: 'Bw==' }), result.bundleDigest);
++});
++
++test('P03 lost publication response can be reconciled after claim without restoring the key', async () => {
++  const f = await setup(); const b = makeBundle();
++  await f.publish(b); // Client may have lost this response.
++  assert.equal((await f.claim()).ok, true);
++  const status = await f.status();
++  assert.equal(status.ok, true);
++  assert.equal(status.bundleDigest, bundleDigest(b));
++  assert.equal(status.oneTimePreKeyAvailable, false);
++  assert.equal((await f.store.getPreKeyBundle('B')).oneTimePreKeyPublicB64, null);
++  assert.equal((await f.publish(b)).ok, false);
++  assert.equal((await f.claim()).ok, false);
++  assert.equal((await f.status()).bundleDigest, status.bundleDigest);
++});
++
++test('P04 repeated status calls never consume or reinsert a one-time key', async () => {
++  const f = await setup(); await f.publish();
++  const before = JSON.stringify(await f.store.getPreKeyBundle('B'));
++  for (let i = 0; i < 8; i++) assert.equal((await f.status()).oneTimePreKeyAvailable, true);
++  assert.equal(JSON.stringify(await f.store.getPreKeyBundle('B')), before);
++  assert.equal((await f.claim()).ok, true);
++});
++
++test('P05 nonce is covered by the signature and echoed for the matching request', async () => {
++  const f = await setup(); const request = f.request();
++  const another = randomBytes(16).toString('hex');
++  assert.equal((await f.status({ ...request, requestNonce: another })).reason, 'bad signature');
++  assert.equal((await f.status(f.request('B', NOW, another))).requestNonce, another);
++});
++
++test('P06 another registered device cannot read the owner publication', async () => {
++  const f = await setup(); await f.publish();
++  assert.equal((await f.status(f.request('B', NOW, NONCE, f.identities.A))).reason, 'bad signature');
++  // A request for A signed by A observes A, never B's bundle.
++  assert.equal((await f.status(f.request('A', NOW, NONCE, f.identities.A))).bundleDigest, null);
++});
++
++test('P07 revocation refuses status even with a fresh valid owner signature', async () => {
++  const f = await setup(); await f.publish();
++  await f.store.revokeDevice('B', NOW);
++  assert.equal((await f.status()).reason, 'device revoked');
++});
++
++test('P08 unregistered owner cannot inspect a publication', async () => {
++  const f = await setup();
++  assert.equal((await f.status(f.request('unknown'))).reason, 'device not registered');
++});
++
++test('P09 timestamp skew boundaries are enforced in both directions', async () => {
++  const f = await setup();
++  for (const offset of [-300, 0, 300]) assert.equal((await f.status(f.request('B', NOW + offset))).ok, true);
++  for (const offset of [-301, 301]) assert.equal((await f.status(f.request('B', NOW + offset))).reason, 'stale timestamp');
++});
++
++test('P10 noninteger, unsafe and nonnumeric timestamps fail before storage access', async () => {
++  const f = await setup(); let accessed = false;
++  const noReads = { getDevice() { accessed = true; throw new Error('unexpected access'); } };
++  for (const timestamp of [NaN, Infinity, -Infinity, 0, -1, NOW + 0.5, Number.MAX_SAFE_INTEGER + 1, String(NOW), null, {}, []]) {
++    assert.equal((await preKeyPublicationStatus(noReads, { ...f.request(), timestamp }, NOW)).reason, 'invalid timestamp');
++  }
++  assert.equal(accessed, false);
++});
++
++test('P11 malformed nonce, owner and signature are rejected before storage access', async () => {
++  const f = await setup(); let accessed = false;
++  const noReads = { getDevice() { accessed = true; throw new Error('unexpected access'); } };
++  for (const requestNonce of ['', 'ab'.repeat(15), 'ab'.repeat(17), 'AB'.repeat(16), 'x'.repeat(32), {}, null]) {
++    assert.equal((await preKeyPublicationStatus(noReads, { ...f.request(), requestNonce }, NOW)).reason, 'invalid request nonce');
++  }
++  for (const deviceId of ['', 'A:B', 'x'.repeat(201), {}, null]) {
++    assert.equal((await preKeyPublicationStatus(noReads, { ...f.request(), deviceId }, NOW)).reason, 'invalid deviceId');
++  }
++  for (const signatureB64 of ['', {}, 'a'.repeat(1025)]) {
++    assert.equal((await preKeyPublicationStatus(noReads, { ...f.request(), signatureB64 }, NOW)).reason, 'invalid signature');
++  }
++  assert.equal(accessed, false);
++});
++
++test('P12 legacy unclaimed publication derives a digest without mutating storage', async () => {
++  const f = await setup(); const b = makeBundle();
++  await f.store.putPreKeyBundle('B', { ...b, publishedAtEpochSec: NOW, oneTimePreKeyClaimed: false });
++  const before = JSON.stringify(await f.store.getPreKeyBundle('B'));
++  assert.equal((await f.status()).bundleDigest, bundleDigest(b));
++  assert.equal(JSON.stringify(await f.store.getPreKeyBundle('B')), before);
++});
++
++test('P13 legacy claimed publication without digest cannot be certified', async () => {
++  const f = await setup();
++  await f.store.putPreKeyBundle('B', { ...makeBundle(), publishedAtEpochSec: NOW, oneTimePreKeyClaimed: false });
++  await f.claim();
++  assert.equal((await f.status()).reason, 'publication receipt unavailable');
++});
++
++test('P14 malformed or conflicting stored receipts fail closed', async () => {
++  for (const digest of ['not a digest', 'a'.repeat(64)]) {
++    const f = await setup();
++    await f.store.putPreKeyBundle('B', { ...makeBundle(), bundleDigest: digest,
++      publishedAtEpochSec: NOW, oneTimePreKeyClaimed: false });
++    assert.equal((await f.status()).reason, 'publication receipt unavailable');
++  }
++  const f = await setup();
++  const incomplete = { ...makeBundle(), publishedAtEpochSec: NOW, oneTimePreKeyClaimed: false };
++  delete incomplete.signedPreKeyPublicB64;
++  await f.store.putPreKeyBundle('B', incomplete);
++  assert.equal((await f.status()).reason, 'publication receipt unavailable');
++});
++
++test('P15 storage read failures cannot be mistaken for absent publication', async () => {
++  const f = await setup();
++  const broken = { ...f.store, getPreKeyBundle() { throw new Error('synthetic unavailable'); } };
++  await assert.rejects(f.status(f.request(), broken), /synthetic unavailable/);
++});
++
++test('P16 publication and claim refuse invalid numeric timestamps without changing stock', async () => {
++  const f = await setup(); await f.publish();
++  for (const timestamp of [Infinity, -1, NOW + 0.5, Number.MAX_SAFE_INTEGER + 1]) {
++    assert.equal((await f.publish(makeBundle(2), timestamp)).reason, 'invalid timestamp');
++    assert.equal((await f.claim(timestamp)).reason, 'invalid timestamp');
++  }
++  assert.equal((await f.status()).oneTimePreKeyId, 1);
++  assert.equal((await f.status()).oneTimePreKeyAvailable, true);
++});
++
++test('P17 PostgreSQL adapter maps stored digest and additive schema without changing consumed-key semantics', async () => {
++  // Adapter contract only; the separate pg-store suite requires real PostgreSQL.
++  assert.match(SCHEMA, /ALTER TABLE relay_prekey_bundles ADD COLUMN IF NOT EXISTS bundle_digest TEXT/);
++  const row = { device_id: 'B', registration_id: 1, identity_key_b64: 'AQ==',
++    signed_pre_key_id: 2, signed_pre_key_public_b64: 'Ag==', signed_pre_key_signature_b64: 'Aw==',
++    kyber_pre_key_id: 3, kyber_pre_key_public_b64: 'BA==', kyber_pre_key_signature_b64: 'BQ==',
++    one_time_pre_key_id: 1, one_time_pre_key_public_b64: null, one_time_pre_key_claimed: true,
++    published_at_epoch_sec: String(NOW), bundle_digest: bundleDigest(makeBundle()) };
++  const pool = { async query(sql) { return { rows: sql.includes('SELECT * FROM relay_prekey_bundles') ? [row] : [] }; } };
++  const result = await createPgStore(pool).getPreKeyBundle('B');
++  assert.equal(result.bundleDigest, row.bundle_digest);
++  assert.equal(result.oneTimePreKeyPublicB64, null);
++  assert.equal(result.oneTimePreKeyClaimed, true);
++  assert.equal(result.publishedAtEpochSec, NOW);
++});
+diff --git a/wisal-direct-relay/test/fail-closed.test.js b/wisal-direct-relay/test/fail-closed.test.js
+index 36505d0..7d86f9a 100644
+--- a/wisal-direct-relay/test/fail-closed.test.js
++++ b/wisal-direct-relay/test/fail-closed.test.js
+@@ -36,6 +36,7 @@ function fakeRes() {
+     ['inbox', 'GET', { query: { deviceId: 'a', timestamp: '1', signatureB64: 'c' } }],
+     ['ack', 'POST', { body: { deviceId: 'a', envelopeId: 'b', signatureB64: 'c' } }],
+     ['prekeys-claim', 'POST', { body: { requesterDeviceId: 'a', targetDeviceId: 'b', timestamp: 1, signatureB64: 'c' } }],
++    ['prekeys-status', 'POST', { body: { deviceId: 'a', timestamp: 1, requestNonce: '00112233445566778899aabbccddeeff', signatureB64: 'c' } }],
+     ['revoke', 'POST', { body: { deviceId: 'a', timestamp: 1, signatureB64: 'c' } }],
+   ];
+   for (const [name, method, req] of cases) {
+diff --git a/wisal-direct-relay/test/pg-store.test.js b/wisal-direct-relay/test/pg-store.test.js
+index 761a4fb..1ade889 100644
+--- a/wisal-direct-relay/test/pg-store.test.js
++++ b/wisal-direct-relay/test/pg-store.test.js
+@@ -20,7 +20,8 @@ if (!url) {
+ const { Pool } = require('pg');
+ const { createPgStore } = require('../lib/pgStore');
+ const { registerDevice, submitEnvelope, listInbox, ackDelivery } = require('../lib/relay');
+-const { publishPreKeyBundle, claimPreKeyBundle, publishProof, claimProof } = require('../lib/prekeys');
++const { publishPreKeyBundle, claimPreKeyBundle, publishProof, claimProof, bundleDigest } = require('../lib/prekeys');
++const { preKeyPublicationStatus, statusProof } = require('../lib/prekeysStatus');
+ const { revokeDevice, revokeProof } = require('../lib/revocation');
+ 
+ function makeIdentity() {
+@@ -117,6 +118,17 @@ const NOW = 1_800_000_000;
+     const stored = await store.getPreKeyBundle('devB');
+     assert.strictEqual(stored.oneTimePreKeyPublicB64, null);
+     assert.strictEqual(stored.oneTimePreKeyClaimed, true);
++    assert.strictEqual(stored.bundleDigest, bundleDigest(first));
++    // A response lost before the claim remains verifiable through a new store.
++    const reopened = createPgStore(pool);
++    const nonce = '00112233445566778899aabbccddeeff';
++    const status = await preKeyPublicationStatus(reopened, {
++      deviceId: 'devB', timestamp: NOW, requestNonce: nonce,
++      signatureB64: sign(bob.privateKey, statusProof('devB', NOW, nonce)),
++    }, NOW);
++    assert.strictEqual(status.ok, true);
++    assert.strictEqual(status.bundleDigest, bundleDigest(first));
++    assert.strictEqual(status.oneTimePreKeyAvailable, false);
+     assert.match((await publish(first, NOW + 1)).reason, /must be higher/);
+   }
+ 
+@@ -143,6 +155,26 @@ const NOW = 1_800_000_000;
+     assert.strictEqual(results.filter((r) => r.ok).length, 1, 'two concurrent publishes of one id may not both apply');
+   }
+ 
++  // Simulate upgrading the pre-receipt schema in this disposable test database.
++  // Existing public data survives; a consumed legacy OPK cannot gain a receipt
++  // retrospectively. A fresh publication restores a verifiable current state.
++  {
++    await pool.query('ALTER TABLE relay_prekey_bundles DROP COLUMN bundle_digest');
++    const migrated = createPgStore(pool);
++    const legacy = await migrated.getPreKeyBundle('devB');
++    assert.strictEqual(legacy.oneTimePreKeyId, 3);
++    assert.strictEqual(legacy.bundleDigest, null);
++    const nonce = 'ffeeddccbbaa99887766554433221100';
++    const request = { deviceId: 'devB', timestamp: NOW, requestNonce: nonce,
++      signatureB64: sign(bob.privateKey, statusProof('devB', NOW, nonce)) };
++    assert.strictEqual((await preKeyPublicationStatus(migrated, request, NOW)).ok, true);
++    assert.strictEqual((await claim(alice, 'devA')).ok, true);
++    assert.strictEqual((await preKeyPublicationStatus(migrated, request, NOW)).reason, 'publication receipt unavailable');
++    const fresh = makeBundle('devB', 4);
++    assert.strictEqual((await publish(fresh)).ok, true);
++    assert.strictEqual((await preKeyPublicationStatus(migrated, request, NOW)).bundleDigest, bundleDigest(fresh));
++  }
++
+   // ---- إلغاء جهاز في PostgreSQL: transaction بتمسح الحزمة والمغلفات المستنية ----
+   {
+     const carol = makeIdentity();
+diff --git a/wisal-direct-relay/vercel.json b/wisal-direct-relay/vercel.json
+index aa2ea76..bec2cb5 100644
+--- a/wisal-direct-relay/vercel.json
++++ b/wisal-direct-relay/vercel.json
+@@ -1,6 +1,6 @@
+ {
+   "$schema": "https://openapi.vercel.sh/vercel.json",
+-  "git": { "deploymentEnabled": { "fix/fail-closed-device-identity": false, "fix/WisalReleaseSecurity": false, "feat/durable-prekey-allocation": false } },
++  "git": { "deploymentEnabled": { "fix/fail-closed-device-identity": false, "fix/WisalReleaseSecurity": false, "feat/durable-prekey-allocation": false, "review/WisalPreKeyIntegration": false } },
+   "functions": {
+     "api/*.js": { "maxDuration": 15 }
+   }
+diff --git a/wisal-web/vercel.json b/wisal-web/vercel.json
+index a4183d8..e75e0be 100644
+--- a/wisal-web/vercel.json
++++ b/wisal-web/vercel.json
+@@ -1,6 +1,6 @@
+ {
+   "$schema": "https://openapi.vercel.sh/vercel.json",
+-  "git": { "deploymentEnabled": { "fix/fail-closed-device-identity": false, "fix/WisalReleaseSecurity": false, "feat/durable-prekey-allocation": false } },
++  "git": { "deploymentEnabled": { "fix/fail-closed-device-identity": false, "fix/WisalReleaseSecurity": false, "feat/durable-prekey-allocation": false, "review/WisalPreKeyIntegration": false } },
+   "cleanUrls": true,
+   "trailingSlash": false,
+   "headers": [

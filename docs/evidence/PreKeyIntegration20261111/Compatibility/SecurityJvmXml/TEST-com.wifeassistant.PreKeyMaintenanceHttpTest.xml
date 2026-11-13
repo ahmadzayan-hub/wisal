@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.PreKeyMaintenanceHttpTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:40:49" hostname="10553fb40495" time="3.26">
+  <properties/>
+  <testcase name="remoteClaimTriggersFreshIdsBeforeRecipientDecryptsAndOldCiphertextSurvives" classname="com.wifeassistant.PreKeyMaintenanceHttpTest" time="0.222"/>
+  <testcase name="relayClockRefusalOccursBeforeNewPreKeysAndCorrectedClockCanRetry" classname="com.wifeassistant.PreKeyMaintenanceHttpTest" time="0.146"/>
+  <testcase name="lostPublishResponseThenClaimReconcilesWithoutRevivingConsumedKey" classname="com.wifeassistant.PreKeyMaintenanceHttpTest" time="0.135"/>
+  <testcase name="failedLocalAcceptanceCommitRequiresReopenAndStatusReconciliation" classname="com.wifeassistant.PreKeyMaintenanceHttpTest" time="0.121"/>
+  <testcase name="durablePendingSurvivesSeparateJvmExitBeforePublishing" classname="com.wifeassistant.PreKeyMaintenanceHttpTest" time="2.497"/>
+  <testcase name="unavailablePublicationRetriesExactDurableBundleAndFreshTimestamp" classname="com.wifeassistant.PreKeyMaintenanceHttpTest" time="0.137"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

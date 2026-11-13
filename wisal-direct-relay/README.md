@@ -110,3 +110,45 @@ Tests: `npm test`. The PostgreSQL test runs when `RELAY_TEST_DATABASE_URL`
 points at an empty test database (it drops and recreates the `relay_*`
 tables). CI starts a PostgreSQL 16 service and sets `REQUIRE_PG=1`, so the
 test fails rather than skips there.
+
+## Pre-key publication receipt status
+
+The isolated replenishment integration adds `POST /api/prekeys-status`. The
+owner sends `deviceId`, a positive integer `timestamp`, a fresh 16-byte random
+nonce encoded as 32 lowercase hexadecimal characters in `requestNonce`, and
+`signatureB64` over this UTF-8 proof:
+
+```
+prekeys-status:{deviceId}:{timestamp}:{requestNonce}
+```
+
+The relay verifies the registered owner's P-256 signature and the existing
+300-second clock tolerance. It returns the matching owner and nonce, its
+current time, the current bundle's SHA256 digest, one-time key ID, availability,
+and publication time. When no bundle exists, digest, ID and publication time
+are null and availability is false. No public key bytes or private state are
+returned. A status request never consumes or reserves a key; another device
+can claim it immediately after a successful read.
+
+`bundleDigest` is SHA256 of the UTF-8 colon-joined sequence
+`["wisal-prekey-bundle-v1", ...BUNDLE_FIELDS]`, using field values in the
+existing canonical order. Publication stores this receipt alongside the
+public bundle, and a claim retains it when erasing the one-time public key.
+This lets a client reconcile a lost publication response after a peer has
+already claimed the key. It does not allow replaying the consumed key.
+
+PostgreSQL uses an additive nullable `bundle_digest TEXT` column. Older
+unclaimed rows can yield a digest from their intact public fields without
+being rewritten. Older claimed rows lacking the digest return
+`publication receipt unavailable`; the client must not treat these as
+verified acceptance. Observing an unclaimed legacy row does not backfill its
+digest, so it can become unverifiable if claimed afterward. Unknown remote
+state must not be adopted as a locally journaled acceptance. Deployment and
+schema activation need a separate review.
+
+Responses use `Cache-Control: no-store`. A client must authenticate the relay
+with HTTPS, validate the nonce, owner, key ID and complete digest, and commit
+its local acceptance state before reporting completion. The status endpoint
+does not provide an independent server signature or offline attestation.
+All additions remain review changes; local tests do not establish E2EE or
+physical-device acceptance.

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.LibsignalCryptoProviderTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:31:26" hostname="10553fb40495" time="0.055">
+  <properties/>
+  <testcase name="fullBidirectionalRoundTripWithRealDoubleRatchet" classname="com.wifeassistant.LibsignalCryptoProviderTest" time="0.036"/>
+  <testcase name="encryptWithoutEstablishedSessionThrows" classname="com.wifeassistant.LibsignalCryptoProviderTest" time="0.001"/>
+  <testcase name="unknownCiphertextTypeByteIsRejected" classname="com.wifeassistant.LibsignalCryptoProviderTest" time="0.003"/>
+  <testcase name="establishSessionRejectsMismatchedDeviceId" classname="com.wifeassistant.LibsignalCryptoProviderTest" time="0.011"/>
+  <testcase name="signalBackendNeverClaimsE2eeYet" classname="com.wifeassistant.LibsignalCryptoProviderTest" time="0.0"/>
+  <testcase name="tamperedCiphertextIsRejected" classname="com.wifeassistant.LibsignalCryptoProviderTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

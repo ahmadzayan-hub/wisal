@@ -1,0 +1,7 @@
+{"event":"device_registered","deviceId":"B","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"B","atEpochSec":1800000000}
+Fractional timestamp publication rejected: false
+Fractional epoch-second publication must not be accepted
+
+true !== false
+

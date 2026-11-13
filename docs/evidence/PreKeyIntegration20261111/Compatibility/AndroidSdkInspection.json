@@ -1,0 +1,37 @@
+[
+  {
+    "source": "ANDROID_HOME",
+    "path": null,
+    "exists": false
+  },
+  {
+    "source": "ANDROID_SDK_ROOT",
+    "path": null,
+    "exists": false
+  },
+  {
+    "source": "conventional path",
+    "path": "/opt/android-sdk",
+    "exists": false
+  },
+  {
+    "source": "conventional path",
+    "path": "/opt/android",
+    "exists": false
+  },
+  {
+    "source": "conventional path",
+    "path": "/usr/local/lib/android/sdk",
+    "exists": false
+  },
+  {
+    "source": "conventional path",
+    "path": "/home/agent/Android/Sdk",
+    "exists": false
+  },
+  {
+    "source": "conventional path",
+    "path": "/workspace/android-sdk",
+    "exists": false
+  }
+]

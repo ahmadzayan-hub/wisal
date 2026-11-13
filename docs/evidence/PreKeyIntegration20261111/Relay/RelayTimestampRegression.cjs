@@ -1,0 +1,20 @@
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const { generateKeyPairSync, sign } = require('node:crypto');
+const root = process.argv[2];
+const { createInMemoryStore } = require(path.join(root, 'wisal-direct-relay/lib/store.js'));
+const { registerDevice } = require(path.join(root, 'wisal-direct-relay/lib/relay.js'));
+const { publishPreKeyBundle, publishProof } = require(path.join(root, 'wisal-direct-relay/lib/prekeys.js'));
+(async () => {
+  const store = createInMemoryStore();
+  const who = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+  const signProof = proof => sign('sha256', Buffer.from(proof), who.privateKey).toString('base64');
+  const now = 1800000000;
+  await registerDevice(store, { deviceId: 'B', publicKeyB64: who.publicKey.export({type:'spki',format:'der'}).toString('base64'), signatureB64: signProof('wisal-direct-register:B') }, now);
+  const bundle = {deviceId:'B',registrationId:1,identityKeyB64:'AQ==',signedPreKeyId:1,signedPreKeyPublicB64:'Ag==',signedPreKeySignatureB64:'Aw==',kyberPreKeyId:1,kyberPreKeyPublicB64:'BA==',kyberPreKeySignatureB64:'BQ==',oneTimePreKeyId:1,oneTimePreKeyPublicB64:'Bg=='};
+  const timestamp = now + 0.5;
+  const result = await publishPreKeyBundle(store, {bundle, timestamp, signatureB64:signProof(publishProof(bundle,timestamp))}, now);
+  console.log('Fractional timestamp publication rejected:', result.ok === false);
+  assert.equal(result.ok, false, 'Fractional epoch-second publication must not be accepted');
+  assert.equal(store.getPreKeyBundle('B'), null, 'Invalid request must not write a key');
+})().catch(error => { console.error(error.message); process.exitCode=1; });

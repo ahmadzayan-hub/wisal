@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.PreKeyPublicationPersistenceTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:40:52" hostname="10553fb40495" time="0.036">
+  <properties/>
+  <testcase name="mismatchedReceiptScopeOwnerAndEphemeralProviderCannotChangeJournal" classname="com.wifeassistant.PreKeyPublicationPersistenceTest" time="0.003"/>
+  <testcase name="corruptedPublicIntentCannotOutliveItsPrivateKeyOrSignature" classname="com.wifeassistant.PreKeyPublicationPersistenceTest" time="0.009"/>
+  <testcase name="keysCountersAndPendingIntentShareOneVerifiedWriteAndSurviveReopen" classname="com.wifeassistant.PreKeyPublicationPersistenceTest" time="0.003"/>
+  <testcase name="acknowledgementWriteFailureDoesNotPretendAcceptance" classname="com.wifeassistant.PreKeyPublicationPersistenceTest" time="0.004"/>
+  <testcase name="beforeWriteAndSilentNoOpFailuresReleaseNoBundleAndBlockSameProvider" classname="com.wifeassistant.PreKeyPublicationPersistenceTest" time="0.003"/>
+  <testcase name="ambiguousWritePreservesExactPendingOnRestartWithoutReusingAnId" classname="com.wifeassistant.PreKeyPublicationPersistenceTest" time="0.003"/>
+  <testcase name="acceptedJournalAndNewPendingUseIndependentDurableHighWaterMarks" classname="com.wifeassistant.PreKeyPublicationPersistenceTest" time="0.005"/>
+  <testcase name="exhaustedCountersAndClockRollbackNeverPartiallyStage" classname="com.wifeassistant.PreKeyPublicationPersistenceTest" time="0.003"/>
+  <testcase name="retriesReturnExactPersistedBundleWithoutGeneratingOrWritingAgain" classname="com.wifeassistant.PreKeyPublicationPersistenceTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

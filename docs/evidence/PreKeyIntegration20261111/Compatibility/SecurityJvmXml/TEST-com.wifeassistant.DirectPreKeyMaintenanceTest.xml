@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.DirectPreKeyMaintenanceTest" tests="26" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:40:46" hostname="10553fb40495" time="1.851">
+  <properties/>
+  <testcase name="relayConsumptionReplenishesEvenWhileLocalPrivateKeyCountRemainsOne" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="1.473"/>
+  <testcase name="lostResponseThenClaimReconcilesConsumedReceiptAndOnlyNextCallReplenishes" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.034"/>
+  <testcase name="unknownLegacyRemoteBundleIsNotAdoptedOrOverwritten" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.01"/>
+  <testcase name="wrongOwnerAndEphemeralProviderFailBeforeAnyRelayRequest" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.005"/>
+  <testcase name="retainedOldPrivateMaterialDecryptsDelayedMessageAfterRelayReplenishment" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.095"/>
+  <testcase name="clockFailureAfterRemotePublicationRetainsIntentAndReportsUncertainty" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.008"/>
+  <testcase name="missingOrMismatchedAcceptedRelayStateCannotTriggerBlindReplacement" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.008"/>
+  <testcase name="cancellationAfterRelayAcceptanceLeavesDurableIntentAndReleasesMutex" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.034"/>
+  <testcase name="preflightNetworkFailureCreatesNoPreKeysAndDoesNotPublish" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.003"/>
+  <testcase name="lostPublishResponseReconcilesWithoutResendingOrAllocatingAnotherKey" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.006"/>
+  <testcase name="knownPriorAcceptedPublicationPermitsResumingNewPendingPublication" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.014"/>
+  <testcase name="ambiguousAcceptanceThatReachedDiskIsNotRepublishedAfterRestart" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.01"/>
+  <testcase name="firstPublicationCommitsPrivateKeysAndIntentBeforeAnyPublishAndThenAcceptance" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.009"/>
+  <testcase name="backwardClockPausesBeforeNetworkAndPreservesPendingIntent" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.008"/>
+  <testcase name="failedAcceptanceCommitLeavesPendingAndReopenedCoordinatorReconciles" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.011"/>
+  <testcase name="concurrentReopenedCoordinatorsPublishOnceAndAllObserveSameAcceptedKey" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.029"/>
+  <testcase name="failedStatusAfterHttpSuccessKeepsIntentForReconciliation" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.011"/>
+  <testcase name="failureBeforeRelayAcceptanceRetriesTheIdenticalDurableBundleAfterReopening" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.01"/>
+  <testcase name="clockMovingBackwardAfterStagingKeepsBundleWithoutPublishing" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.006"/>
+  <testcase name="unverifiedStageReadbackNeverReleasesBundleToRelay" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.004"/>
+  <testcase name="forwardClockJumpAfterPreflightCannotPoisonPersistedRotationTime" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.008"/>
+  <testcase name="relayClockRefusalAndUnsafeClockDoNotGeneratePreKeys" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.003"/>
+  <testcase name="stageCommitFailurePreventsPublicationAndBlocksThatProvider" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.008"/>
+  <testcase name="currentAcceptedBundleRotatesExactlyAtConfiguredAgeWithoutPruningOldKeys" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.017"/>
+  <testcase name="unknownRemoteStateDoesNotCausePendingBundleResendOrAcknowledgement" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.01"/>
+  <testcase name="aPendingBundleCannotMoveToAnotherRelayOrPublisherKey" classname="com.wifeassistant.DirectPreKeyMaintenanceTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

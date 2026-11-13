@@ -1,0 +1,32 @@
+PostgreSQL isolated test cluster: /workspace/scratch/cfa9b7d795a6/RuntimeEvidence/PostgresRun02w21b3j
+waiting for server to start.... done
+server started
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devA","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devRace","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:vmt1yvak","backend":"SIGNAL","atEpochSec":1800000000}
+{"event":"envelope_delivered","deviceId":"devB","envelopeId":"devA:1800000000:vmt1yvak","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devB","envelopeId":"devA:1800000000:ueocvvbb","backend":"SIGNAL","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_claimed","deviceId":"devA","targetDeviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC0","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC1","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC2","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC3","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC4","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC5","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC6","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC7","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC8","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devC9","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_claimed","deviceId":"devC0","targetDeviceId":"devB","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devB","atEpochSec":1800000000}
+{"event":"device_registered","deviceId":"devR","atEpochSec":1800000000}
+{"event":"envelope_submitted","senderDeviceId":"devA","recipientDeviceId":"devR","envelopeId":"devA:1800000000:80sx5ive","backend":"SIGNAL","atEpochSec":1800000000}
+{"event":"prekeys_published","deviceId":"devR","atEpochSec":1800000000}
+{"event":"device_revoked","deviceId":"devR","atEpochSec":1800000000}
+pg-store.test.js: all assertions passed ✅
+waiting for server to shut down.... done
+server stopped

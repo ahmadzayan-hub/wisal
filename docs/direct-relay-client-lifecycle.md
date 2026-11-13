@@ -25,8 +25,10 @@ and the existing full Android PR workflow. All new tests use synthetic identitie
 and a loopback fake relay. They do not call a deployed relay or revoke a real device.
 
 This completes the transport-method portion of Phase 3 item 9 only. No UI calls
-these operations yet. Durable Signal identity/pre-key/session persistence,
-monotonic ID allocation/replenishment, key rotation, lost-device recovery,
-paired-device UI exchange, offline delivery and external security review remain
-separate gates. `mayClaimE2ee` stays false. The web/roadmap files touched by open
+these operations yet. Subsequent work adds durable Signal storage and monotonic
+ID allocation. The isolated [pre-key maintenance integration](WisalPreKeyIntegrationReview.md)
+connects explicit replenishment with durable intents and a non-consuming
+publication-status endpoint. Automatic scheduling, lost-device recovery,
+paired-device UI exchange and physical-device/offline/backup acceptance remain
+separate gates. External security review is still pending. `mayClaimE2ee` stays false. The web/roadmap files touched by open
 PR #10 are intentionally outside this change.

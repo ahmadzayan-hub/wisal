@@ -18,9 +18,13 @@ partial snapshot updates or silently rotating the identity. The existing
 
 The caller must retain the returned public bundle for publication retries;
 calling this method again intentionally prepares a different bundle. This
-method makes no relay request and starts no scheduler. Automatic replenishment
-policy, signed-key retirement, verified pairing UI, lost-device recovery and
-physical-device/backup acceptance remain separate work. Restoring an older
+method makes no relay request and starts no scheduler. The isolated
+[pre-key maintenance integration](WisalPreKeyIntegrationReview.md) reuses this
+allocation boundary and commits a pending publication journal with the keys.
+It adds policy-driven explicit invocation and relay-status reconciliation,
+without enabling an application trigger. Scheduling, signed-key retirement,
+verified pairing UI, lost-device recovery and physical-device/backup acceptance
+remain separate work. Restoring an older
 valid snapshot is still outside the rollback protection this store provides.
 `mayClaimE2ee` remains false.
 

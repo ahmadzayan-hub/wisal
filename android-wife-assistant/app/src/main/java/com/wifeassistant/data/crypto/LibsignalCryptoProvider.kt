@@ -22,6 +22,31 @@ class LibsignalCryptoProvider private constructor(private val access: SignalStor
     override val backend = CryptoBackend.SIGNAL
     override val mayClaimE2ee = false
 
+    private fun durableState(): SignalStatePersistence = access as? SignalStatePersistence
+        ?: error("Pre-key maintenance requires durable Signal storage.")
+
+    internal fun preKeyPublicationState(deviceId: String): PreKeyPublicationState {
+        addressOf(deviceId)
+        return durableState().publicationState(deviceId)
+    }
+
+    internal fun preparePreKeyPublication(deviceId: String, nowEpochSec: Long, relayScope: String,
+        publisherKeyB64: String, expectedAccepted: PreparedPreKeyPublication?): PreparedPreKeyPublication {
+        addressOf(deviceId)
+        return durableState().preparePublication(deviceId, nowEpochSec, relayScope, publisherKeyB64, expectedAccepted)
+    }
+
+    internal fun acceptPreKeyPublication(deviceId: String, publication: PreparedPreKeyPublication,
+        observedAtEpochSec: Long = publication.generatedAtEpochSec) {
+        addressOf(deviceId)
+        durableState().acceptPublication(deviceId, publication, observedAtEpochSec)
+    }
+
+    internal fun retireSupersededPreKeys(deviceId: String, nowEpochSec: Long) {
+        addressOf(deviceId)
+        durableState().retireSupersededPreKeys(deviceId, nowEpochSec)
+    }
+
     private val json = Json { ignoreUnknownKeys = true }
 
     private fun addressOf(recipientDeviceId: String): SignalProtocolAddress {
@@ -31,13 +56,35 @@ class LibsignalCryptoProvider private constructor(private val access: SignalStor
 
     /** Allocate fresh IDs from durable high-water marks and commit the private
      * keys before releasing a public bundle. Does not publish or schedule work.
-     * Existing keys are retained for messages already in flight.
+     * Existing keys are retained for messages already in flight. Records
+     * [nowEpochSec] as the signed pre-key's new rotation time, so a later
+     * [replenishmentDecision] call reports its true age.
      */
-    fun nextPublishableBundle(myDeviceId: String): SignalPreKeyBundleDto {
+    fun nextPublishableBundle(
+        myDeviceId: String,
+        nowEpochSec: Long = System.currentTimeMillis() / 1000,
+    ): SignalPreKeyBundleDto {
         addressOf(myDeviceId)
         val persistence = access as? SignalStatePersistence
             ?: error("Automatic pre-key allocation requires durable Signal storage.")
-        return persistence.nextPublishableBundle(myDeviceId)
+        return persistence.nextPublishableBundle(myDeviceId, nowEpochSec)
+    }
+
+    /** Ask [policy] whether this device's signed pre-key and/or one-time
+     * pre-key are due for replenishment right now. Pure read: makes no
+     * relay request, generates no keys and starts no scheduler — the caller
+     * decides what, if anything, to do with the answer (typically calling
+     * [nextPublishableBundle] and then publishing the result).
+     */
+    fun replenishmentDecision(
+        myDeviceId: String,
+        nowEpochSec: Long = System.currentTimeMillis() / 1000,
+        policy: PreKeyReplenishmentPolicy = PreKeyReplenishmentPolicy(),
+    ): PreKeyReplenishmentDecision {
+        addressOf(myDeviceId)
+        val persistence = access as? SignalStatePersistence
+            ?: error("Replenishment policy requires durable Signal storage.")
+        return policy.evaluate(persistence.replenishmentState(myDeviceId), nowEpochSec)
     }
 
     // الحزمة اللي الجهاز ده هينشرها على الـ relay (شريحة لاحقة) عشان أي حد
@@ -58,10 +105,22 @@ class LibsignalCryptoProvider private constructor(private val access: SignalStor
 
     /** Pin from a previously verified P-256 pairing. Never silently replace a pin. */
     fun trustPeer(trusted: PublicIdentity, bundle: SignalPreKeyBundleDto, bindingSignature: String) {
-        SignalPeerBinding.verify(trusted, bundle, bindingSignature)
+        require(bundle.hasValidWireFields())
+        trustPeer(trusted, bundle.peerIdentity(), bindingSignature)
+    }
+
+    fun localPeerIdentity(deviceId: String): SignalPeerIdentity = access.use { identity, _ ->
+        addressOf(deviceId)
+        (access as? SignalStatePersistence)?.requireOwner(deviceId)
+        SignalPeerIdentity(deviceId, identity.registrationId,
+            java.util.Base64.getEncoder().encodeToString(identity.keyPair.publicKey.serialize()))
+    }
+
+    fun trustPeer(trusted: PublicIdentity, peer: SignalPeerIdentity, bindingSignature: String) {
+        SignalPeerBinding.verify(trusted, peer, bindingSignature)
         access.use { _, store ->
             store.saveIdentity(addressOf(trusted.deviceId),
-                org.signal.libsignal.protocol.IdentityKey(java.util.Base64.getDecoder().decode(bundle.identityKeyB64)))
+                org.signal.libsignal.protocol.IdentityKey(java.util.Base64.getDecoder().decode(peer.identityKeyB64)))
         }
     }
 

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.wifeassistant.DirectRelayKeyLifecycleTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-11-11T10:39:00" hostname="10553fb40495" time="0.117">
+  <properties/>
+  <testcase name="refusesRedirectsWithoutForwardingTheSignedClaim" classname="com.wifeassistant.DirectRelayKeyLifecycleTest" time="0.015"/>
+  <testcase name="publishesTheWholeBundleWithTheServerProofAndChecksReceipt" classname="com.wifeassistant.DirectRelayKeyLifecycleTest" time="0.015"/>
+  <testcase name="revokesOnlyAfterAnExplicitMatchingReceipt" classname="com.wifeassistant.DirectRelayKeyLifecycleTest" time="0.011"/>
+  <testcase name="rejectsMissingSelfAndMalformedClaimTargetsWithoutNetwork" classname="com.wifeassistant.DirectRelayKeyLifecycleTest" time="0.007"/>
+  <testcase name="propagatesExhaustedKeyRefusalAndMalformedServerResponsesWithoutRetry" classname="com.wifeassistant.DirectRelayKeyLifecycleTest" time="0.011"/>
+  <testcase name="claimsAKeyForExactlyTheRequestedDevice" classname="com.wifeassistant.DirectRelayKeyLifecycleTest" time="0.009"/>
+  <testcase name="proofFormatsMatchTheNodeRelayContract" classname="com.wifeassistant.DirectRelayKeyLifecycleTest" time="0.001"/>
+  <testcase name="rejectsInvalidPublicationBeforeAnyRequest" classname="com.wifeassistant.DirectRelayKeyLifecycleTest" time="0.006"/>
+  <testcase name="doesNotAcceptBareOkAsPublicationOrRevocationReceipt" classname="com.wifeassistant.DirectRelayKeyLifecycleTest" time="0.02"/>
+  <testcase name="missingConfigurationFailsAllNewOperations" classname="com.wifeassistant.DirectRelayKeyLifecycleTest" time="0.003"/>
+  <testcase name="rejectsAbsentWrongDeviceAndMalformedClaimedBundles" classname="com.wifeassistant.DirectRelayKeyLifecycleTest" time="0.018"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -20,7 +20,8 @@ if (!url) {
 const { Pool } = require('pg');
 const { createPgStore } = require('../lib/pgStore');
 const { registerDevice, submitEnvelope, listInbox, ackDelivery } = require('../lib/relay');
-const { publishPreKeyBundle, claimPreKeyBundle, publishProof, claimProof } = require('../lib/prekeys');
+const { publishPreKeyBundle, claimPreKeyBundle, publishProof, claimProof, bundleDigest } = require('../lib/prekeys');
+const { preKeyPublicationStatus, statusProof } = require('../lib/prekeysStatus');
 const { revokeDevice, revokeProof } = require('../lib/revocation');
 
 function makeIdentity() {
@@ -117,6 +118,17 @@ const NOW = 1_800_000_000;
     const stored = await store.getPreKeyBundle('devB');
     assert.strictEqual(stored.oneTimePreKeyPublicB64, null);
     assert.strictEqual(stored.oneTimePreKeyClaimed, true);
+    assert.strictEqual(stored.bundleDigest, bundleDigest(first));
+    // A response lost before the claim remains verifiable through a new store.
+    const reopened = createPgStore(pool);
+    const nonce = '00112233445566778899aabbccddeeff';
+    const status = await preKeyPublicationStatus(reopened, {
+      deviceId: 'devB', timestamp: NOW, requestNonce: nonce,
+      signatureB64: sign(bob.privateKey, statusProof('devB', NOW, nonce)),
+    }, NOW);
+    assert.strictEqual(status.ok, true);
+    assert.strictEqual(status.bundleDigest, bundleDigest(first));
+    assert.strictEqual(status.oneTimePreKeyAvailable, false);
     assert.match((await publish(first, NOW + 1)).reason, /must be higher/);
   }
 
@@ -141,6 +153,26 @@ const NOW = 1_800_000_000;
   {
     const results = await Promise.all([publish(makeBundle('devB', 3)), publish(makeBundle('devB', 3))]);
     assert.strictEqual(results.filter((r) => r.ok).length, 1, 'two concurrent publishes of one id may not both apply');
+  }
+
+  // Simulate upgrading the pre-receipt schema in this disposable test database.
+  // Existing public data survives; a consumed legacy OPK cannot gain a receipt
+  // retrospectively. A fresh publication restores a verifiable current state.
+  {
+    await pool.query('ALTER TABLE relay_prekey_bundles DROP COLUMN bundle_digest');
+    const migrated = createPgStore(pool);
+    const legacy = await migrated.getPreKeyBundle('devB');
+    assert.strictEqual(legacy.oneTimePreKeyId, 3);
+    assert.strictEqual(legacy.bundleDigest, null);
+    const nonce = 'ffeeddccbbaa99887766554433221100';
+    const request = { deviceId: 'devB', timestamp: NOW, requestNonce: nonce,
+      signatureB64: sign(bob.privateKey, statusProof('devB', NOW, nonce)) };
+    assert.strictEqual((await preKeyPublicationStatus(migrated, request, NOW)).ok, true);
+    assert.strictEqual((await claim(alice, 'devA')).ok, true);
+    assert.strictEqual((await preKeyPublicationStatus(migrated, request, NOW)).reason, 'publication receipt unavailable');
+    const fresh = makeBundle('devB', 4);
+    assert.strictEqual((await publish(fresh)).ok, true);
+    assert.strictEqual((await preKeyPublicationStatus(migrated, request, NOW)).bundleDigest, bundleDigest(fresh));
   }
 
   // ---- إلغاء جهاز في PostgreSQL: transaction بتمسح الحزمة والمغلفات المستنية ----

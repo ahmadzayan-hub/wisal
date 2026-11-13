@@ -1,0 +1,28 @@
+{
+  "author": "Ahmed Zaian",
+  "pr19Head": "cea77a1f46d2f1ae2d039db98f5246b984eab9aa",
+  "pr20SourceCommit": "a926d6bc7aa9b3fc0530c4e40e4be60cf207161d",
+  "combinedBaseCommit": "333205a07725a1b7cf856482f7f592c2fd102706",
+  "testedCombinedTree": "7dfa3c37c57486bdcca646484a201b2c919d148b",
+  "rootIntegrationPatchSha256": "189e64332d20b7c4a57927b254fcda6aa0db1110e0866085941bdf1dad60ff37",
+  "matchingNonconfigurationIntegrationFiles": 24,
+  "configurationConflictResolution": "Preserved all PR19 fields and map entries; added review/WisalPreKeyIntegration:false to four Vercel maps.",
+  "pairingIntegration": {
+    "tests": 25,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "securityIntegration": {
+    "tests": 149,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "pairingCoreFilesUnchangedFromPr19": true,
+  "pairingLogicDuplicated": false,
+  "androidSdkAvailable": false,
+  "androidSdkTestsExecuted": false,
+  "externalOrOperationalActions": [],
+  "supersededRun": "SecuritySuperseded.log retains the observed one-fixture failure, corrected using durable state and rerun fresh."
+}
