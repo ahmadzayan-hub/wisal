@@ -36,9 +36,15 @@ class LibsignalCryptoProvider private constructor(private val access: SignalStor
         return durableState().preparePublication(deviceId, nowEpochSec, relayScope, publisherKeyB64, expectedAccepted)
     }
 
-    internal fun acceptPreKeyPublication(deviceId: String, publication: PreparedPreKeyPublication) {
+    internal fun acceptPreKeyPublication(deviceId: String, publication: PreparedPreKeyPublication,
+        observedAtEpochSec: Long = publication.generatedAtEpochSec) {
         addressOf(deviceId)
-        durableState().acceptPublication(deviceId, publication)
+        durableState().acceptPublication(deviceId, publication, observedAtEpochSec)
+    }
+
+    internal fun retireSupersededPreKeys(deviceId: String, nowEpochSec: Long) {
+        addressOf(deviceId)
+        durableState().retireSupersededPreKeys(deviceId, nowEpochSec)
     }
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -99,10 +105,22 @@ class LibsignalCryptoProvider private constructor(private val access: SignalStor
 
     /** Pin from a previously verified P-256 pairing. Never silently replace a pin. */
     fun trustPeer(trusted: PublicIdentity, bundle: SignalPreKeyBundleDto, bindingSignature: String) {
-        SignalPeerBinding.verify(trusted, bundle, bindingSignature)
+        require(bundle.hasValidWireFields())
+        trustPeer(trusted, bundle.peerIdentity(), bindingSignature)
+    }
+
+    fun localPeerIdentity(deviceId: String): SignalPeerIdentity = access.use { identity, _ ->
+        addressOf(deviceId)
+        (access as? SignalStatePersistence)?.requireOwner(deviceId)
+        SignalPeerIdentity(deviceId, identity.registrationId,
+            java.util.Base64.getEncoder().encodeToString(identity.keyPair.publicKey.serialize()))
+    }
+
+    fun trustPeer(trusted: PublicIdentity, peer: SignalPeerIdentity, bindingSignature: String) {
+        SignalPeerBinding.verify(trusted, peer, bindingSignature)
         access.use { _, store ->
             store.saveIdentity(addressOf(trusted.deviceId),
-                org.signal.libsignal.protocol.IdentityKey(java.util.Base64.getDecoder().decode(bundle.identityKeyB64)))
+                org.signal.libsignal.protocol.IdentityKey(java.util.Base64.getDecoder().decode(peer.identityKeyB64)))
         }
     }
 

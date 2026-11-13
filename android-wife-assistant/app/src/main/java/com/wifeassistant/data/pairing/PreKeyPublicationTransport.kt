@@ -1,6 +1,6 @@
 package com.wifeassistant.data.pairing
 
-import com.wifeassistant.data.crypto.LocalIdentity
+import com.wifeassistant.data.crypto.DeviceSigningIdentity
 import com.wifeassistant.data.crypto.SignalPreKeyBundleDto
 
 /** A point-in-time observation over the configured authenticated HTTPS channel.
@@ -17,8 +17,8 @@ data class RelayPreKeyStatus(
 interface PreKeyPublicationTransport {
     /** Canonical endpoint identity. Maintenance never moves a journal between relays. */
     fun publicationScope(): String
-    suspend fun publishPreKeys(identity: LocalIdentity, bundle: SignalPreKeyBundleDto, nowEpochSec: Long): Result<Unit>
-    suspend fun preKeyPublicationStatus(identity: LocalIdentity, nowEpochSec: Long): Result<RelayPreKeyStatus>
+    suspend fun publishPreKeys(identity: DeviceSigningIdentity, bundle: SignalPreKeyBundleDto, nowEpochSec: Long): Result<Unit>
+    suspend fun preKeyPublicationStatus(identity: DeviceSigningIdentity, nowEpochSec: Long): Result<RelayPreKeyStatus>
 }
 
 class RelayRequestException(val httpCode: Int, val refusalReason: String?) :

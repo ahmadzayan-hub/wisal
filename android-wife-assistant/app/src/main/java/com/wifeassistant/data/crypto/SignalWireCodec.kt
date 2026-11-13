@@ -7,6 +7,8 @@ import org.signal.libsignal.protocol.message.SignalMessage
 
 /** Existing type-byte transport format, shared by sessions and the durable queue. */
 internal object SignalWireCodec {
+    fun isPreKeyMessage(ciphertext: ByteArray): Boolean = ciphertext.firstOrNull()?.toInt() == CiphertextMessage.PREKEY_TYPE
+
     fun encrypt(cipher: SessionCipher, plaintext: ByteArray): ByteArray {
         val message = cipher.encrypt(plaintext)
         return byteArrayOf(message.type.toByte()) + message.serialize()

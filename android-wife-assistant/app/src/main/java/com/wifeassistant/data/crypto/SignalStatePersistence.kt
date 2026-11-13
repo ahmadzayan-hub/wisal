@@ -24,11 +24,20 @@ internal class MemorySignalAccess(private val identity: LibsignalIdentity,
 private data class KyberUse(val kyberId: Int, val signedId: Int, val baseKey: String)
 
 @Serializable
+private data class SupersededPreKeys(
+    val signedId: Int,
+    val kyberId: Int,
+    val oneTimeId: Int,
+    val retireAtEpochSec: Long,
+)
+
+@Serializable
 private data class SignalSnapshot(
     val version: Int = 1,
     val identity: String,
     val registrationId: Int,
     val ownerDeviceId: String? = null,
+    var checkpointed: Boolean = false,
     val sessions: MutableMap<String, String> = mutableMapOf(),
     val peers: MutableMap<String, String> = mutableMapOf(),
     val preKeys: MutableMap<Int, String> = mutableMapOf(),
@@ -41,6 +50,7 @@ private data class SignalSnapshot(
     var lastSignedKeyRotationEpochSec: Long = 0,
     var pendingPreKeyPublication: PreparedPreKeyPublication? = null,
     var acceptedPreKeyPublication: PreparedPreKeyPublication? = null,
+    val supersededPreKeys: MutableList<SupersededPreKeys> = mutableListOf(),
     val outbox: MutableMap<String, QueuedSignalMessage> = mutableMapOf(),
     val inbox: MutableMap<String, ReceivedSignalMessage> = mutableMapOf(),
     val receipts: MutableMap<String, String> = mutableMapOf(),
@@ -58,11 +68,13 @@ private fun address(key: String): SignalProtocolAddress {
 
 /** One encrypted snapshot per successful protocol operation. Callbacks MUST use
  * verified durable encrypted storage; this class provides no encryption itself.
- * Single Android process only. No protection against restoring an older valid
- * snapshot: rollback/backup acceptance remains a release gate.
+ * Single Android process only. An optional independent checkpoint detects a
+ * restored snapshot when the checkpoint itself has not been rolled back.
  */
-class SignalStatePersistence(private val read: () -> String?, private val write: (String) -> Unit,
-    private val ownerDeviceId: String? = null) : SignalStoreAccess {
+class SignalStatePersistence internal constructor(private val read: () -> String?, private val write: (String) -> Unit,
+    private val ownerDeviceId: String?, private val checkpoint: SignalSnapshotCheckpoint?) : SignalStoreAccess {
+    constructor(read: () -> String?, write: (String) -> Unit, ownerDeviceId: String? = null) :
+        this(read, write, ownerDeviceId, null)
     companion object { private val lock = Any() }
     private val json = Json { encodeDefaults = true }
     private var blocked = false
@@ -74,18 +86,22 @@ class SignalStatePersistence(private val read: () -> String?, private val write:
         val snapshot: SignalSnapshot
         val identity: LibsignalIdentity
         val store: SnapshotSignalStore
+        val previousDigest: String?
         try {
             original = read()
             check(original != null || !previouslyLoaded)
+            require(original == null || original.length <= 8 * 1024 * 1024)
             if (original == null) {
+                previousDigest = checkpoint?.verify(null, required = false)
                 identity = LibsignalKeys.generateIdentity()
                 snapshot = SignalSnapshot(identity = identity.keyPair.serialize().b64(),
                     registrationId = identity.registrationId, ownerDeviceId = ownerDeviceId)
             } else {
-                require(original.length <= 8 * 1024 * 1024)
                 snapshot = json.decodeFromString(SignalSnapshot.serializer(), original)
                 require(snapshot.version == 1 && snapshot.registrationId in 1..16380)
                 require(snapshot.ownerDeviceId == ownerDeviceId)
+                require(!snapshot.checkpointed || checkpoint != null)
+                previousDigest = checkpoint?.verify(original, required = snapshot.checkpointed)
                 identity = LibsignalIdentity(IdentityKeyPair(snapshot.identity.bytes()), snapshot.registrationId)
             }
             store = SnapshotSignalStore(identity, snapshot)
@@ -95,6 +111,7 @@ class SignalStatePersistence(private val read: () -> String?, private val write:
         // Native mutations affect this operation's working copy only. A protocol
         // failure discards it, including partial pre-key removals or ratchet updates.
         val baseline = json.encodeToString(SignalSnapshot.serializer(), snapshot)
+        if (checkpoint != null) snapshot.checkpointed = true
         val result = operation(identity, store)
         val encoded = json.encodeToString(SignalSnapshot.serializer(), snapshot)
         if (original == null || encoded != baseline) {
@@ -103,10 +120,22 @@ class SignalStatePersistence(private val read: () -> String?, private val write:
             require(encoded.length <= 8 * 1024 * 1024) { "Signal state capacity reached." }
             blocked = true
             try {
+                val nextDigest = checkpoint?.prepare(previousDigest, encoded)
                 write(encoded)
                 check(read() == encoded)
+                if (nextDigest != null) checkNotNull(checkpoint).finish(nextDigest)
             } catch (_: Exception) {
                 throw IllegalStateException("Signal state could not be committed. Operation result was not released.")
+            }
+            blocked = false
+        } else if (checkpoint != null && previousDigest != null) {
+            // Seal a legacy baseline or reconcile an interrupted checkpoint
+            // before returning results derived from an existing snapshot.
+            blocked = true
+            try {
+                checkpoint.finish(previousDigest)
+            } catch (_: Exception) {
+                throw IllegalStateException("Signal checkpoint could not be committed. Operation result was not released.")
             }
             blocked = false
         }
@@ -148,11 +177,60 @@ class SignalStatePersistence(private val read: () -> String?, private val write:
             relayScope, publisherKeyB64, expectedAccepted)
     }
 
-    internal fun acceptPublication(deviceId: String, publication: PreparedPreKeyPublication) = use { _, store ->
+    internal fun acceptPublication(deviceId: String, publication: PreparedPreKeyPublication,
+        observedAtEpochSec: Long) = use { _, store ->
         requireOwner(deviceId)
-        (store as SnapshotSignalStore).acceptPublication(publication)
+        (store as SnapshotSignalStore).acceptPublication(publication, observedAtEpochSec)
+    }
+
+    internal fun retireSupersededPreKeys(deviceId: String, nowEpochSec: Long) = use { _, store ->
+        requireOwner(deviceId)
+        (store as SnapshotSignalStore).retireSupersededPreKeys(nowEpochSec)
     }
 }
+
+/** Independent from the encrypted snapshot and excluded from Android backup.
+ * A pending commit accepts either the previously committed or the newly staged
+ * digest. No operation result is released until its matching digest is sealed.
+ */
+internal class SignalSnapshotCheckpoint(private val read: () -> String?, private val write: (String) -> Unit) {
+    private fun String.digest() = java.security.MessageDigest.getInstance("SHA-256")
+        .digest(toByteArray(Charsets.UTF_8)).b64()
+
+    fun verify(snapshot: String?, required: Boolean): String? {
+        val digest = snapshot?.digest()
+        val record = read()
+        if (record == null) {
+            check(!required) { "Signal snapshot checkpoint is missing." }
+            return digest
+        }
+        check(record.length in 46..89)
+        val parts = record.split(':')
+        check(parts.size == 2)
+        if (digest == null) check(parts[0] == "-") else check(digest in parts) {
+            "Signal snapshot checkpoint mismatch."
+        }
+        return digest
+    }
+
+    fun prepare(previous: String?, next: String): String {
+        val digest = next.digest()
+        save("${previous ?: "-"}:$digest")
+        return digest
+    }
+
+    fun finish(digest: String) = save("$digest:$digest")
+
+    private fun save(record: String) {
+        if (read() == record) return
+        write(record)
+        check(read() == record)
+    }
+}
+
+// Retain a previously advertised triplet for the supported envelope lifetime,
+// plus one relay clock-skew window, measured from confirmation of replacement.
+internal const val SUPERSEDED_PRE_KEY_RETENTION_SECONDS = 14L * 24 * 3600 + 300
 
 /** Native record serialization from libsignal 0.86.5, including Kyber replay
  * markers. Sender/group keys are deliberately unsupported by this 1:1 adapter.
@@ -194,10 +272,30 @@ private class SnapshotSignalStore(identity: LibsignalIdentity, private val state
             .also { state.pendingPreKeyPublication = it }
     }
 
-    fun acceptPublication(publication: PreparedPreKeyPublication) {
+    fun acceptPublication(publication: PreparedPreKeyPublication, observedAtEpochSec: Long) {
         check(state.pendingPreKeyPublication == publication) { "Pending publication changed; receipt was not committed." }
+        require(observedAtEpochSec > 0)
+        state.acceptedPreKeyPublication?.bundle?.let { previous ->
+            state.supersededPreKeys.add(SupersededPreKeys(previous.signedPreKeyId, previous.kyberPreKeyId,
+                previous.oneTimePreKeyId, Math.addExact(observedAtEpochSec, SUPERSEDED_PRE_KEY_RETENTION_SECONDS)))
+        }
         state.acceptedPreKeyPublication = publication
         state.pendingPreKeyPublication = null
+        retireSupersededPreKeys(observedAtEpochSec)
+    }
+
+    fun retireSupersededPreKeys(nowEpochSec: Long) {
+        val expired = state.supersededPreKeys.filter { it.retireAtEpochSec <= nowEpochSec }
+        if (expired.isEmpty()) return
+        val signedIds = expired.map { it.signedId }.toSet()
+        val kyberIds = expired.map { it.kyberId }.toSet()
+        expired.forEach {
+            state.signedKeys.remove(it.signedId)
+            state.kyberKeys.remove(it.kyberId)
+            state.preKeys.remove(it.oneTimeId)
+        }
+        state.kyberUses.removeAll { it.signedId in signedIds || it.kyberId in kyberIds }
+        state.supersededPreKeys.removeAll(expired.toSet())
     }
 
     fun nextPreKeyIds(): Triple<Int, Int, Int> {
@@ -236,6 +334,13 @@ private class SnapshotSignalStore(identity: LibsignalIdentity, private val state
         require(state.highestPreKeyId >= (state.preKeys.keys.maxOrNull() ?: 0))
         require(state.highestSignedId >= (state.signedKeys.keys.maxOrNull() ?: 0))
         require(state.highestKyberId >= (state.kyberKeys.keys.maxOrNull() ?: 0))
+        val activeBundle = state.acceptedPreKeyPublication?.bundle
+        require(state.supersededPreKeys.all { record ->
+            activeBundle != null && record.retireAtEpochSec > 0 &&
+                record.signedId in 1 until activeBundle.signedPreKeyId &&
+                record.kyberId in 1 until activeBundle.kyberPreKeyId &&
+                record.oneTimeId in 1 until activeBundle.oneTimePreKeyId
+        })
         listOfNotNull(state.pendingPreKeyPublication, state.acceptedPreKeyPublication).forEach { item ->
             val bundle = item.bundle
             require(item.generatedAtEpochSec > 0 && item.generatedAtEpochSec <= state.lastSignedKeyRotationEpochSec)

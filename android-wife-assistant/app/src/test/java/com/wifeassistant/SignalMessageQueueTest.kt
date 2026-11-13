@@ -46,6 +46,20 @@ class SignalMessageQueueTest {
         assertTrue(runCatching { f.a.queue().markSubmitted(first.id, "different") }.isFailure)
     }
 
+    @Test fun initialMessageExpiresAtClaimDeadlineAndAnExpiredAttemptCannotAdvanceTheRatchet() {
+        val f = Fixture()
+        val first = f.a.queue().prepare("bounded", "B", "initial".toByteArray(), f.now, f.now + 600, f.now + 60)
+        assertEquals(f.now + 60, first.expiresAtEpochSec)
+        val saved = f.a.value
+        assertTrue(runCatching {
+            f.a.queue().prepare("too-late", "B", "expired".toByteArray(), f.now + 60, f.now + 660, f.now + 60)
+        }.isFailure)
+        assertEquals(saved, f.a.value)
+        assertEquals(1, f.a.queue().discardExpiredOutbox(f.now + 60))
+        f.a.queue().restartExpiredInitialSession("B", f.now + 60)
+        assertFalse(f.a.provider().hasSession("B"))
+    }
+
     @Test fun outboxIdCannotSilentlyChangePayloadRecipientOrExpiry() {
         val f = Fixture(); f.outgoing(); val saved = f.a.value
         assertTrue(runCatching { f.outgoing(text = "different") }.isFailure)

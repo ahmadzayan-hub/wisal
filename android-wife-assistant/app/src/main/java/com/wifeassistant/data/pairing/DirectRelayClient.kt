@@ -1,12 +1,12 @@
 package com.wifeassistant.data.pairing
 
-import com.wifeassistant.data.crypto.DeviceIdentityCodec
-import com.wifeassistant.data.crypto.LocalIdentity
+import com.wifeassistant.data.crypto.DeviceSigningIdentity
 import com.wifeassistant.data.crypto.SignalPreKeyBundleDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import okhttp3.CertificatePinner
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 // جاي من CryptoProvider الحالي (DEMO_ONLY في التطوير) — النقل مايغيّرش
 // وصف مستوى الأمان. لو baseUrl فاضي (الـ relay لسه مش منشور)، isConfigured()
 // بترجع false بدل ما يحاول يتصل بحاجة مش موجودة.
-class DirectRelayClient(private val baseUrl: String) : PreKeyPublicationTransport {
+class DirectRelayClient(private val baseUrl: String, expectedSpkiPin: String? = null) : PreKeyPublicationTransport {
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
@@ -32,6 +32,13 @@ class DirectRelayClient(private val baseUrl: String) : PreKeyPublicationTranspor
         .retryOnConnectionFailure(false)
         .followRedirects(false)
         .followSslRedirects(false)
+        .apply {
+            if (expectedSpkiPin != null) {
+                val endpoint = baseUrl.toHttpUrlOrNull()
+                require(endpoint != null && endpoint.isHttps)
+                certificatePinner(CertificatePinner.Builder().add(endpoint.host, expectedSpkiPin).build())
+            }
+        }
         .build()
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -46,7 +53,7 @@ class DirectRelayClient(private val baseUrl: String) : PreKeyPublicationTranspor
         return url.toString().trimEnd('/')
     }
 
-    suspend fun registerDevice(identity: LocalIdentity): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun registerDevice(identity: DeviceSigningIdentity): Result<Unit> = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext Result.failure(IllegalStateException("relay not configured"))
         val sig = signB64(identity, DirectRelayProofs.register(identity.deviceId))
         val body = json.encodeToString(
@@ -57,7 +64,7 @@ class DirectRelayClient(private val baseUrl: String) : PreKeyPublicationTranspor
     }
 
     suspend fun submitEnvelope(
-        identity: LocalIdentity,
+        identity: DeviceSigningIdentity,
         recipientDeviceId: String,
         ciphertextB64: String,
         backend: String,
@@ -74,7 +81,7 @@ class DirectRelayClient(private val baseUrl: String) : PreKeyPublicationTranspor
         }
     }
 
-    suspend fun fetchInbox(identity: LocalIdentity, nowEpochSec: Long): Result<List<RelayInboxItem>> = withContext(Dispatchers.IO) {
+    suspend fun fetchInbox(identity: DeviceSigningIdentity, nowEpochSec: Long): Result<List<RelayInboxItem>> = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext Result.failure(IllegalStateException("relay not configured"))
         val proof = DirectRelayProofs.fetch(identity.deviceId, nowEpochSec)
         val sig = java.net.URLEncoder.encode(signB64(identity, proof), "UTF-8")
@@ -88,14 +95,14 @@ class DirectRelayClient(private val baseUrl: String) : PreKeyPublicationTranspor
         }
     }
 
-    suspend fun ackDelivery(identity: LocalIdentity, envelopeId: String): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun ackDelivery(identity: DeviceSigningIdentity, envelopeId: String): Result<Unit> = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext Result.failure(IllegalStateException("relay not configured"))
         val sig = signB64(identity, DirectRelayProofs.ack(envelopeId))
         val body = json.encodeToString(AckRequest.serializer(), AckRequest(identity.deviceId, envelopeId, sig))
         post(AckResponse.serializer(), "$baseUrl/api/ack", body).map { }
     }
 
-    override suspend fun publishPreKeys(identity: LocalIdentity, bundle: SignalPreKeyBundleDto, nowEpochSec: Long): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun publishPreKeys(identity: DeviceSigningIdentity, bundle: SignalPreKeyBundleDto, nowEpochSec: Long): Result<Unit> = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext Result.failure(IllegalStateException("relay not configured"))
         runCatching {
             require(nowEpochSec > 0 && bundle.deviceId == identity.deviceId && bundle.hasValidWireFields()) { "invalid pre-key publication" }
@@ -106,7 +113,7 @@ class DirectRelayClient(private val baseUrl: String) : PreKeyPublicationTranspor
         }
     }
 
-    override suspend fun preKeyPublicationStatus(identity: LocalIdentity, nowEpochSec: Long): Result<RelayPreKeyStatus> = withContext(Dispatchers.IO) {
+    override suspend fun preKeyPublicationStatus(identity: DeviceSigningIdentity, nowEpochSec: Long): Result<RelayPreKeyStatus> = withContext(Dispatchers.IO) {
         runCatching {
             val scope = publicationScope()
             require(nowEpochSec in 1..9_007_199_254_740_991L && identity.deviceId.length in 1..200 && !identity.deviceId.contains(':'))
@@ -130,7 +137,7 @@ class DirectRelayClient(private val baseUrl: String) : PreKeyPublicationTranspor
         }
     }
 
-    suspend fun claimPreKeys(identity: LocalIdentity, targetDeviceId: String, nowEpochSec: Long): Result<SignalPreKeyBundleDto> = withContext(Dispatchers.IO) {
+    suspend fun claimPreKeys(identity: DeviceSigningIdentity, targetDeviceId: String, nowEpochSec: Long): Result<SignalPreKeyBundleDto> = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext Result.failure(IllegalStateException("relay not configured"))
         runCatching {
             require(nowEpochSec > 0 && targetDeviceId.isNotBlank() && !targetDeviceId.contains(':') && targetDeviceId != identity.deviceId) { "invalid pre-key target" }
@@ -143,7 +150,7 @@ class DirectRelayClient(private val baseUrl: String) : PreKeyPublicationTranspor
         }
     }
 
-    suspend fun revokeDevice(identity: LocalIdentity, nowEpochSec: Long): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun revokeDevice(identity: DeviceSigningIdentity, nowEpochSec: Long): Result<Unit> = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext Result.failure(IllegalStateException("relay not configured"))
         runCatching {
             require(nowEpochSec > 0) { "invalid revocation timestamp" }
@@ -154,8 +161,8 @@ class DirectRelayClient(private val baseUrl: String) : PreKeyPublicationTranspor
         }
     }
 
-    private fun signB64(identity: LocalIdentity, proof: String): String =
-        Base64.getEncoder().encodeToString(DeviceIdentityCodec.sign(identity, proof.toByteArray()))
+    private fun signB64(identity: DeviceSigningIdentity, proof: String): String =
+        Base64.getEncoder().encodeToString(identity.sign(proof.toByteArray(Charsets.UTF_8)))
 
     // POST مشترك: بيبعت الجسم ويفكّ الرد بالسكيمة المُمرّرة، وبيفشل بوضوح لو
     // ok=false أو الـ HTTP مش ناجح — مفيش نجاح صامت لطلب مرفوض.

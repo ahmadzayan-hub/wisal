@@ -19,7 +19,7 @@ data class PreKeyMaintenanceResult(
 )
 
 /** Explicit, bounded, single-process integration. Nothing schedules or activates
- * this class in the app. One call publishes OR reconciles at most one journaled
+ * this class implicitly. One call publishes OR reconciles at most one journaled
  * bundle. The caller decides when to retry; there is no internal retry loop.
  *
  * Every new bundle rotates the signed, Kyber and one-time triplet, reusing PR #18.
@@ -41,7 +41,7 @@ class DirectPreKeyMaintenance(
         private val maintenanceLock = Mutex()
     }
 
-    suspend fun runOnce(identity: LocalIdentity): Result<PreKeyMaintenanceResult> = withContext(Dispatchers.IO) {
+    suspend fun runOnce(identity: DeviceSigningIdentity): Result<PreKeyMaintenanceResult> = withContext(Dispatchers.IO) {
         maintenanceLock.withLock {
             try {
                 Result.success(maintain(identity))
@@ -54,7 +54,7 @@ class DirectPreKeyMaintenance(
         }
     }
 
-    private suspend fun maintain(identity: LocalIdentity): PreKeyMaintenanceResult {
+    private suspend fun maintain(identity: DeviceSigningIdentity): PreKeyMaintenanceResult {
         val scope = relay.publicationScope()
         val local = provider.preKeyPublicationState(identity.deviceId)
         listOfNotNull(local.pending, local.accepted).forEach {
@@ -82,7 +82,7 @@ class DirectPreKeyMaintenance(
         local.pending?.let { pending ->
             if (observed.matches(pending)) {
                 if (observed.oneTimePreKeyAvailable && !local.pendingOneTimeKeyPresent) throw PreKeyPublicationConflictException()
-                provider.acceptPreKeyPublication(identity.deviceId, pending)
+                provider.acceptPreKeyPublication(identity.deviceId, pending, observed.serverTimeEpochSec)
                 return result(PreKeyMaintenanceAction.RECONCILED, pending, observed)
             }
             // Only a known previous accepted publication (or an empty first
@@ -100,6 +100,7 @@ class DirectPreKeyMaintenance(
             oneTimePreKeyCount = if (observed.oneTimePreKeyAvailable) 1 else 0,
         ), checkedNow())
         if (decision.clockAnomaly) throw PreKeyClockException()
+        provider.retireSupersededPreKeys(identity.deviceId, observed.serverTimeEpochSec)
         if (!decision.needsReplenishment) return result(PreKeyMaintenanceAction.CURRENT, checkNotNull(local.accepted), observed)
 
         coroutineContext.ensureActive()
@@ -110,7 +111,7 @@ class DirectPreKeyMaintenance(
         return publishAndConfirm(identity, pending, ::checkedNow)
     }
 
-    private suspend fun publishAndConfirm(identity: LocalIdentity, pending: PreparedPreKeyPublication,
+    private suspend fun publishAndConfirm(identity: DeviceSigningIdentity, pending: PreparedPreKeyPublication,
         now: () -> Long): PreKeyMaintenanceResult {
         coroutineContext.ensureActive()
         val timestamp = now()
@@ -124,7 +125,7 @@ class DirectPreKeyMaintenance(
         val observed = relay.preKeyPublicationStatus(identity, confirmationTime).getOrThrow()
         if (!observed.matches(pending)) throw PreKeyPublicationConflictException()
         coroutineContext.ensureActive()
-        provider.acceptPreKeyPublication(identity.deviceId, pending)
+        provider.acceptPreKeyPublication(identity.deviceId, pending, observed.serverTimeEpochSec)
         return result(PreKeyMaintenanceAction.PUBLISHED, pending, observed)
     }
 

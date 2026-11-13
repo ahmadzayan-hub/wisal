@@ -53,7 +53,11 @@ class DeviceAcceptanceTest {
         } finally { SecureStore.setSecret(context, "deviceIdentity", saved) }
         assertEquals(owner.public, DeviceIdentityStore.getOrCreate(context).public)
         val preferences = context.getSharedPreferences("wisal_secure", Context.MODE_PRIVATE).all.toString()
-        assertFalse(preferences.contains(owner.privateKeyB64))
+        assertFalse(saved.contains("privateKeyB64"))
+        val signingKey = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+            .getKey("WisalDeviceSigning.Initial", null)
+        assertNotNull(signingKey)
+        assertNull(signingKey.encoded)
         assertFalse(preferences.contains(saved))
         assertTrue(context.getSharedPreferences("wife_assistant_settings", Context.MODE_PRIVATE).all.isEmpty())
 

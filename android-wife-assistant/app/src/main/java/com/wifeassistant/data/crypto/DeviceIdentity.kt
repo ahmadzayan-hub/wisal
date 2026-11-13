@@ -3,6 +3,7 @@ package com.wifeassistant.data.crypto
 import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
+import java.security.PrivateKey
 import java.security.SecureRandom
 import java.security.Signature
 import java.security.spec.ECGenParameterSpec
@@ -14,18 +15,24 @@ import java.util.UUID
 // هوية الجهاز لـ Wisal Direct (ADR-002 §5.2): معرّف مولّد محليًا + زوج مفاتيح
 // توقيع EC P-256 — من غير رقم تليفون ولا إيميل ولا رفع لدفتر العناوين.
 //
-// حد معروف وموثّق: المفتاح الخاص بيتخزن مشفّرًا في EncryptedSharedPreferences
-// (مفتاح الغلاف في Android Keystore). الترحيل لمفتاح hardware-backed غير قابل
-// للتصدير مسجّل كمتطلب إنتاج في ADR-002 قبل أي إطلاق عام.
+// Legacy identities and JVM fixtures can use encoded private keys. Android
+// Direct enrollment uses a separate signer backed by Android Keystore.
 
 data class PublicIdentity(val deviceId: String, val publicKeyB64: String)
 
-data class LocalIdentity(
-    val deviceId: String,
-    val publicKeyB64: String,   // X.509/SPKI
-    val privateKeyB64: String,  // PKCS#8 — يتخزن في التخزين المشفّر فقط
-) {
+interface DeviceSigningIdentity {
+    val deviceId: String
+    val publicKeyB64: String
     val public: PublicIdentity get() = PublicIdentity(deviceId, publicKeyB64)
+    fun sign(data: ByteArray): ByteArray
+}
+
+data class LocalIdentity(
+    override val deviceId: String,
+    override val publicKeyB64: String,   // X.509/SPKI
+    val privateKeyB64: String,  // PKCS#8 — يتخزن في التخزين المشفّر فقط
+) : DeviceSigningIdentity {
+    override fun sign(data: ByteArray) = DeviceIdentityCodec.sign(this, data)
     override fun toString() = "LocalIdentity(deviceId=$deviceId, privateKey=[redacted])"
 }
 
@@ -48,6 +55,10 @@ object DeviceIdentityCodec {
     fun sign(identity: LocalIdentity, data: ByteArray): ByteArray {
         val kf = KeyFactory.getInstance("EC")
         val priv = kf.generatePrivate(PKCS8EncodedKeySpec(Base64.getDecoder().decode(identity.privateKeyB64)))
+        return sign(priv, data)
+    }
+
+    internal fun sign(priv: PrivateKey, data: ByteArray): ByteArray {
         return Signature.getInstance(SIG_ALG).run {
             initSign(priv)
             update(data)

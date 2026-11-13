@@ -54,7 +54,7 @@ class DirectPreKeyMaintenanceTest {
 
         override fun publicationScope() = scope
 
-        override suspend fun publishPreKeys(identity: LocalIdentity, bundle: SignalPreKeyBundleDto,
+        override suspend fun publishPreKeys(identity: DeviceSigningIdentity, bundle: SignalPreKeyBundleDto,
             nowEpochSec: Long): Result<Unit> = runCatching {
             publishCalls++
             attempts += bundle
@@ -72,7 +72,7 @@ class DirectPreKeyMaintenanceTest {
             publishFailureAfter?.let { throw it }
         }
 
-        override suspend fun preKeyPublicationStatus(identity: LocalIdentity,
+        override suspend fun preKeyPublicationStatus(identity: DeviceSigningIdentity,
             nowEpochSec: Long): Result<RelayPreKeyStatus> = runCatching {
             statusCalls++
             beforeStatus?.invoke(statusCalls)
@@ -455,5 +455,31 @@ class DirectPreKeyMaintenanceTest {
         f.relay.available = false
         assertEquals(3, f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow().oneTimePreKeyId)
         assertEquals(listOf(1, 2, 3), f.relay.attempts.map { it.oneTimePreKeyId })
+    }
+
+    @Test fun supersededTripletSurvivesUntilDeadlineThenRetiresAcrossRestartWithoutReusingIds() = runBlocking {
+        val f = Fixture()
+        f.coordinator(interval = Long.MAX_VALUE).runOnce(f.identity).getOrThrow()
+        f.relay.available = false
+        f.coordinator(interval = Long.MAX_VALUE).runOnce(f.identity).getOrThrow()
+        val deadline = f.now + SUPERSEDED_PRE_KEY_RETENTION_SECONDS
+
+        f.now = deadline - 1
+        assertEquals(PreKeyMaintenanceAction.CURRENT, f.coordinator(f.disk.open(), Long.MAX_VALUE)
+            .runOnce(f.identity).getOrThrow().action)
+        val before = Json.parseToJsonElement(f.disk.value!!).jsonObject
+        for (key in listOf("preKeys", "signedKeys", "kyberKeys")) {
+            assertEquals(setOf("1", "2"), before.getValue(key).jsonObject.keys)
+        }
+
+        f.now = deadline
+        assertEquals(PreKeyMaintenanceAction.CURRENT, f.coordinator(f.disk.open(), Long.MAX_VALUE)
+            .runOnce(f.identity).getOrThrow().action)
+        val after = Json.parseToJsonElement(f.disk.value!!).jsonObject
+        for (key in listOf("preKeys", "signedKeys", "kyberKeys")) {
+            assertEquals(setOf("2"), after.getValue(key).jsonObject.keys)
+        }
+        f.relay.available = false
+        assertEquals(3, f.coordinator(f.disk.open()).runOnce(f.identity).getOrThrow().oneTimePreKeyId)
     }
 }
