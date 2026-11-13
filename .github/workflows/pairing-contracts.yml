@@ -1,0 +1,33 @@
+name: Pairing acceptance JVM contracts
+on:
+  pull_request:
+    paths:
+      - 'android-wife-assistant/**'
+      - 'verification/pairing/**'
+      - '.github/workflows/pairing-contracts.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'android-wife-assistant/**'
+      - 'verification/pairing/**'
+      - '.github/workflows/pairing-contracts.yml'
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: bash android-wife-assistant/gradlew --no-daemon -p verification/pairing test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pairing-acceptance-test-results
+          path: verification/pairing/build/test-results/test
+          retention-days: 7
