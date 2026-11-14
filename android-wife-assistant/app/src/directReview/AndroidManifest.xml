@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <application android:label="Wisal Direct Review" android:usesCleartextTraffic="false"
+    <application android:label="@string/direct_review_app_name" android:usesCleartextTraffic="false"
         android:networkSecurityConfig="@xml/direct_review_network_security"
         tools:replace="android:label">
         <activity android:name=".MainActivity" android:enabled="false" />
-        <activity android:name=".DirectReviewActivity" android:exported="true">
+        <activity android:name=".DirectReviewActivity" android:exported="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
